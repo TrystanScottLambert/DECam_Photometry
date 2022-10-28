@@ -1,0 +1,16 @@
+"""Main script to check photometry of DECAM images."""
+
+import pylab as plt
+from decam import DecamImage
+
+INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/i/target/c4d_211021_003551_osj_i_v1.fits.fz'
+PAN_CAT = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
+i_band = DecamImage(INFILE)
+decam_cat, pan_cat = i_band.cross_match_with_panstars(PAN_CAT)
+decam_mags = decam_cat['mag']
+pan_mags = pan_cat['iMeanPSFMag']
+
+converted_dec_mags = pan_mags - 0.155 * (pan_cat['rMeanPSFMag'] - pan_mags) + 0.015
+plt.scatter(decam_mags, pan_mags)
+plt.xlabel('decam_mags')
+plt.ylabel('pan_stars_mags')
