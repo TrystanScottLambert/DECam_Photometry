@@ -3,7 +3,7 @@
 import pylab as plt
 from decam import DecamImage
 
-INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/i/target/c4d_211021_003551_osj_i_v1.fits.fz'
+INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1_skysubtracted_flux.fits.fz'
 PAN_CAT = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
 i_band = DecamImage(INFILE)
 decam_cat, pan_cat = i_band.cross_match_with_panstars(PAN_CAT)
@@ -14,3 +14,4 @@ converted_dec_mags = pan_mags - 0.155 * (pan_cat['rMeanPSFMag'] - pan_mags) + 0.
 plt.scatter(decam_mags, pan_mags)
 plt.xlabel('decam_mags')
 plt.ylabel('pan_stars_mags')
+plt.show()
