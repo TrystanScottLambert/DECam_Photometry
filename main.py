@@ -11,7 +11,7 @@ decam_mags = decam_cat['mag']
 pan_mags = pan_cat['iMeanPSFMag']
 
 converted_dec_mags = pan_mags - 0.155 * (pan_cat['rMeanPSFMag'] - pan_mags) + 0.015
-plt.scatter(decam_mags, pan_mags)
+plt.scatter(decam_mags, converted_dec_mags)
 plt.xlabel('decam_mags')
 plt.ylabel('pan_stars_mags')
 plt.show()
