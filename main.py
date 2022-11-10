@@ -7,7 +7,7 @@ INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_00394
 PAN_CAT = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
 i_band = DecamImage(INFILE)
 decam_cat, pan_cat = i_band.cross_match_with_panstars(PAN_CAT)
-decam_mags = decam_cat['mag']
+decam_mags = decam_cat['mag'] + 25.128
 pan_mags = pan_cat['iMeanPSFMag']
 
 converted_dec_mags = pan_mags - 0.155 * (pan_cat['rMeanPSFMag'] - pan_mags) + 0.015
