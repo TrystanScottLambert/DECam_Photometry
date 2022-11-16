@@ -1,6 +1,7 @@
 """Main class for sextractor catalogs."""
 
 import numpy as np
+import pylab as plt
 import pandas as pd
 from find_stars import cross_match
 import sex_utils as su
@@ -25,3 +26,10 @@ class SExtractorCat:
         matched_panstars_catalog = panstars_catalog.iloc[idx_panstars]
         matched_decam_catalog = self.catalog[idx_decam]
         return matched_decam_catalog, matched_panstars_catalog
+
+    def quick_look(self) -> None:
+        """Plots the ra and dec scatter plot to make sure things look ok."""
+        ra_decam = np.array(list(self.catalog['ALPHAPEAK_J2000']))
+        dec_decam = np.array(list(self.catalog['DELTAPEAK_J2000']))
+        plt.scatter(ra_decam, dec_decam)
+        plt.show()
