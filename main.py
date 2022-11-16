@@ -48,7 +48,9 @@ y_data = np.array(difference)[cut]
 delta_y = np.array(difference_errors)[cut]
 delta_x = np.array(decam_mags_uncertainty)[cut]
 cut = np.where((x_data <= -12) & (x_data >= -14))[0]
-a_fit, cov=curve_fit(straight_line, x_data[cut], y_data[cut],sigma=delta_y[cut],absolute_sigma=True)
+cut2 = np.where((y_data < -30.512) & (y_data > -31.41))[0]
+cut = np.intersect1d(cut, cut2)
+a_fit, cov = curve_fit(straight_line, x_data[cut], y_data[cut],sigma=delta_y[cut],absolute_sigma=True)
 uncertainties = np.sqrt(np.diag(cov))
 c = a_fit[0]
 plt.errorbar(x_data, y_data, xerr=delta_x,
@@ -56,4 +58,5 @@ plt.errorbar(x_data, y_data, xerr=delta_x,
 plt.xlabel('decam_mags')
 plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
 plt.axhline(c,lw=4,color='k', ls='--')
+plt.ylim(-31.41, -30.512)
 plt.show()
