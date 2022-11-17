@@ -7,8 +7,8 @@ from scipy.optimize import curve_fit
 from sex_catalog import SExtractorCat
 
 
-def straight_line(x, c):
-    return c
+def straight_line(x, c, m):
+    return m*x + c
 
 #INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1_skysubtracted_flux.fits.fz'
 INFILE  = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
@@ -53,10 +53,14 @@ cut = np.intersect1d(cut, cut2)
 a_fit, cov = curve_fit(straight_line, x_data[cut], y_data[cut],sigma=delta_y[cut],absolute_sigma=True)
 uncertainties = np.sqrt(np.diag(cov))
 c = a_fit[0]
+m = a_fit[1]
 plt.errorbar(x_data, y_data, xerr=delta_x,
              yerr=delta_y, fmt='ro', ms=3, capsize=5, ecolor='k')
 plt.xlabel('decam_mags')
 plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
-plt.axhline(c,lw=4,color='k', ls='--')
+
+x = np.linspace(np.sort(x_data)[0], np.sort(x_data)[-1])
+plt.plot(x, straight_line(x, *a_fit), ls='--', color='k', lw=2)
+#plt.axhline(c,lw=4,color='k', ls='--')
 plt.ylim(-31.41, -30.512)
 plt.show()
