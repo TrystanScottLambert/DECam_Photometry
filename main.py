@@ -8,6 +8,7 @@ from sex_catalog import SExtractorCat
 
 
 def straight_line(x, c, m):
+    """straight line to fit to data."""
     return m*x + c
 
 #INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1_skysubtracted_flux.fits.fz'
@@ -37,8 +38,13 @@ plt.xlabel('decam_mags')
 plt.ylabel('pan_stars_mags')
 plt.show()
 
-plt.errorbar(np.array(decam_mags)[cut], np.array(converted_dec_mags)[cut], xerr=np.array(decam_mags_uncertainty)[cut], 
-             yerr=np.array(converted_dec_mags_error)[cut], fmt='ro', ms=3, capsize=5, ecolor='k')
+plt.errorbar(
+    np.array(decam_mags)[cut], 
+    np.array(converted_dec_mags)[cut], 
+    xerr=np.array(decam_mags_uncertainty)[cut],
+    yerr=np.array(converted_dec_mags_error)[cut], 
+    fmt='ro', ms=3, capsize=5, ecolor='k')
+
 plt.xlabel('decam_mags')
 plt.ylabel('pan_stars_mags converted into decam Mags')
 plt.show()
@@ -50,7 +56,8 @@ delta_x = np.array(decam_mags_uncertainty)[cut]
 cut = np.where((x_data <= -12) & (x_data >= -14))[0]
 cut2 = np.where((y_data < -30.512) & (y_data > -31.41))[0]
 cut = np.intersect1d(cut, cut2)
-a_fit, cov = curve_fit(straight_line, x_data[cut], y_data[cut],sigma=delta_y[cut],absolute_sigma=True)
+a_fit, cov = curve_fit(
+    straight_line, x_data[cut], y_data[cut],sigma=delta_y[cut],absolute_sigma=True)
 uncertainties = np.sqrt(np.diag(cov))
 c = a_fit[0]
 m = a_fit[1]
@@ -61,6 +68,5 @@ plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
 
 x = np.linspace(np.sort(x_data)[0], np.sort(x_data)[-1])
 plt.plot(x, straight_line(x, *a_fit), ls='--', color='k', lw=2)
-#plt.axhline(c,lw=4,color='k', ls='--')
 plt.ylim(-31.41, -30.512)
 plt.show()
