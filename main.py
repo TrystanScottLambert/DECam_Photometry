@@ -39,7 +39,8 @@ def make_wide_band_mags(
         dec_mags, dec_mags_uncertainty, converted_mags, converted_mags_errors)
 
 
-    return dec_mags, dec_mags_uncertainty, pan_mags, pan_mags_uncertainty, converted_mags, converted_mags_errors, mag_diff, mag_diff_err
+    return dec_mags, dec_mags_uncertainty, pan_mags, pan_mags_uncertainty, \
+        converted_mags, converted_mags_errors, mag_diff, mag_diff_err
 
 def convert_panstars_i_dec_mags(panstars_cat: pd.DataFrame):
     """Converts the panstars magnitudes into decam magnitudes.
@@ -96,9 +97,7 @@ def prepare_plotting_data(sextractor_file_name, panstars_file_name, band):
 
 def plot_direct_comparison(mag_1, mag_1_errors, mag_2, mag_2_errors, x_label = '', y_label = ''):
     """Just plots the two magnitudes against one another"""
-    plt.errorbar(
-        mag_1, mag_2, xerr=mag_1_errors, yerr=mag_2_errors,
-        fmt='ko', ms=3, capsize=0,ecolor='k',alpha=0.5)
+    plt.errorbar(mag_1, mag_2, xerr=mag_1_errors, yerr=mag_2_errors, fmt='ko',alpha=0.5)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.show()
@@ -111,15 +110,18 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim = None, y_lim = None
         cut2 = np.where((diff <= y_lim[1]) & (diff >= y_lim[0]))[0]
         cut = np.intersect1d(cut1, cut2)
         mag_cut = mag[cut]
-        mag_err_cut = mag_err[cut]
+        #mag_err_cut = mag_err[cut]
         diff_cut = diff[cut]
         diff_err_cut = diff_err[cut]
 
         a_fit, cov = curve_fit(straight_line, mag_cut, diff_cut, sigma=diff_err_cut, absolute_sigma=True)
+    else:
+        a_fit, cov = curve_fit(straight_line, mag, diff, sigma=diff_err, absolute_sigma=True)
     uncertainties = np.sqrt(np.diag(cov))
     c = a_fit[0]
     m = a_fit[1]
-    plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err, fmt='ro', ms=3, capsize=5, ecolor='k')
+    plt.title(f'{c} +- {uncertainties[0]}, {m} +- {uncertainties[1]}')
+    plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err, fmt='ko', ms=3, capsize=0, alpha=0.5)
     plt.xlabel('decam_mags')
     plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
 
@@ -131,7 +133,6 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim = None, y_lim = None
 if __name__ == '__main__':
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
-    decam_cat, pan_cat = read_in_wide_band(INFILE_SEX, INFILE_PAN)
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, band='i')
 
     plot_direct_comparison(
@@ -145,3 +146,19 @@ if __name__ == '__main__':
         x_label='Decam Mags', y_label='Panstars Converted into Decam')
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7], x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44))
+
+    INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/test.cat'
+    INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
+    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, band='z')
+
+    plot_direct_comparison(
+        mags[0], mags[1],
+        mags[2], mags[3],
+        x_label='Decam Mags', y_label='Panstars_Mags')
+
+    plot_direct_comparison(
+        mags[0], mags[1],
+        mags[4], mags[5],
+        x_label='Decam Mags', y_label='Panstars Converted into Decam')
+
+    plot_difference_fit(mags[0], mags[6], mags[1], mags[7], x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455))
