@@ -147,6 +147,9 @@ if __name__ == '__main__':
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7], x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44))
 
+    plt.scatter(mags[0], mags[1])
+    plt.show()
+
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, band='z')
@@ -162,3 +165,6 @@ if __name__ == '__main__':
         x_label='Decam Mags', y_label='Panstars Converted into Decam')
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7], x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455))
+
+    plt.scatter(mags[0], mags[1])
+    plt.show()
