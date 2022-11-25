@@ -13,9 +13,9 @@ def remove_outliers(array, sigma):
     good_idx = np.where((array >= median-sigma*std) & (array <= median + sigma*std))[0]
     return good_idx
 
-def straight_line(x_array, constant, gradient):
+def straight_line(x_array, constant):
     """straight line to fit to data."""
-    return gradient*x_array + constant
+    return constant * np.ones(len(x_array))
 
 def read_in_wide_band(sextractor_file_name: str, panstars_cat_name: str):
     """Reading in the catalogs."""
@@ -119,14 +119,13 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim = None, y_lim = None
         a_fit, cov = curve_fit(straight_line, mag, diff, sigma=diff_err, absolute_sigma=True)
     uncertainties = np.sqrt(np.diag(cov))
     c = a_fit[0]
-    m = a_fit[1]
-    plt.title(f'{c} +- {uncertainties[0]}, {m} +- {uncertainties[1]}')
+    plt.title(f'{c} +- {uncertainties[0]}')
     plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err, fmt='ko', ms=3, capsize=0, alpha=0.5)
     plt.xlabel('decam_mags')
     plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
 
     x = np.linspace(np.sort(mag)[0], np.sort(mag)[-1])
-    plt.plot(x, straight_line(x, *a_fit), ls='--', color='k', lw=2)
+    plt.plot(x, straight_line(x, a_fit[0]), ls='--', color='k', lw=2)
     plt.show()
 
 
@@ -168,3 +167,5 @@ if __name__ == '__main__':
 
     plt.scatter(mags[0], mags[1])
     plt.show()
+
+    # Mag vs Error:
