@@ -5,8 +5,11 @@ import random
 import pylab as plt
 import numpy as np
 import pandas as pd
+from astropy.io import fits
+from reproject.mosaicking import find_optimal_celestial_wcs
 from scipy.optimize import curve_fit
 from sex_catalog import SExtractorCat
+from decam import write_positions_as_region_file
 
 
 def remove_outliers(array, sigma):
@@ -151,13 +154,26 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None):
 def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str) -> None:
     """Makes a mag vs mag_err plot from all the available detections."""
     decam_catalog = SExtractorCat(decam_file_name)
-    mag = decam_catalog.catalog['MAG_BEST'] + zero_point
-    mag_err = decam_catalog.catalog['MAGERR_BEST']
+    mag = decam_catalog.catalog['MAG_BEST'].values + zero_point
+    mag_err = decam_catalog.catalog['MAGERR_BEST'].values
     idx = random.sample(range(len(mag)), 20000)
     plt.scatter(mag[idx], mag_err[idx], s= 1, color='k', alpha=0.3)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.show()
+
+    infile = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
+    hdu = fits.open(infile)
+    wcs_main, _ = find_optimal_celestial_wcs(hdu[1:])
+
+    cut = np.where(mag > 0)[0]
+    ra_image = decam_catalog.catalog['ALPHAPEAK_J2000'].values
+    dec_image = decam_catalog.catalog['DELTAPEAK_J2000'].values
+    ra_cut = ra_image[cut]
+    dec_cut = dec_image[cut]
+    x_bad, y_bad = wcs_main.world_to_pixel_values(ra_cut, dec_cut)
+    write_positions_as_region_file(np.transpose((x_bad, y_bad)), 'bad_values.reg', color='red')
+
 
 if __name__ == '__main__':
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
