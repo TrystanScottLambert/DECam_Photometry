@@ -154,7 +154,8 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None):
 def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str) -> None:
     """Makes a mag vs mag_err plot from all the available detections."""
     decam_catalog = SExtractorCat(decam_file_name)
-    mag = decam_catalog.catalog['MAG_BEST'].values + zero_point
+    decam_mag = decam_catalog.catalog['MAG_BEST'].values
+    mag = decam_mag + zero_point
     mag_err = decam_catalog.catalog['MAGERR_BEST'].values
     idx = random.sample(range(len(mag)), 20000)
     plt.scatter(mag[idx], mag_err[idx], s= 1, color='k', alpha=0.3)
@@ -166,7 +167,7 @@ def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: s
     hdu = fits.open(infile)
     wcs_main, _ = find_optimal_celestial_wcs(hdu[1:])
 
-    cut = np.where(mag > 0)[0]
+    cut = np.where(decam_mag > 0)[0]
     ra_image = decam_catalog.catalog['ALPHAPEAK_J2000'].values
     dec_image = decam_catalog.catalog['DELTAPEAK_J2000'].values
     ra_cut = ra_image[cut]
