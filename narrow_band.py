@@ -53,9 +53,9 @@ if __name__ == '__main__':
     for i, pop in enumerate(popt):
         print(f'{pop} +- {perr[i]}')
 
-    nstd = 5.
-    popt_up = popt + nstd * perr
-    popt_dw = popt - nstd * perr
+    NSTD = 5.
+    popt_up = popt + NSTD * perr
+    popt_dw = popt - NSTD * perr
     x_fit = np.linspace(-0.3, 0.7, 100)
     fit = straight_line(popt, x_fit)
     fit_up = straight_line(popt_up, x_fit)
@@ -72,4 +72,4 @@ if __name__ == '__main__':
     plt.plot(x_fit, fit,'r', lw=2)
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
     plt.xlim(-0.3, 0.7)
-    plotting.end_plot('N964_zpt_calculation.png')
+    plotting.end_plot('/home/trystan/Desktop/Work/PhD/main/plots/N964_zpt_calculation.png')
