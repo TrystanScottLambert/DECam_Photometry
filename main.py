@@ -139,7 +139,16 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None):
     else:
         a_fit, cov = curve_fit(straight_line, mag, diff,
                                sigma=diff_err, absolute_sigma=True)
+    
     uncertainties = np.sqrt(np.diag(cov))
+    NSTD = 5.
+    popt_up = a_fit + NSTD * uncertainties
+    popt_dw = a_fit - NSTD * uncertainties
+    x_fit = np.linspace(np.sort(mag)[0], np.sort(mag)[-1])
+    fit = straight_line(x_fit, *a_fit)
+    fit_up = straight_line(x_fit, *popt_up)
+    fit_dw= straight_line(x_fit, *popt_dw)
+
     c = a_fit[0]
     plt.title(f'{c} +- {uncertainties[0]}')
     plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err,
@@ -147,8 +156,8 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None):
     plt.xlabel('decam_mags')
     plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
 
-    x = np.linspace(np.sort(mag)[0], np.sort(mag)[-1])
-    plt.plot(x, straight_line(x, a_fit[0]), ls='--', color='k', lw=2)
+    plt.plot(x_fit, fit, ls='--', color='k', lw=2)
+    plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
     plt.show()
 
 def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str) -> None:
