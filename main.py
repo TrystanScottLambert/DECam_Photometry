@@ -2,12 +2,15 @@
 
 from typing import Tuple
 import random
+
 import pylab as plt
 import numpy as np
 import pandas as pd
 from astropy.io import fits
 from reproject.mosaicking import find_optimal_celestial_wcs
 from scipy.optimize import curve_fit
+
+import plotting
 from sex_catalog import SExtractorCat
 from decam import write_positions_as_region_file
 
@@ -122,7 +125,7 @@ def plot_direct_comparison(mag_1, mag_1_errors, mag_2, mag_2_errors, x_label='',
     plt.show()
 
 
-def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None):
+def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None, outfile = None):
     """Plots the difference plot. (Main plot). Need a difference worked out already.
     left-bottom corner and right-top corner can be included."""
     if x_lim is not None:
@@ -150,15 +153,14 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None):
     fit_dw= straight_line(x_fit, *popt_dw)
 
     c = a_fit[0]
+    plotting.start_plot('decam_mags', 'pan_stars_mags converted into decam Mags - decam mags')
     plt.title(f'{c} +- {uncertainties[0]}')
     plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err,
                  fmt='ko', ms=3, capsize=0, alpha=0.5)
-    plt.xlabel('decam_mags')
-    plt.ylabel('pan_stars_mags converted into decam Mags - decam mags')
 
     plt.plot(x_fit, fit, ls='--', color='k', lw=2)
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
-    plt.show()
+    plotting.end_plot(outfile)
 
 def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str) -> None:
     """Makes a mag vs mag_err plot from all the available detections."""
@@ -188,6 +190,7 @@ def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: s
 if __name__ == '__main__':
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
+    PLOT_FOLDER = '/home/trystan/Desktop/Work/PhD/main/plots/'
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, band='i')
 
     plot_direct_comparison(
@@ -201,7 +204,8 @@ if __name__ == '__main__':
         x_label='Decam Mags', y_label='Panstars Converted into Decam')
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7],
-                        x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44))
+                        x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44),
+                        outfile = PLOT_FOLDER + 'i_zpt.png')
 
 
     plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes', y_label='Decam i magnitude errors')
@@ -221,6 +225,7 @@ if __name__ == '__main__':
         x_label='Decam Mags', y_label='Panstars Converted into Decam')
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7],
-                        x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455))
+                        x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455),
+                        outfile=PLOT_FOLDER + 'z_zpt.png')
 
     plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes', y_label='Decam z magnitude errors')
