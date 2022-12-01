@@ -37,7 +37,7 @@ class SExtractorCat:
         plt.scatter(ra_decam, dec_decam)
         plt.show()
 
-    def to_region_file(self, decam_file: str, outfile: str, color: str = 'orange') -> None:
+    def to_region_file(self, decam_file: str, outfile: str, color: str = 'orange', only_galaxies = False) -> None:
         """Converts the points into a region file."""
         hdu = fits.open(decam_file)
         wcs, _ = find_optimal_celestial_wcs(hdu[1:])
@@ -45,6 +45,11 @@ class SExtractorCat:
         ra_positions = self.catalog['ALPHAPEAK_J2000'].values
         dec_positions = self.catalog['DELTAPEAK_J2000'].values
         x_positions, y_positions = wcs.world_to_pixel_values(ra_positions, dec_positions)
+
+        if only_galaxies is True:
+            cut = np.where(self.catalog['CLASS_STAR'].values < 0.5)
+            x_positions = x_positions[cut]
+            y_positions = y_positions[cut]
         write_positions_as_region_file(np.transpose((x_positions, y_positions)), outfile, color)
 
 if __name__ == '__main__':
