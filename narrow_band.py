@@ -23,6 +23,10 @@ def fwhm_plot(sex_file: str):
     print('FWHM:', np.median(sex_cat.catalog['FWHM_IMAGE']))
     plotting.end_plot('fwhm.png')
 
+def make_region_file(decam_file:str, sex_file: str) -> None:
+    """Makes the region file quickly."""
+    sex_cat = SExtractorCat(sex_file)
+    sex_cat.to_region_file(decam_file,'N964.reg')
 
 if __name__ == '__main__':
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat'
@@ -86,4 +90,10 @@ if __name__ == '__main__':
     plt.xlim(-0.3, 0.7)
     plotting.end_plot('/home/trystan/Desktop/Work/PhD/main/plots/N964_zpt_calculation.png')
 
-    fwhm_plot('/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat')
+    N964_DIR = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/'
+    N964_SEX_CAT = N964_DIR + 'test.cat'
+    N964_DECAM_CAT = N964_DIR + 'c4d_210831_050404_osj_N964_vik1.fits.fz'
+
+    #fwhm_plot(N964_SEX_CAT)
+    n964_sex_cat = SExtractorCat(N964_SEX_CAT)
+    n964_sex_cat.to_region_file(N964_DECAM_CAT, N964_DIR + 'N964.reg')
