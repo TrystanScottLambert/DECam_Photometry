@@ -12,6 +12,18 @@ def straight_line(parameters, x_val):
     alpha, zpt = parameters
     return x_val * alpha + zpt
 
+def fwhm_plot(sex_file: str):
+    """makes the fwhm showing the difference fwhm."""
+    sex_cat = SExtractorCat(sex_file)
+    plotting.start_plot('FWHM', 'Counts')
+    plt.hist(sex_cat.catalog['FWHM_IMAGE'], bins = 1000, color='r', lw=3, histtype='step')
+    plt.hist(sex_cat.catalog['FWHMPSF_IMAGE'], bins = 1000, color='b', lw=3, histtype='step')
+    plt.legend()
+    print('FWHMPSF: ', np.median(sex_cat.catalog['FWHMPSF_IMAGE']))
+    print('FWHM:', np.median(sex_cat.catalog['FWHM_IMAGE']))
+    plotting.end_plot('fwhm.png')
+
+
 if __name__ == '__main__':
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat'
     INFILE_Z = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
@@ -73,3 +85,5 @@ if __name__ == '__main__':
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
     plt.xlim(-0.3, 0.7)
     plotting.end_plot('/home/trystan/Desktop/Work/PhD/main/plots/N964_zpt_calculation.png')
+
+    fwhm_plot('/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat')
