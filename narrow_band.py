@@ -93,7 +93,8 @@ if __name__ == '__main__':
     N964_DIR = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/'
     N964_SEX_CAT = N964_DIR + 'test.cat'
     N964_DECAM_CAT = N964_DIR + 'c4d_210831_050404_osj_N964_vik1.fits.fz'
-
+    N964_EXP_MAP = N964_DIR + 'c4d_210831_050404_ose_N964_vik1.fits'
     #fwhm_plot(N964_SEX_CAT)
     n964_sex_cat = SExtractorCat(N964_SEX_CAT)
+    test = n964_sex_cat.remove_sources_based_on_exposure_map(N964_EXP_MAP)
     n964_sex_cat.to_region_file(N964_DECAM_CAT, N964_DIR + 'N964.reg', only_galaxies=True)
