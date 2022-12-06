@@ -162,7 +162,9 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None, ou
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
     plotting.end_plot(outfile)
 
-def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str, outfile: str, exp_map: str) -> None:
+def plot_depth(
+    decam_file_name: str, zero_point: float, x_label: str, y_label: str,
+    outfile: str, exp_map: str) -> None:
     """Makes a mag vs mag_err plot from all the available detections."""
     plt.show()
     decam_catalog = SExtractorCat(decam_file_name)
@@ -171,9 +173,13 @@ def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: s
     mag = decam_mag + zero_point
     mag_err = decam_catalog.catalog['MAGERR_BEST'].values
     idx = random.sample(range(len(mag)), 200000)
+    x_values, y_values = mag[idx], mag_err[idx]
+    cut_x = np.where(x_values < 50)
+    cut_y = np.where(y_values < 1000)
+    cut = np.intersect1d(cut_x, cut_y)
+    x_values, y_values = x_values[cut], y_values[cut]
     plotting.start_plot(x_label=x_label, y_label=y_label)
-    plt.scatter(mag[idx], mag_err[idx], s= 1, color='k', alpha=0.3)
-    plt.show()
+    plt.scatter(x_values, y_values, s= 1, color='k', alpha=0.3)
     plotting.end_plot(outfile=outfile)
 
     infile = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
@@ -235,3 +241,12 @@ if __name__ == '__main__':
 
     plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes',
                 y_label='Decam z magnitude errors', outfile='depth_z.png', exp_map = EXP_MAP)
+
+    plot_depth(
+        '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat',
+        29.01,
+        'N964 Magnitudes',
+        'N964 Magnitude Errors',
+        'N964_Depth.png',
+        '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/c4d_210831_050404_ose_N964_vik1.fits'
+    )
