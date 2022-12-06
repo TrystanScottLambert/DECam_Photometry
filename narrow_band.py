@@ -97,4 +97,4 @@ if __name__ == '__main__':
     #fwhm_plot(N964_SEX_CAT)
     n964_sex_cat = SExtractorCat(N964_SEX_CAT)
     n964_sex_cat.remove_sources_based_on_exposure_map(N964_EXP_MAP)
-    n964_sex_cat.to_region_file(N964_DECAM_CAT, N964_DIR + 'N964.reg', only_galaxies=True)
+    n964_sex_cat.to_region_file(N964_DECAM_CAT, N964_DIR + 'N964.reg')

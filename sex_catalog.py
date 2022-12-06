@@ -65,7 +65,7 @@ class SExtractorCat:
                 self.catalog['ALPHAPEAK_J2000'], self.catalog['DELTAPEAK_J2000'])
             x_pixels, y_pixels = x_pixels.astype(int), y_pixels.astype(int)
             cut_y = np.where((y_pixels < hdu.shape[0]) & (y_pixels >= 0))[0]
-            cut_x = np.where((x_pixels < hdu.shape[0]) & (x_pixels >= 0))[0]
+            cut_x = np.where((x_pixels < hdu.shape[1]) & (x_pixels >= 0))[0]
             final_cut = np.intersect1d(cut_x, cut_y).astype(int)
             vals = [hdu.data[y_pixels[index], x_pixels[index]] for index in final_cut]
             exptime[final_cut] = vals
