@@ -12,15 +12,14 @@ def straight_line(parameters, x_val):
     alpha, zpt = parameters
     return x_val * alpha + zpt
 
-def fwhm_plot(sex_file: str):
+def fwhm_plot(sex_cat: SExtractorCat, psf_type: str = 'WORLD'):
     """makes the fwhm showing the difference fwhm."""
-    sex_cat = SExtractorCat(sex_file)
     plotting.start_plot('FWHM', 'Counts')
-    plt.hist(sex_cat.catalog['FWHM_IMAGE'], bins = 1000, color='r', lw=3, histtype='step')
-    plt.hist(sex_cat.catalog['FWHMPSF_IMAGE'], bins = 1000, color='b', lw=3, histtype='step')
+    plt.hist(sex_cat.catalog[f'FWHM_{psf_type}'], bins = 1000, color='r', lw=3, histtype='step')
+    plt.hist(sex_cat.catalog[f'FWHMPSF_{psf_type}'], bins = 1000, color='b', lw=3, histtype='step')
     plt.legend()
-    print('FWHMPSF: ', np.median(sex_cat.catalog['FWHMPSF_IMAGE']))
-    print('FWHM:', np.median(sex_cat.catalog['FWHM_IMAGE']))
+    print(f'FWHMPSF {psf_type}: ', np.median(sex_cat.catalog[f'FWHMPSF_{psf_type}']))
+    print(f'FWHM: {psf_type}', np.median(sex_cat.catalog[f'FWHM_{psf_type}']))
     plotting.end_plot('fwhm.png')
 
 def make_region_file(decam_file:str, sex_file: str) -> None:
@@ -94,7 +93,9 @@ if __name__ == '__main__':
     N964_SEX_CAT = N964_DIR + 'test.cat'
     N964_DECAM_CAT = N964_DIR + 'c4d_210831_050404_osj_N964_vik1.fits.fz'
     N964_EXP_MAP = N964_DIR + 'c4d_210831_050404_ose_N964_vik1.fits'
-    #fwhm_plot(N964_SEX_CAT)
+
     n964_sex_cat = SExtractorCat(N964_SEX_CAT)
     n964_sex_cat.remove_sources_based_on_exposure_map(N964_EXP_MAP)
+    n964_sex_cat.catalog = n964_sex_cat.catalog[n964_sex_cat.catalog['MAG_BEST'] < 3]
+    fwhm_plot(n964_sex_cat)
     n964_sex_cat.to_region_file(N964_DECAM_CAT, N964_DIR + 'N964.reg')
