@@ -162,17 +162,19 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None, ou
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
     plotting.end_plot(outfile)
 
-def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str) -> None:
+def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str, outfile: str, exp_map: str) -> None:
     """Makes a mag vs mag_err plot from all the available detections."""
+    plt.show()
     decam_catalog = SExtractorCat(decam_file_name)
+    decam_catalog.remove_sources_based_on_exposure_map(exp_map=exp_map)
     decam_mag = decam_catalog.catalog['MAG_BEST'].values
     mag = decam_mag + zero_point
     mag_err = decam_catalog.catalog['MAGERR_BEST'].values
-    idx = random.sample(range(len(mag)), 20000)
+    idx = random.sample(range(len(mag)), 200000)
+    plotting.start_plot(x_label=x_label, y_label=y_label)
     plt.scatter(mag[idx], mag_err[idx], s= 1, color='k', alpha=0.3)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
     plt.show()
+    plotting.end_plot(outfile=outfile)
 
     infile = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
     hdu = fits.open(infile)
@@ -188,10 +190,11 @@ def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: s
 
 
 if __name__ == '__main__':
+    PLOT_FOLDER = '/home/trystan/Desktop/Work/PhD/main/plots/'
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
-    PLOT_FOLDER = '/home/trystan/Desktop/Work/PhD/main/plots/'
-    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, band='i')
+    EXP_MAP = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_ose_i_vik1.fits.fz'
+    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, 'i')
 
     plot_direct_comparison(
         mags[0], mags[1],
@@ -208,11 +211,13 @@ if __name__ == '__main__':
                         outfile = PLOT_FOLDER + 'i_zpt.png')
 
 
-    plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes', y_label='Decam i magnitude errors')
+    plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes',
+               y_label='Decam i magnitude errors', outfile='depth_i.png', exp_map = EXP_MAP)
 
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
-    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, band='z')
+    EXP_MAP = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/c4d_210831_053503_ose_z_vik1.fits'
+    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN,'z')
 
     plot_direct_comparison(
         mags[0], mags[1],
@@ -228,4 +233,5 @@ if __name__ == '__main__':
                         x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455),
                         outfile=PLOT_FOLDER + 'z_zpt.png')
 
-    plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes', y_label='Decam z magnitude errors')
+    plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes',
+                y_label='Decam z magnitude errors', outfile='depth_z.png', exp_map = EXP_MAP)
