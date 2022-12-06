@@ -178,8 +178,13 @@ def plot_depth(
     cut_y = np.where(y_values < 1000)
     cut = np.intersect1d(cut_x, cut_y)
     x_values, y_values = x_values[cut], y_values[cut]
+    signal_to_noise = (2.5/np.log(10))/y_values
+    cut = np.where(signal_to_noise < 10)[0]
+    x_values, y_values, signal_to_noise = x_values[cut], y_values[cut], signal_to_noise[cut]
     plotting.start_plot(x_label=x_label, y_label=y_label)
-    plt.scatter(x_values, y_values, s= 1, color='k', alpha=0.3)
+    plt.scatter(x_values, signal_to_noise, s= 1, color='k', alpha=0.3)
+    plt.axhline(3, ls='--', lw=1.5, color='r', alpha=0.4)
+    #plt.show()
     plotting.end_plot(outfile=outfile)
 
     infile = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
@@ -218,7 +223,7 @@ if __name__ == '__main__':
 
 
     plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes',
-               y_label='Decam i magnitude errors', outfile='depth_i.png', exp_map = EXP_MAP)
+               y_label='SNR', outfile='plots/depth_i.png', exp_map = EXP_MAP)
 
     INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
@@ -240,13 +245,13 @@ if __name__ == '__main__':
                         outfile=PLOT_FOLDER + 'z_zpt.png')
 
     plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes',
-                y_label='Decam z magnitude errors', outfile='depth_z.png', exp_map = EXP_MAP)
+                y_label='SNR', outfile='plots/depth_z.png', exp_map = EXP_MAP)
 
     plot_depth(
         '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat',
         29.01,
         'N964 Magnitudes',
-        'N964 Magnitude Errors',
-        'N964_Depth.png',
+        'SNR',
+        'plots/N964_Depth.png',
         '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/c4d_210831_050404_ose_N964_vik1.fits'
     )
