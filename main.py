@@ -172,15 +172,21 @@ def plot_depth(
     decam_mag = decam_catalog.catalog['MAG_BEST'].values
     mag = decam_mag + zero_point
     mag_err = decam_catalog.catalog['MAGERR_BEST'].values
-    idx = random.sample(range(len(mag)), 200000)
-    x_values, y_values = mag[idx], mag_err[idx]
-    cut_x = np.where(x_values < 50)
-    cut_y = np.where(y_values < 1000)
+    #idx = random.sample(range(len(mag)), 20000)
+    #x_values, y_values = mag[idx], mag_err[idx]
+    cut_x = np.where(mag < 50)
+    cut_y = np.where(mag_err < 1000)
     cut = np.intersect1d(cut_x, cut_y)
-    x_values, y_values = x_values[cut], y_values[cut]
+    x_values, y_values = mag[cut], mag_err[cut]
     signal_to_noise = (2.5/np.log(10))/y_values
     cut = np.where(signal_to_noise < 10)[0]
     x_values, y_values, signal_to_noise = x_values[cut], y_values[cut], signal_to_noise[cut]
+    hist_cut = np.where((signal_to_noise >= 2.8) & (signal_to_noise <= 3.2))[0]
+    plotting.start_plot('Magnitudes', 'Counts')
+    plt.hist(x_values[hist_cut], bins=np.arange(24.5, 28, 0.2), histtype='step', lw=2, color='r')
+    plotting.end_plot('Depth_Distribution.png')
+    #plt.show()
+
     plotting.start_plot(x_label=x_label, y_label=y_label)
     plt.scatter(x_values, signal_to_noise, s= 1, color='k', alpha=0.3)
     plt.axhline(3, ls='--', lw=1.5, color='r', alpha=0.4)
