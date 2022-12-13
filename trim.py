@@ -50,4 +50,3 @@ if __name__ == '__main__':
 
     cut_fits_image(INFILE_N964, n964_position, SIZE, 'test_delete_n964.fits')
     cut_fits_image(INFILE_N964_WEIGHT, n964_position, SIZE, 'test_delete_n964_weight.fits')
-    
