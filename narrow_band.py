@@ -28,7 +28,7 @@ def make_region_file(decam_file:str, sex_file: str) -> None:
     sex_cat.to_region_file(decam_file,'N964.reg')
 
 if __name__ == '__main__':
-    INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat'
+    INFILE_SEX = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/test.cat'
     INFILE_Z = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
     INFILE_Y = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_y.csv'
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     plt.xlim(-0.3, 0.7)
     plotting.end_plot('/home/trystan/Desktop/Work/PhD/main/plots/N964_zpt_calculation.png')
 
-    N964_DIR = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/'
+    N964_DIR = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/'
     N964_SEX_CAT = N964_DIR + 'test.cat'
     N964_DECAM_CAT = N964_DIR + 'c4d_210831_050404_osj_N964_vik1.fits.fz'
     N964_EXP_MAP = N964_DIR + 'c4d_210831_050404_ose_N964_vik1.fits'
