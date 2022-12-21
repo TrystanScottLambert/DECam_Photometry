@@ -158,6 +158,7 @@ def plot_difference_fit(
     c = a_fit[0]
     plotting.start_plot(x_label = x_label, y_label=y_label)
     #plt.title(f'{c} +- {uncertainties[0]}')
+    print(f'HELLO THIS THE ZPT: {c} +- {uncertainties[0]}')
     plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err,
                  fmt='ko', ms=3, capsize=0, alpha=0.5)
 
