@@ -125,7 +125,10 @@ def plot_direct_comparison(mag_1, mag_1_errors, mag_2, mag_2_errors, x_label='',
     plt.show()
 
 
-def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None, outfile = None):
+def plot_difference_fit(
+    mag, diff, mag_err, diff_err,
+    x_lim=None, y_lim=None, outfile = None,
+    x_label=None, y_label=None):
     """Plots the difference plot. (Main plot). Need a difference worked out already.
     left-bottom corner and right-top corner can be included."""
     if x_lim is not None:
@@ -153,13 +156,14 @@ def plot_difference_fit(mag, diff, mag_err, diff_err, x_lim=None, y_lim=None, ou
     fit_dw= straight_line(x_fit, *popt_dw)
 
     c = a_fit[0]
-    plotting.start_plot('decam_mags', 'pan_stars_mags converted into decam Mags - decam mags')
-    plt.title(f'{c} +- {uncertainties[0]}')
+    plotting.start_plot(x_label = x_label, y_label=y_label)
+    #plt.title(f'{c} +- {uncertainties[0]}')
     plt.errorbar(mag, diff, xerr=mag_err, yerr=diff_err,
                  fmt='ko', ms=3, capsize=0, alpha=0.5)
 
     plt.plot(x_fit, fit, ls='--', color='k', lw=2)
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
+    plt.ylim(top=-29.9)
     plotting.end_plot(outfile)
 
 def plot_depth(
@@ -193,7 +197,7 @@ def plot_depth(
     #plt.show()
     plotting.end_plot(outfile=outfile)
 
-    infile = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
+    infile = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
     hdu = fits.open(infile)
     wcs_main, _ = find_optimal_celestial_wcs(hdu[1:])
 
@@ -208,9 +212,9 @@ def plot_depth(
 
 if __name__ == '__main__':
     PLOT_FOLDER = '/home/trystan/Desktop/Work/PhD/main/plots/'
-    INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
+    INFILE_SEX = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/i/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
-    EXP_MAP = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_ose_i_vik1.fits.fz'
+    EXP_MAP = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/i/c4d_211021_003940_ose_i_vik1.fits.fz'
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, 'i')
 
     plot_direct_comparison(
@@ -225,15 +229,16 @@ if __name__ == '__main__':
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7],
                         x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44),
-                        outfile = PLOT_FOLDER + 'i_zpt.png')
+                        outfile = PLOT_FOLDER + 'i_zpt.png', x_label=r'$i_{\rm DECam}$',
+                        y_label = r'$i_{\rm converted ps1}$')
 
 
     plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes',
                y_label='SNR', outfile='plots/depth_i.png', exp_map = EXP_MAP)
 
-    INFILE_SEX = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/test.cat'
+    INFILE_SEX = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/z/test.cat'
     INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
-    EXP_MAP = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/c4d_210831_053503_ose_z_vik1.fits'
+    EXP_MAP = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/z/c4d_210831_053503_ose_z_vik1.fits'
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN,'z')
 
     plot_direct_comparison(
@@ -248,16 +253,17 @@ if __name__ == '__main__':
 
     plot_difference_fit(mags[0], mags[6], mags[1], mags[7],
                         x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455),
-                        outfile=PLOT_FOLDER + 'z_zpt.png')
+                        outfile=PLOT_FOLDER + 'z_zpt.png',
+                        x_label = r'$z_{\rm DECam}$', y_label = r'$z_{\rm converted ps1}$')
 
     plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes',
                 y_label='SNR', outfile='plots/depth_z.png', exp_map = EXP_MAP)
 
     plot_depth(
-        '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/test.cat',
+        '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/test.cat',
         29.01,
         'N964 Magnitudes',
         'SNR',
         'plots/N964_Depth.png',
-        '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/c4d_210831_050404_ose_N964_vik1.fits'
+        '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/c4d_210831_050404_ose_N964_vik1.fits'
     )
