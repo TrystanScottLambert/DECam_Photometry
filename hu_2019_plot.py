@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib as mpl
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+import plotting
 
 mpl.rcParams.update({'font.size': 2})
 plt.rcParams['font.size'] = 12
@@ -62,11 +63,10 @@ if __name__ == '__main__':
     c = SkyCoord(ra = RA_qso * u.deg, dec = DEC_qso * u.deg)
     idx, d2d, _ = c.match_to_catalog_sky(catalog)
 
+    plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
     plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
     plt.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
     plt.xlim(16, 28) 
     plt.ylim(-1,12)
-    plt.xlabel('N964 [Mag]', fontsize=15)
-    plt.ylabel('z - N964 [Mag]', fontsize=15)
     plt.axhline(1.9, color='r', lw=1)
-    plt.show()
+    plotting.end_plot('plots/hu_plot_z.png')
