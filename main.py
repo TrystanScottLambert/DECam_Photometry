@@ -198,7 +198,7 @@ def plot_depth(
     #plt.show()
     plotting.end_plot(outfile=outfile)
 
-    infile = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
+    infile = '../correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
     hdu = fits.open(infile)
     wcs_main, _ = find_optimal_celestial_wcs(hdu[1:])
 
@@ -212,10 +212,10 @@ def plot_depth(
 
 
 if __name__ == '__main__':
-    PLOT_FOLDER = '/home/trystan/Desktop/Work/PhD/main/plots/'
-    INFILE_SEX = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/i/test.cat'
-    INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
-    EXP_MAP = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/i/c4d_211021_003940_ose_i_vik1.fits.fz'
+    PLOT_FOLDER = './plots/'
+    INFILE_SEX = '../correct_stacks/i/test.cat'
+    INFILE_PAN = '../PANSTARS/PANSTARS_i.csv'
+    EXP_MAP = '../correct_stacks/i/c4d_211021_003940_ose_i_vik1.fits.fz'
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, 'i')
 
     plot_direct_comparison(
@@ -237,9 +237,9 @@ if __name__ == '__main__':
     plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes',
                y_label='SNR', outfile='plots/depth_i.png', exp_map = EXP_MAP)
 
-    INFILE_SEX = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/z/test.cat'
-    INFILE_PAN = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_z.csv'
-    EXP_MAP = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/z/c4d_210831_053503_ose_z_vik1.fits'
+    INFILE_SEX = '../correct_stacks/z/test.cat'
+    INFILE_PAN = '../PANSTARS/PANSTARS_z.csv'
+    EXP_MAP = '../correct_stacks/z/c4d_210831_053503_ose_z_vik1.fits'
     mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN,'z')
 
     plot_direct_comparison(
@@ -261,10 +261,10 @@ if __name__ == '__main__':
                 y_label='SNR', outfile='plots/depth_z.png', exp_map = EXP_MAP)
 
     plot_depth(
-        '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/test.cat',
+        '../correct_stacks/N964/test.cat',
         29.01,
         'N964 Magnitudes',
         'SNR',
         'plots/N964_Depth.png',
-        '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/c4d_210831_050404_ose_N964_vik1.fits'
+        '../correct_stacks/N964/c4d_210831_050404_ose_N964_vik1.fits'
     )
