@@ -1,7 +1,6 @@
 """Main script to check photometry of DECAM images."""
 
 from typing import Tuple
-import random
 
 import pylab as plt
 import numpy as np
