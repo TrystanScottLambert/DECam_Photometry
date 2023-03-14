@@ -74,8 +74,8 @@ class DecamImage:
 
 
 if __name__ == '__main__':
-    INFILE = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1_skysubtracted.fits.fz'
-    PAN_CAT = '/home/trystan/Desktop/Work/PhD/PANSTARS/PANSTARS_i.csv'
+    INFILE = '../correct_stacks/i/c4d_211021_003940_osj_i_vik1_skysubtracted.fits.fz'
+    PAN_CAT = '../PANSTARS/PANSTARS_i.csv'
     test = DecamImage(INFILE)
     test.create_decam_cat_regions_file('test.reg')
     thing = test.cross_match_with_panstars(PAN_CAT)

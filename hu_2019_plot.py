@@ -26,11 +26,11 @@ def remove_dumb_values(array_1, array_2):
     return cut
 
 if __name__ == '__main__':
-    Z_FILE = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/z.cat'
-    N_FILE = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/n964.cat'
-    I_FILE = '/media/trystan/TOSHIBA EXT/DECAM/correct_stacks/N964/i.cat'
+    Z_FILE = '../correct_stacks/N964/z.cat'
+    N_FILE = '../correct_stacks/N964/n964.cat'
+    I_FILE = '../correct_stacks/N964/i.cat'
     RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
-    DEC_QSO = (30 + (54/60) + (10/3600)) * -1
+    DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
 
     i_ra, i_dec, i_mag = read_in_test_cats(I_FILE)
     z_ra, z_dec, z_mag = read_in_test_cats(Z_FILE)
@@ -41,9 +41,11 @@ if __name__ == '__main__':
     i_mag += 30.870
     #good_idx = remove_dumb_values(z_mag, n_mag)
 
-    catalog = SkyCoord(ra = z_ra*u.deg, dec = z_dec*u.deg)
+    catalog = SkyCoord(ra = n_ra*u.deg, dec = n_dec*u.deg)
     c = SkyCoord(ra = RA_QSO * u.deg, dec = DEC_QSO * u.deg)
     idx, d2d, _ = c.match_to_catalog_sky(catalog)
+
+    print(z_ra[idx], z_dec[idx])
 
     plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
     plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
