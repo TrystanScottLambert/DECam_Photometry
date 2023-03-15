@@ -6,6 +6,7 @@ import matplotlib as mpl
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import plotting
+import postage_stamps as ps
 
 mpl.rcParams.update({'font.size': 2})
 plt.rcParams['font.size'] = 12
@@ -13,17 +14,20 @@ plt.rcParams['axes.linewidth'] = 2
 mpl.rc('xtick', labelsize=10)
 mpl.rc('ytick', labelsize=10)
 
+
+
+
 def read_in_test_cats(file_name: str):
     """read in the test cats for DECCAM"""
     ra, dec, mag = np.loadtxt(file_name, unpack=True, usecols=(0, 1, 4))
     return ra, dec, mag
 
-def remove_dumb_values(array_1, array_2):
-    """Will remove any 99 values that exist"""
-    cut_1 = np.where(array_1 != 99)[0]
-    cut_2 = np.where(array_2 != 99)[0]
-    cut = np.union1d(cut_1, cut_2)
-    return cut
+
+MAG_ZPTS = {
+    'z': 30.538,
+    'n964': 29.012,
+    'i': 30.870,
+}
 
 if __name__ == '__main__':
     Z_FILE = '../correct_stacks/N964/z.cat'
@@ -36,10 +40,9 @@ if __name__ == '__main__':
     z_ra, z_dec, z_mag = read_in_test_cats(Z_FILE)
     n_ra, n_dec, n_mag = read_in_test_cats(N_FILE)
 
-    z_mag += 30.538
-    n_mag += 29.012
-    i_mag += 30.870
-    #good_idx = remove_dumb_values(z_mag, n_mag)
+    z_mag += MAG_ZPTS['z']
+    n_mag += MAG_ZPTS['n964']
+    i_mag += MAG_ZPTS['i']
 
     catalog = SkyCoord(ra = n_ra*u.deg, dec = n_dec*u.deg)
     c = SkyCoord(ra = RA_QSO * u.deg, dec = DEC_QSO * u.deg)
@@ -48,18 +51,6 @@ if __name__ == '__main__':
     print(i_ra[idx], i_dec[idx])
     print(d2d)
     print(RA_QSO, DEC_QSO)
-
-    plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
-    plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
-    plt.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
-    #plt.xlim(12.5, 28)
-    #plt.ylim(-2.4,10)
-    plt.axhline(1.9, color='r', lw=1)
-    plotting.end_plot('plots/hu_plot_z.png')
-
-    plotting.start_plot('N964 [Mag]', 'i - N964 [Mag]')
-    plt.scatter(n_mag, i_mag - n_mag, s=1, color='k', alpha=0.5)
-    plt.scatter(n_mag[idx], i_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
     print('i: ', i_mag[idx])
     print('z: ', z_mag[idx])
     print('n964: ',n_mag[idx])
@@ -68,8 +59,38 @@ if __name__ == '__main__':
     print('i - z: ', i_mag[idx] - z_mag[idx])
     print('z - n964: ', z_mag[idx] - n_mag[idx])
 
+        
+    # Making the Hu plots
+    plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
+    plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
+    plt.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
+    plt.xlim(12.5, 28)
+    plt.ylim(-2.4,10)
+    plt.axhline(1.9, color='r', lw=1)
+    plotting.end_plot('plots/hu_plot_z.png')
 
-    #plt.xlim(12.5, 28)
-    #plt.ylim(-2.4,10)
+    plotting.start_plot('N964 [Mag]', 'i - N964 [Mag]')
+    plt.scatter(n_mag, i_mag - n_mag, s=1, color='k', alpha=0.5)
+    plt.scatter(n_mag[idx], i_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
+    plt.xlim(12.5, 28)
+    plt.ylim(-2.4,10)
     plt.axhline(0.8, color='r', lw=1)
     plotting.end_plot('plots/hu_plot_i.png')
+    plt.show()
+
+
+    fig, ax = plt.subplots()
+    #coll = ax.scatter(testData[:,0], testData[:,1], color=["blue"]*len(testData), picker = 5, s=[50]*len(testData))
+    coll = ax.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5, picker = True)
+    ax.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=100, color='m')
+    ax.set_xlim(12.5, 28)
+    ax.set_ylim(-2.4, 10)
+
+    plt.axhline(1.9, color='r', lw=1)
+
+    def on_pick(event):
+        ps.show_stamps(n_ra[event.ind], n_dec[event.ind])
+
+
+    fig.canvas.mpl_connect('pick_event', on_pick)
+    plt.show()
