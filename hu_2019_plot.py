@@ -46,19 +46,30 @@ if __name__ == '__main__':
     idx, d2d, _ = c.match_to_catalog_sky(catalog)
 
     print(z_ra[idx], z_dec[idx])
+    print(d2d)
+    print(RA_QSO, DEC_QSO)
 
     plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
     plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
     plt.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
     plt.xlim(12.5, 28)
-    plt.ylim(-2.4,6)
+    plt.ylim(-2.4,10)
     plt.axhline(1.9, color='r', lw=1)
     plotting.end_plot('plots/hu_plot_z.png')
 
     plotting.start_plot('N964 [Mag]', 'i - N964 [Mag]')
     plt.scatter(n_mag, i_mag - n_mag, s=1, color='k', alpha=0.5)
     plt.scatter(n_mag[idx], i_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
+    print('i: ', i_mag[idx])
+    print('z: ', z_mag[idx])
+    print('n964: ',n_mag[idx])
+    print('--------------')
+    print('i - n964: ', i_mag[idx] - n_mag[idx])
+    print('i - z: ', i_mag[idx] - z_mag[idx])
+    print('z - n964: ', z_mag[idx] - n_mag[idx])
+
+
     plt.xlim(12.5, 28)
-    plt.ylim(-2.4,6)
+    plt.ylim(-2.4,10)
     plt.axhline(0.8, color='r', lw=1)
     plotting.end_plot('plots/hu_plot_i.png')

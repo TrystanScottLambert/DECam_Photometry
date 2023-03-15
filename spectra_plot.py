@@ -39,4 +39,13 @@ if __name__ == '__main__':
     #Working out the colors.
     i_n = i_mag - narrow_mag
     i_z = i_mag - z_mag
-    n_z = narrow_mag - z_mag
+    z_n = z_mag - narrow_mag
+
+    #printing
+    print('i: ', i_mag)
+    print('z: ', z_mag)
+    print('n964: ', narrow_mag)
+    print('--------------')
+    print('i - n964: ', i_n)
+    print('i - z: ', i_z)
+    print('z - n964: ', z_n)

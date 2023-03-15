@@ -28,10 +28,10 @@ def convert_cat_to_reg(sextractor_catalog: str, outfile: str = 'sex_cat.reg'):
     positions = [convert_decimal_degrees_into_celestial(ra[i], dec[i]) for i in range(len(ra))]
     f = open(outfile, 'w')
     for pos in positions:
-        f.write(f'circle {pos} 1" \n')
+        f.write(f'circle {pos} 2.5" \n')
     f.close()
 
 
 if __name__ == '__main__':
-    INFILE = '../correct_stacks/N964/z.cat'
+    INFILE = '../correct_stacks/N964/n964.cat'
     convert_cat_to_reg(INFILE)
