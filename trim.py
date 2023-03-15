@@ -42,11 +42,11 @@ if __name__ == '__main__':
     hdu, wcs = read_in_fits(INFILE_N964)
     n964_position = SkyCoord(hdu[0].header['CRVAL1']*u.deg, hdu[0].header['CRVAL2']*u.deg)
 
-    cut_fits_image(INFILE_I, n964_position, SIZE, '../correct_stacks/i/i.fits')
-    cut_fits_image(INFILE_I_WEIGHT, n964_position, SIZE, '../correct_stacks/i/i_weight.fits')
+    cut_fits_image(INFILE_I, n964_position, SIZE, '../correct_stacks/N964/i.fits')
+    cut_fits_image(INFILE_I_WEIGHT, n964_position, SIZE, '../correct_stacks/N964/i_weight.fits')
 
-    cut_fits_image(INFILE_Z, n964_position, SIZE, '../correct_stacks/z/z.fits')
-    cut_fits_image(INFILE_Z_WEIGHT, n964_position, SIZE, '../correct_stacks/z/z_weight.fits')
+    cut_fits_image(INFILE_Z, n964_position, SIZE, '../correct_stacks/N964/z.fits')
+    cut_fits_image(INFILE_Z_WEIGHT, n964_position, SIZE, '../correct_stacks/N964/z_weight.fits')
 
     cut_fits_image(INFILE_N964, n964_position, SIZE, '../correct_stacks/N964/n964.fits')
     cut_fits_image(INFILE_N964_WEIGHT, n964_position, SIZE, '../correct_stacks/N964/n964_weight.fits')

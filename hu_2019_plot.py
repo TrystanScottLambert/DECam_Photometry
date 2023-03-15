@@ -45,15 +45,15 @@ if __name__ == '__main__':
     c = SkyCoord(ra = RA_QSO * u.deg, dec = DEC_QSO * u.deg)
     idx, d2d, _ = c.match_to_catalog_sky(catalog)
 
-    print(z_ra[idx], z_dec[idx])
+    print(i_ra[idx], i_dec[idx])
     print(d2d)
     print(RA_QSO, DEC_QSO)
 
     plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
     plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
     plt.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=50, color='m')
-    plt.xlim(12.5, 28)
-    plt.ylim(-2.4,10)
+    #plt.xlim(12.5, 28)
+    #plt.ylim(-2.4,10)
     plt.axhline(1.9, color='r', lw=1)
     plotting.end_plot('plots/hu_plot_z.png')
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     print('z - n964: ', z_mag[idx] - n_mag[idx])
 
 
-    plt.xlim(12.5, 28)
-    plt.ylim(-2.4,10)
+    #plt.xlim(12.5, 28)
+    #plt.ylim(-2.4,10)
     plt.axhline(0.8, color='r', lw=1)
     plotting.end_plot('plots/hu_plot_i.png')
