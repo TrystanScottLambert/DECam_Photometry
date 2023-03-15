@@ -1,4 +1,4 @@
-"""Module to cnonvert .cat files into .reg files."""
+"""Module to cnonvert .cat files into .reg files. Note you can also you the aperture_check.fits"""
 
 import numpy as np
 import astropy.units as u

@@ -29,24 +29,24 @@ def cut_fits_image(fits_image: str, position: SkyCoord, size: float, outfile: st
 
 
 if __name__ == '__main__':
-    INFILE_I = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/i_band_coadd.fits'
-    INFILE_I_WEIGHT = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/i_band_weight_coadd.fits'
+    INFILE_I = '../correct_stacks/i/i_band_coadd.fits'
+    INFILE_I_WEIGHT = '../correct_stacks/i/i_band_weight_coadd.fits'
 
-    INFILE_Z = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/z_band_coadd.fits'
-    INFILE_Z_WEIGHT = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/z/z_band_weight_coadd.fits'
+    INFILE_Z = '../correct_stacks/z/z_band_coadd.fits'
+    INFILE_Z_WEIGHT = '../correct_stacks/z/z_band_weight_coadd.fits'
 
-    INFILE_N964 = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/N964_band_coadd.fits'
-    INFILE_N964_WEIGHT = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/N964/N964_band_weight_coadd.fits'
+    INFILE_N964 = '../correct_stacks/N964/N964_band_coadd.fits'
+    INFILE_N964_WEIGHT = '../correct_stacks/N964/N964_band_weight_coadd.fits'
     SIZE = 2*u.deg
 
     hdu, wcs = read_in_fits(INFILE_N964)
     n964_position = SkyCoord(hdu[0].header['CRVAL1']*u.deg, hdu[0].header['CRVAL2']*u.deg)
 
-    cut_fits_image(INFILE_I, n964_position, SIZE, 'test_delete_i.fits')
-    cut_fits_image(INFILE_I_WEIGHT, n964_position, SIZE, 'test_delete_i_weight.fits')
+    cut_fits_image(INFILE_I, n964_position, SIZE, '../correct_stacks/i/i.fits')
+    cut_fits_image(INFILE_I_WEIGHT, n964_position, SIZE, '../correct_stacks/i/i_weight.fits')
 
-    cut_fits_image(INFILE_Z, n964_position, SIZE, 'test_delete_z.fits')
-    cut_fits_image(INFILE_Z_WEIGHT, n964_position, SIZE, 'test_delete_z_weight.fits')
+    cut_fits_image(INFILE_Z, n964_position, SIZE, '../correct_stacks/z/z.fits')
+    cut_fits_image(INFILE_Z_WEIGHT, n964_position, SIZE, '../correct_stacks/z/z_weight.fits')
 
-    cut_fits_image(INFILE_N964, n964_position, SIZE, 'test_delete_n964.fits')
-    cut_fits_image(INFILE_N964_WEIGHT, n964_position, SIZE, 'test_delete_n964_weight.fits')
+    cut_fits_image(INFILE_N964, n964_position, SIZE, '../correct_stacks/N964/n964.fits')
+    cut_fits_image(INFILE_N964_WEIGHT, n964_position, SIZE, '../correct_stacks/N964/n964_weight.fits')
