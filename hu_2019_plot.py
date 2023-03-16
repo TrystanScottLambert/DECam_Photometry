@@ -89,7 +89,9 @@ if __name__ == '__main__':
     plt.axhline(1.9, color='r', lw=1)
 
     def on_pick(event):
-        ps.show_stamps(n_ra[event.ind], n_dec[event.ind])
+        """what to do when clicking the button"""
+        print('Position: ', n_ra[event.ind][0], n_dec[event.ind][0])
+        ps.show_stamps(n_ra[event.ind][0], n_dec[event.ind][0])
 
 
     fig.canvas.mpl_connect('pick_event', on_pick)
