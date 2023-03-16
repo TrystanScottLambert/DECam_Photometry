@@ -189,12 +189,10 @@ def plot_depth(
     plotting.start_plot('Magnitudes', 'Counts')
     plt.hist(x_values[hist_cut], bins=np.arange(24.5, 28, 0.2), histtype='step', lw=2, color='r')
     plotting.end_plot('Depth_Distribution.png')
-    #plt.show()
 
     plotting.start_plot(x_label=x_label, y_label=y_label)
     plt.scatter(x_values, signal_to_noise, s= 1, color='k', alpha=0.3)
     plt.axhline(3, ls='--', lw=1.5, color='r', alpha=0.4)
-    #plt.show()
     plotting.end_plot(outfile=outfile)
 
     infile = '../correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
