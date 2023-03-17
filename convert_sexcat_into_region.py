@@ -18,8 +18,8 @@ def replace_letter_with_colons(string: str):
 
 def convert_decimal_degrees_into_celestial(r_a: float, dec: float):
     """Takes floats and returns them in the hh:mm:ss and dd:mm:ss format."""
-    c = SkyCoord(r_a = r_a*u.deg, dec = dec*u.deg)
-    return replace_letter_with_colons(c.to_string('hmsdms'))
+    coord = SkyCoord(ra = r_a*u.deg, dec = dec*u.deg)
+    return replace_letter_with_colons(coord.to_string('hmsdms'))
 
 
 def convert_cat_to_reg(sextractor_catalog: str, outfile: str = 'sex_cat.reg'):
