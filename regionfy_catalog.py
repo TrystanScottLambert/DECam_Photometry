@@ -82,4 +82,3 @@ if __name__ == '__main__':
     Catalog(INFILE_N964, REGION_FILE)
     Catalog(INFILE_Z, REGION_FILE)
     Catalog(INFILE_I, REGION_FILE)
-
