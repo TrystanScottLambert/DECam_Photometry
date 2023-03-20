@@ -8,7 +8,6 @@ The criteria are the same used in Hu et. al., (2019):
 
 import numpy as np
 import convert_sexcat_into_region as con
-import postage_stamps as ps
 
 
 def calculate_snr(mag_err: float) -> float:
@@ -31,13 +30,13 @@ def read_all(catalog_name: str) -> tuple[np.array, np.array, np.array]:
     snr = calculate_snr(err)
     return mag, err, snr
 
-def write_region_file(ra_array: np.array, dec_array: np.array) -> None:
+def write_region_file(ra_array: np.array, dec_array: np.array, outfile:str, size:float = 2.) -> None:
     """Writes a region file with decimal ra and dec arrays."""
     positions = [con.convert_decimal_degrees_into_celestial(ra_array[i], dec_array[i]) \
                   for i in range(len(ra_array))]
-    file = open('candidates.reg', 'w', encoding='utf8')
+    file = open(outfile, 'w', encoding='utf8')
     for pos in positions:
-        file.write(f'circle {pos} 2.0" # width=4\n')
+        file.write(f'circle {pos} {size}" # width=4\n')
     file.close()
 
 if __name__ == '__main__':
@@ -83,11 +82,16 @@ if __name__ == '__main__':
     '''for i in range(210,400):
         print(f'{i}: {ra[i]} {dec[i]}')
         ps.show_stamps(ra[i], dec[i])'''
-    visually_identified = np.array([
-        4, 13, 46, 47, 55, 59, 60, 153, 154,
-        211, 212, 214, 218, 226, 227, 256, 260,
-        261, 272, 275, 276, 281, 285
-    ])
-    ra, dec = ra[visually_identified], dec[visually_identified]
+    visually_identified = np.array([4, 13, 46, 59, 60, 211, 212, 218, 226, 227, 275, 276, 281])
 
-    write_region_file(ra, dec)
+    rejected = np.array([47, 55, 153, 154, 285])
+    borderline = np.array([256, 214, 260, 261, 272])
+
+    ra_c, dec_c = ra[visually_identified], dec[visually_identified]
+    ra_rej, dec_rej = ra[rejected], dec[rejected]
+    ra_bord, dec_bord = ra[borderline], dec[borderline]
+    write_region_file(ra_c, dec_c, 'good_candidates.reg')
+    write_region_file(ra_c, dec_c, 'good_candidates_dist.reg', 20)
+    write_region_file(ra_rej, dec_rej, 'rejected_candidates.reg')
+    write_region_file(ra_bord, dec_bord, 'borderline_candidates.reg')
+    
