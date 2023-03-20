@@ -173,9 +173,9 @@ def plot_depth(
     plt.show()
     decam_catalog = SExtractorCat(decam_file_name)
     decam_catalog.remove_sources_based_on_exposure_map(exp_map=exp_map)
-    decam_mag = decam_catalog.catalog['MAG_BEST'].values
+    decam_mag = decam_catalog.catalog['MAG_AUTO'].values
     mag = decam_mag + zero_point
-    mag_err = decam_catalog.catalog['MAGERR_BEST'].values
+    mag_err = decam_catalog.catalog['MAGERR_AUTO'].values
     #idx = random.sample(range(len(mag)), 20000)
     #x_values, y_values = mag[idx], mag_err[idx]
     cut_x = np.where(mag < 50)
