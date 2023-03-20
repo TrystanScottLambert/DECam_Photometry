@@ -1,0 +1,28 @@
+#clear galaxies.
+4: 357.4495565 -31.7697759  # very nice
+13: 357.0712273 -31.5053333 # very nice
+46: 357.440295 -31.4360916 # very nice
+59: 356.9112545 -31.2829841 # very nice
+60: 358.0206142 -31.2723714 # very nice
+211: 356.2601489 -30.9595754 # nice
+212: 357.1397296 -30.9465721 # very nice
+218: 357.4010074 -30.8279012 # Clear example.
+226: 356.9348065 -30.8122596 # Obvious
+227: 357.9991856 -30.6851752 # perfect
+275: 356.5935355 -30.4695701 # looks good but iz mags seem dodgy
+276: 357.0422928 -30.4574695 # good
+281: 356.418851 -30.3993695 # nice
+
+#borderline cases
+256: 356.072933 -30.5684203 # borderline case
+214: 356.3190347 -30.8522828 # ugly, borderline case.
+260: 356.9813629 -30.5332961 # Next to the very bright galaxy. Don't know if I should trust it. 
+261: 356.98293 -30.533298  # Next to the very bright galaxy. Don't know if I should trust it. 
+272: 356.9516394 -30.5071621 # inside the very bright galaxy. Don't think we should trust it.
+
+# rejected cases
+47: 357.3615734 -31.4073101 # near bright star. Removed.
+55: 356.6980677 -31.3162499 # on edge of bright star. Removed.
+153: 358.0246967 -31.0788177 # very faint. Directly in a star. Removed.
+154: 358.0591027 -31.0790276 # Next to really bright star. Rejected.
+285: 356.3128656 -30.3508337 # right next to bright star, rejected.
