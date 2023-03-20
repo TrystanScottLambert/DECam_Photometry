@@ -59,7 +59,7 @@ if __name__ == '__main__':
     print('i - z: ', i_mag[idx] - z_mag[idx])
     print('z - n964: ', z_mag[idx] - n_mag[idx])
 
-        
+
     # Making the Hu plots
     plotting.start_plot('N964 [Mag]', 'z - N964 [Mag]')
     plt.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5)
@@ -80,7 +80,6 @@ if __name__ == '__main__':
 
 
     fig, ax = plt.subplots()
-    #coll = ax.scatter(testData[:,0], testData[:,1], color=["blue"]*len(testData), picker = 5, s=[50]*len(testData))
     coll = ax.scatter(n_mag, z_mag - n_mag, s=1, color='k', alpha=0.5, picker = True)
     ax.scatter(n_mag[idx], z_mag[idx] - n_mag[idx], marker='*', s=100, color='m')
     ax.set_xlim(12.5, 28)

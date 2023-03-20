@@ -29,6 +29,7 @@ def show_stamps(r_a: float, dec: float):
     data_n964 = cut_postage_stamp(r_a, dec, FITS_OBJECTS[2])
 
     fig = plt.figure()
+    #print(f'{r_a} {dec}')
     ax_i = fig.add_subplot(131)
     ax_i.imshow(data_i)
     plt.title('i-band')

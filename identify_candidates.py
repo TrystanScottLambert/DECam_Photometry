@@ -8,6 +8,7 @@ The criteria are the same used in Hu et. al., (2019):
 
 import numpy as np
 import convert_sexcat_into_region as con
+import postage_stamps as ps
 
 
 def calculate_snr(mag_err: float) -> float:
@@ -36,7 +37,7 @@ def write_region_file(ra_array: np.array, dec_array: np.array) -> None:
                   for i in range(len(ra_array))]
     file = open('candidates.reg', 'w', encoding='utf8')
     for pos in positions:
-        file.write(f'circle {pos} 2.0" \n')
+        file.write(f'circle {pos} 2.0" # width=4\n')
     file.close()
 
 if __name__ == '__main__':
@@ -79,4 +80,14 @@ if __name__ == '__main__':
     # Write the candidates as a region file
     ra, dec = np.loadtxt(INFILE_N964_2, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
+    '''for i in range(210,400):
+        print(f'{i}: {ra[i]} {dec[i]}')
+        ps.show_stamps(ra[i], dec[i])'''
+    visually_identified = np.array([
+        4, 13, 46, 47, 55, 59, 60, 153, 154,
+        211, 212, 214, 218, 226, 227, 256, 260,
+        261, 272, 275, 276, 281, 285
+    ])
+    ra, dec = ra[visually_identified], dec[visually_identified]
+
     write_region_file(ra, dec)
