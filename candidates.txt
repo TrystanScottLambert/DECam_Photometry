@@ -16,9 +16,9 @@
 #borderline cases
 256: 356.072933 -30.5684203 # borderline case
 214: 356.3190347 -30.8522828 # ugly, borderline case.
-260: 356.9813629 -30.5332961 # Next to the very bright galaxy. Don't know if I should trust it. 
-261: 356.98293 -30.533298  # Next to the very bright galaxy. Don't know if I should trust it. 
-272: 356.9516394 -30.5071621 # inside the very bright galaxy. Don't think we should trust it.
+#260: 356.9813629 -30.5332961 # Next to the very bright galaxy. Don't know if I should trust it. 
+#261: 356.98293 -30.533298  # Next to the very bright galaxy. Don't know if I should trust it. 
+#272: 356.9516394 -30.5071621 # inside the very bright galaxy. Don't think we should trust it.
 
 # rejected cases
 #47: 357.3615734 -31.4073101 # near bright star. Removed.
