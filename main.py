@@ -1,14 +1,12 @@
 """Main script to check photometry of DECAM images."""
 
 from typing import Tuple
-
 import pylab as plt
 import numpy as np
 import pandas as pd
 from astropy.io import fits
 from reproject.mosaicking import find_optimal_celestial_wcs
 from scipy.optimize import curve_fit
-
 import plotting
 from sex_catalog import SExtractorCat
 from decam import write_positions_as_region_file
@@ -125,7 +123,7 @@ def plot_difference_fit(
         a_fit, cov = curve_fit(straight_line, mag_cut, diff_cut, sigma=diff_err_cut, absolute_sigma=True)
     else:
         a_fit, cov = curve_fit(straight_line, mag, diff, sigma=diff_err, absolute_sigma=True)
-    
+
     uncertainties = np.sqrt(np.diag(cov))
     nstd = 5.
     popt_up = a_fit + nstd * uncertainties
@@ -143,33 +141,37 @@ def plot_difference_fit(
 
     plt.plot(x_fit, fit, ls='--', color='k', lw=2)
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
-    plt.ylim(top=-29.9)
     plotting.end_plot(outfile)
 
-def plot_depth(
-    decam_file_name: str, zero_point: float, x_label: str, y_label: str,
-    outfile: str) -> None:
+HU_VALUES = {
+    '../correct_stacks/N964/i.cat': 27.3,
+    '../correct_stacks/N964/z.cat': 27.0,
+    '../correct_stacks/N964/n964.cat': 25
+}
+
+def plot_depth(decam_file_name: str, zero_point: float, x_label: str, y_label: str, outfile: str) -> None:
     """Makes a mag vs mag_err plot from all the available detections."""
-    plt.show()
+
+    plt.show() # empty the current plt stores.
     decam_catalog = SExtractorCat(decam_file_name)
     decam_mag = decam_catalog.catalog['MAG_AUTO'].values
     mag = decam_mag + zero_point
     mag_err = decam_catalog.catalog['MAGERR_AUTO'].values
-    cut_x = np.where(mag < 50)
-    cut_y = np.where(mag_err < 1000)
-    cut = np.intersect1d(cut_x, cut_y)
+    cut = np.where(mag < 50)
     x_values, y_values = mag[cut], mag_err[cut]
     signal_to_noise = (2.5/np.log(10))/y_values
-    cut = np.where(signal_to_noise < 10)[0]
+    cut = np.where(signal_to_noise < 30)[0]
     x_values, y_values, signal_to_noise = x_values[cut], y_values[cut], signal_to_noise[cut]
-    hist_cut = np.where((signal_to_noise >= 2.8) & (signal_to_noise <= 3.2))[0]
+
+    '''hist_cut = np.where((signal_to_noise >= 2.8) & (signal_to_noise <= 3.2))[0]
     plotting.start_plot('Magnitudes', 'Counts')
     plt.hist(x_values[hist_cut], bins=np.arange(24.5, 28, 0.2), histtype='step', lw=2, color='r')
-    plotting.end_plot('Depth_Distribution.png')
+    plotting.end_plot('Depth_Distribution.png')'''
 
     plotting.start_plot(x_label=x_label, y_label=y_label)
     plt.scatter(x_values, signal_to_noise, s= 1, color='k', alpha=0.3)
-    plt.axhline(3, ls='--', lw=1.5, color='r', alpha=0.4)
+    plt.axhline(5, ls='--', lw=1.5, color='r', alpha=0.4)
+    plt.axvline(HU_VALUES[decam_file_name], ls = ':', color='k')
     plotting.end_plot(outfile=outfile)
 
     infile = '../correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
@@ -186,25 +188,20 @@ def plot_depth(
 
 
 if __name__ == '__main__':
-    PLOT_FOLDER = 'plots/'
-    INFILE_SEX = '../correct_stacks/N964/i.cat'
-    INFILE_PAN = '../PANSTARS/PANSTARS_i.csv'
-    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN, 'i')
+    INFILE_SEX_I = '../correct_stacks/N964/i.cat'
+    INFILE_PAN_I = '../PANSTARS/PANSTARS_i.csv'
+    INFILE_SEX_Z = '../correct_stacks/N964/z.cat'
+    INFILE_PAN_Z = '../PANSTARS/PANSTARS_z.csv'
+    I_ZPT = 30.87
+    Z_ZPT = 30.538
+    N_ZPT = 28.97
 
-    #plot_direct_comparison(mags[0], mags[1],mags[2], mags[3], x_label='Decam Mags', y_label='Panstars_Mags')
-    #plot_direct_comparison(mags[0], mags[1], mags[4], mags[5], x_label='Decam Mags', y_label='Panstars Converted into Decam')
+    mags_i = prepare_plotting_data(INFILE_SEX_I, INFILE_PAN_I, 'i')
+    plot_difference_fit(mags_i[0], mags_i[6], mags_i[1], mags_i[7], x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44),outfile = 'plots/i_zpt.png', x_label=r'$i_{\rm DECam}$', y_label = r'$i_{\rm converted ps1}$')
+    plot_depth(INFILE_SEX_I, I_ZPT, x_label='Decam i magnitudes', y_label='SNR', outfile='plots/depth_i.png')
 
-    plot_difference_fit(mags[0], mags[6], mags[1], mags[7], x_lim=(-15.208, -11.497), y_lim=(-31.6, -30.44),outfile = PLOT_FOLDER + 'i_zpt.png', x_label=r'$i_{\rm DECam}$', y_label = r'$i_{\rm converted ps1}$')
-    plot_depth(INFILE_SEX, 30.870, x_label='Decam i magnitudes', y_label='SNR', outfile='plots/depth_i.png')
+    mags_z = prepare_plotting_data(INFILE_SEX_Z, INFILE_PAN_Z,'z')
+    plot_difference_fit(mags_z[0], mags_z[6], mags_z[1], mags_z[7],x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455),outfile='plots/z_zpt.png', x_label = r'$z_{\rm DECam}$', y_label = r'$z_{\rm converted ps1}$')
+    plot_depth(INFILE_SEX_Z, Z_ZPT, x_label='Decam z magnitudes', y_label='SNR', outfile='plots/depth_z.png')
 
-    INFILE_SEX = '../correct_stacks/N964/z.cat'
-    INFILE_PAN = '../PANSTARS/PANSTARS_z.csv'
-    mags = prepare_plotting_data(INFILE_SEX, INFILE_PAN,'z')
-
-    #plot_direct_comparison(mags[0], mags[1], mags[2], mags[3], x_label='Decam Mags', y_label='Panstars_Mags')
-    #plot_direct_comparison(mags[0], mags[1], mags[4], mags[5], x_label='Decam Mags', y_label='Panstars Converted into Decam')
-    plot_difference_fit(mags[0], mags[6], mags[1], mags[7],x_lim=(-15.9, -12.2), y_lim=(-30.611, -30.455),outfile=PLOT_FOLDER + 'z_zpt.png', x_label = r'$z_{\rm DECam}$', y_label = r'$z_{\rm converted ps1}$')
-    plot_depth(INFILE_SEX, 30.538, x_label='Decam z magnitudes', y_label='SNR', outfile='plots/depth_z.png')
-
-
-    plot_depth('../correct_stacks/N964/n964.cat', 29.01,'N964 Magnitudes', 'SNR', 'plots/N964_Depth.png')
+    plot_depth('../correct_stacks/N964/n964.cat', N_ZPT,'N964 Magnitudes', 'SNR', 'plots/N964_Depth.png')

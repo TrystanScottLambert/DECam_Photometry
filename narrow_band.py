@@ -91,7 +91,7 @@ if __name__ == '__main__':
     plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
                   yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.3, capsize=0, zorder=0)
 
-    
+
     # To check that the limits are in the right place
     #plt.plot(x_fit, bottom_limit(x_fit), color='b')
     #plt.plot(x_fit, upper_limit(x_fit), color='b')
