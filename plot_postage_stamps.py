@@ -42,4 +42,4 @@ if __name__ == '__main__':
     axes[0,1].set_title('z', fontsize=3)
     axes[0,2].set_title('N964',fontsize=3)
 
-    plt.savefig('postage_stamps.png', transparent = False)
+    plt.savefig('plots/postage_stamps.png', transparent = False)
