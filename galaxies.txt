@@ -21,8 +21,8 @@
 272: 356.9516394 -30.5071621 # inside the very bright galaxy. Don't think we should trust it.
 
 # rejected cases
-#47: 357.3615734 -31.4073101 # near bright star. Removed.
-#55: 356.6980677 -31.3162499 # on edge of bright star. Removed.
-#153: 358.0246967 -31.0788177 # very faint. Directly in a star. Removed.
-#154: 358.0591027 -31.0790276 # Next to really bright star. Rejected.
-#285: 356.3128656 -30.3508337 # right next to bright star, rejected.
+47: 357.3615734 -31.4073101 # near bright star. Removed.
+55: 356.6980677 -31.3162499 # on edge of bright star. Removed.
+153: 358.0246967 -31.0788177 # very faint. Directly in a star. Removed.
+154: 358.0591027 -31.0790276 # Next to really bright star. Rejected.
+285: 356.3128656 -30.3508337 # right next to bright star, rejected.

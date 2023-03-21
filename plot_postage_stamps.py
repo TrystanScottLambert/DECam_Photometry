@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     gs = fig.add_gridspec(len(ra), 3, hspace=0, wspace=0, width_ratios=[1, 1, 1],
-                           top=0.90, bottom=0.05, left=0.4, right=0.5)
+                           top=0.80, bottom=0.20, left=0.4, right=0.5)
     axes = gs.subplots(sharex='col', sharey='row')
     for i, r_a in enumerate(ra):
         for j in range(3):
