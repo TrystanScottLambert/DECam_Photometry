@@ -8,9 +8,36 @@ import plotting
 
 
 def straight_line(parameters, x_val):
-    """straight line for fitting to data"""
+    """Straight line for fitting to data"""
     alpha, zpt = parameters
     return x_val * alpha + zpt
+
+# bottom and upper limits are there to exclude outliers. The mc values were determined through trial and error.
+def bottom_limit(x_val):
+    """Lower limit to remove outlier values when making the fit."""
+    m = 1
+    c = 28.8
+    return m * x_val + c
+
+def upper_limit(x_val):
+    """Upper limit to remove the upper outliers."""
+    m = 1
+    c = 29.1
+    return m * x_val + c
+
+def is_point_in_limits(x_val:float, y_val:float):
+    """Determines if a cartesian point is withint the bottom_limit and upper_limit"""
+    upper_lim = upper_limit(x_val)
+    bottom_lim = bottom_limit(x_val)
+    if y_val < upper_lim and y_val > bottom_lim:
+        return True
+    else:
+        return False
+
+def index_in_limits(x_array, y_array):
+    """Returns an array of indicies of all the values within the limits"""
+    idx = [i for i in range(len(x_array)) if is_point_in_limits(x_array[i], y_array[i])]
+    return np.array(idx)
 
 if __name__ == '__main__':
     INFILE_SEX = '../correct_stacks/N964/n964.cat'
@@ -36,11 +63,12 @@ if __name__ == '__main__':
     delta_decam_err = np.hypot(z_err, n964_err)
     cut_x = np.where((delta_pan > -0.2) & (delta_pan < 0.6))[0]
     cut_y = np.where((delta_decam > 28.75) & (delta_decam < 29.752))
-    final_cut = np.arange(len(delta_pan))#np.intersect1d(cut_x, cut_y)
+    final_cut = np.intersect1d(cut_x, cut_y)
+    fit_cut = index_in_limits(delta_pan[final_cut], delta_decam[final_cut])
 
     straight_line_model = odr.Model(straight_line)
-    data = odr.RealData(delta_pan[final_cut], delta_decam[final_cut], 
-                        sx=delta_pan[final_cut], sy=delta_decam[final_cut])
+    data = odr.RealData(delta_pan[final_cut][fit_cut], delta_decam[final_cut][fit_cut],
+                        sx=delta_pan[final_cut][fit_cut], sy=delta_decam[final_cut][fit_cut])
 
     _odr = odr.ODR(data, straight_line_model, beta0=[0.81, 28.9])
     out = _odr.run()
@@ -57,12 +85,16 @@ if __name__ == '__main__':
     x_fit = np.linspace(-0.3, 0.7, 100)
     fit = straight_line(popt, x_fit)
     fit_up = straight_line(popt_up, x_fit)
-    fit_dw= straight_line(popt_dw, x_fit)
+    fit_dw= straight_line(popt_dw, x_fit)  
 
     fig = plotting.start_plot(x_label = 'z - y', y_label = 'N964 - z')
     plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
                   yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.3, capsize=0, zorder=0)
 
+    
+    # To check that the limits are in the right place
+    #plt.plot(x_fit, bottom_limit(x_fit), color='b')
+    #plt.plot(x_fit, upper_limit(x_fit), color='b')
     plt.plot(x_fit, fit,'r', lw=2)
     plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
     plt.xlim(-0.3, 0.7)
