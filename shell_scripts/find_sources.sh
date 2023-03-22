@@ -1,3 +1,4 @@
+#!/bin/bash
 # Script which runs sextractor on the images
 
 echo "Running sextractor on i-band."

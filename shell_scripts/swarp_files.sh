@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script which will swarp all of the c4d.fits files into one mosiac.
 
 echo "Swarping images using the default.swarp file in each directory."

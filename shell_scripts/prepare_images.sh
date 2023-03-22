@@ -1,3 +1,4 @@
+#!/bin/bash
 # Preparing images for candidates selection
 
 # Unpack the .fits.fz files.

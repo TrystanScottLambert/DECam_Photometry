@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script to unzip the .fz files.
 
 # First, remove the current files (which may have been edidted).
