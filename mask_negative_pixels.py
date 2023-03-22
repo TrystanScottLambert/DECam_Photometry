@@ -7,7 +7,7 @@ from astropy.io import fits
 def convert_neg_to_nan(array_2d):
     """Returns a 2d array with the very negative values masked with nans."""
     neg_idx = np.where(array_2d < 0)
-    array_2d[neg_idx] = np.nan
+    array_2d[neg_idx] = 400
     return array_2d
 
 def mask_neg_values(hdu_list):
