@@ -12,7 +12,7 @@ IMAGES = (
 
 FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
-PAD = 20 # pixels
+PAD = 30 # pixels
 
 def cut_postage_stamp(r_a: float, dec: float, image):
     """Cutting out a postage stamp centered on r_a, and dec (in decimal degrees)"""

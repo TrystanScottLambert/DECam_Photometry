@@ -8,6 +8,7 @@ The criteria are the same used in Hu et. al., (2019):
 
 import numpy as np
 import convert_sexcat_into_region as con
+import postage_stamps as ps
 
 
 def calculate_snr(mag_err: float) -> float:
@@ -30,7 +31,7 @@ def read_all(catalog_name: str) -> tuple[np.array, np.array, np.array]:
     snr = calculate_snr(err)
     return mag, err, snr
 
-def write_region_file(ra_array: np.array, dec_array: np.array, outfile:str, size:float = 2.) -> None:
+def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:float = 2.) -> None:
     """Writes a region file with decimal ra and dec arrays."""
     positions = [con.convert_decimal_degrees_into_celestial(ra_array[i], dec_array[i]) \
                   for i in range(len(ra_array))]
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     #1. S/N_2" > 5 and S/N_1.35" > 5 for the N964 filter.
     mag_n964_2, mag_err_n964_2, snr_n964_2 = read_all(INFILE_N964_2)
     mag_n964_1, mag_err_n964_1, snr_n964_1 = read_all(INFILE_N964_135)
-    
+
     first_cut_1 = find_values(5, snr_n964_1)
     first_cut_2 = find_values(5, snr_n964_2)
     first_cut = np.intersect1d(first_cut_1, first_cut_2)
@@ -79,10 +80,10 @@ if __name__ == '__main__':
     # Write the candidates as a region file
     ra, dec = np.loadtxt(INFILE_N964_2, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
-    '''for i in range(210,400):
+    for i in range(0,400):
         print(f'{i}: {ra[i]} {dec[i]}')
-        ps.show_stamps(ra[i], dec[i])'''
-    visually_identified = np.array([4, 13, 46, 59, 60, 211, 212, 218, 226, 227, 275, 276, 281])
+        ps.show_stamps(ra[i], dec[i])
+    '''visually_identified = np.array([4, 13, 46, 59, 60, 211, 212, 218, 226, 227, 275, 276, 281])
 
     rejected = np.array([47, 55, 153, 154, 285])
     borderline = np.array([256, 214, 260, 261, 272])
@@ -93,5 +94,5 @@ if __name__ == '__main__':
     write_region_file(ra_c, dec_c, 'good_candidates.reg')
     write_region_file(ra_c, dec_c, 'good_candidates_dist.reg', 20)
     write_region_file(ra_rej, dec_rej, 'rejected_candidates.reg')
-    write_region_file(ra_bord, dec_bord, 'borderline_candidates.reg')
+    write_region_file(ra_bord, dec_bord, 'borderline_candidates.reg')'''
     

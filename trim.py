@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     INFILE_N964 = '../correct_stacks/N964/N964_band_coadd.fits'
     INFILE_N964_WEIGHT = '../correct_stacks/N964/N964_band_weight_coadd.fits'
-    SIZE = 2*u.deg
+    SIZE = 2 * u.deg
 
     hdu, wcs = read_in_fits(INFILE_N964)
     n964_position = SkyCoord(hdu[0].header['CRVAL1']*u.deg, hdu[0].header['CRVAL2']*u.deg)
