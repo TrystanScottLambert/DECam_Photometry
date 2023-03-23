@@ -6,10 +6,16 @@ The criteria are the same used in Hu et. al., (2019):
 3a. z-N964 > 1.9 and S/N_2" > 3 for the z filter or
 3b. S/N_2" < 3 for the z filter. """
 
+import warnings
 import numpy as np
 import convert_sexcat_into_region as con
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+
 import postage_stamps as ps
 from gui import start_gui
+
+RED_LIST_NAME = 'candidates_red_list.txt'
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
@@ -42,10 +48,34 @@ def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:f
 
 def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray):
     """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
-    with open('candidates_red_list.txt','a+', encoding='utf8') as file:
+    with open(RED_LIST_NAME,'a+', encoding='utf8') as file:
         for i, _ in enumerate(ra_array):
-            file.write(ra_array[i], dec_array[i])
-            
+            file.write(f'{ra_array[i]} {dec_array[i]} \n')
+
+def get_red_values():
+    """Reads in the ra and dec of the red sources. (Not allowed to be used)"""
+    try:
+        ra_rejected, dec_rejected = np.loadtxt(RED_LIST_NAME, unpack=True)
+    except (OSError, ValueError):
+        warnings.warn(f'{RED_LIST_NAME} not found. Assuming there are no rejects.')
+        ra_rejected, dec_rejected = np.array([]), np.array([])
+    return ra_rejected, dec_rejected
+
+def remove_bad_values(ra_array, dec_array):
+    """Removes the previously rejected ra and dec values from the current candidates."""
+    ra_bad, dec_bad = get_red_values()
+
+    catalog = SkyCoord(ra = ra_array*u.deg, dec = dec_array*u.deg)
+    c_bad = SkyCoord(ra = ra_bad *u.deg, dec = dec_bad * u.deg)
+    idx, d2d, _ = c_bad.match_to_catalog_sky(catalog)
+
+    msk = d2d < 1*u.arcsec
+    idx_bad = idx[msk]
+    idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
+
+    return ra_array[idx_good], dec_array[idx_good]
+
+
 if __name__ == '__main__':
     INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
     INFILE_N964_2 = '../correct_stacks/N964/n964.cat'
@@ -86,6 +116,9 @@ if __name__ == '__main__':
     # Visually inspecting the remaining candidates
     ra, dec = np.loadtxt(INFILE_N964_2, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
+    ra, dec = remove_bad_values(ra, dec)
+
+
     i_bands, z_bands, n_bands = [], [], []
     for i, _ in enumerate(ra):
         i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i])
