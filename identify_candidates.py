@@ -9,7 +9,7 @@ The criteria are the same used in Hu et. al., (2019):
 import numpy as np
 import convert_sexcat_into_region as con
 import postage_stamps as ps
-
+from gui import start_gui
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
@@ -40,6 +40,12 @@ def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:f
         file.write(f'circle {pos} {size}" # width=4\n')
     file.close()
 
+def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray):
+    """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
+    with open('candidates_red_list.txt','a+', encoding='utf8') as file:
+        for i, _ in enumerate(ra_array):
+            file.write(ra_array[i], dec_array[i])
+            
 if __name__ == '__main__':
     INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
     INFILE_N964_2 = '../correct_stacks/N964/n964.cat'
@@ -77,12 +83,24 @@ if __name__ == '__main__':
     final_cut = np.union1d(final_cut_a, final_cut_b)
     print(f'Final candidate count is: {len(final_cut)}')
 
-    # Write the candidates as a region file
+    # Visually inspecting the remaining candidates
     ra, dec = np.loadtxt(INFILE_N964_2, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
-    for i in range(0,400):
-        print(f'{i}: {ra[i]} {dec[i]}')
-        ps.show_stamps(ra[i], dec[i])
+    i_bands, z_bands, n_bands = [], [], []
+    for i, _ in enumerate(ra):
+        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i])
+        i_bands.append(i_filter)
+        z_bands.append(z_filter)
+        n_bands.append(n964_filter)
+
+    artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
+    ra_rejects = ra[artifacts]
+    dec_rejects = dec[artifacts]
+    update_candidate_red_list(ra_rejects, dec_rejects)
+
+
+
+
     '''visually_identified = np.array([4, 13, 46, 59, 60, 211, 212, 218, 226, 227, 275, 276, 281])
 
     rejected = np.array([47, 55, 153, 154, 285])

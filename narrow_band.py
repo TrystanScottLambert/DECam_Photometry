@@ -85,7 +85,7 @@ if __name__ == '__main__':
     x_fit = np.linspace(-0.3, 0.7, 100)
     fit = straight_line(popt, x_fit)
     fit_up = straight_line(popt_up, x_fit)
-    fit_dw= straight_line(popt_dw, x_fit)  
+    fit_dw= straight_line(popt_dw, x_fit)
 
     fig = plotting.start_plot(x_label = 'z - y', y_label = 'N964 - z')
     plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],

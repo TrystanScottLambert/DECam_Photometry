@@ -14,13 +14,20 @@ FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
 PAD = 30 # pixels
 
-def cut_postage_stamp(r_a: float, dec: float, image):
+def cut_postage_stamp(r_a: float, dec: float, image, pad = PAD):
     """Cutting out a postage stamp centered on r_a, and dec (in decimal degrees)"""
     wcs = WCS(image[0].header)
     x_pix, y_pix  = wcs.world_to_pixel_values(r_a, dec)
     data = image[0].data[
-        int(y_pix)-PAD:int(y_pix)+PAD, int(x_pix)-PAD:int(x_pix)+PAD]
+        int(y_pix)-pad:int(y_pix)+pad, int(x_pix)-pad:int(x_pix)+pad]
     return data
+
+def cut_out_stamps(r_a: float, dec: float, **kwargs):
+    """Cuts out all of the images """
+    data_i = cut_postage_stamp(r_a, dec, FITS_OBJECTS[0], **kwargs)
+    data_z = cut_postage_stamp(r_a, dec, FITS_OBJECTS[1], **kwargs)
+    data_n964 = cut_postage_stamp(r_a, dec, FITS_OBJECTS[2], **kwargs)
+    return data_i, data_z, data_n964
 
 def show_stamps(r_a: float, dec: float):
     """Cuts out postage stamps for all three images."""
@@ -29,7 +36,6 @@ def show_stamps(r_a: float, dec: float):
     data_n964 = cut_postage_stamp(r_a, dec, FITS_OBJECTS[2])
 
     fig = plt.figure()
-    #print(f'{r_a} {dec}')
     ax_i = fig.add_subplot(131)
     ax_i.imshow(data_i)
     plt.title('i-band')
@@ -44,6 +50,14 @@ def show_stamps(r_a: float, dec: float):
 if __name__ == '__main__':
     RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
     DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
+
+    i, z, n964 = cut_out_stamps(RA_QSO, DEC_QSO, pad=50)
+    plt.imshow(i)
+    plt.show()
+    plt.imshow(z)
+    plt.show()
+    plt.imshow(n964)
+    plt.show()
 
     show_stamps(RA_QSO, DEC_QSO)
     
