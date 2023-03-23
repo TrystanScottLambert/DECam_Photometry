@@ -67,21 +67,21 @@ def start_gui(i_bands, z_bands, n_bands):
         global POSSIBLE
         global COUNTER
         print(COUNTER, len(i_bands))
-        if COUNTER < len(i_bands):
-            POSSIBLE.append(COUNTER)
-            update_frequency()
-        if COUNTER == len(i_bands):
+        POSSIBLE.append(COUNTER)
+        if COUNTER == len(i_bands) - 1:
             root.destroy()
+        else:
+            update_frequency()
 
     def update_artifact():
         global ARTIFACT
         global COUNTER
         print(COUNTER, len(i_bands))
-        if COUNTER < len(i_bands):
-            ARTIFACT.append(COUNTER)
-            update_frequency()
-        if COUNTER == len(i_bands):
+        ARTIFACT.append(COUNTER)
+        if COUNTER == len(i_bands) - 1:
             root.destroy()
+        else:
+            update_frequency()
 
 
     button_no = tkinter.Button(root, command=update_artifact, text='REJECT',bg='red')

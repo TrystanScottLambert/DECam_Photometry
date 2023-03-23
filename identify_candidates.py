@@ -70,7 +70,7 @@ def remove_bad_values(ra_array, dec_array):
     idx, d2d, _ = c_bad.match_to_catalog_sky(catalog)
 
     msk = d2d < 1*u.arcsec
-    if len(msk) == 1:
+    if len(msk) == 1:  # edge case of n=1. Then value isn't read as an array but as a float.
         idx = np.array([idx])
     idx_bad = idx[msk]
     idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
