@@ -57,7 +57,7 @@ def get_red_values():
     try:
         ra_rejected, dec_rejected = np.loadtxt(RED_LIST_NAME, unpack=True)
     except (OSError, ValueError):
-        warnings.warn(f'{RED_LIST_NAME} not found. Assuming there are no rejects.')
+        warnings.warn(f'{RED_LIST_NAME} not found or empty. Assuming there are no rejects.')
         ra_rejected, dec_rejected = np.array([]), np.array([])
     return ra_rejected, dec_rejected
 
@@ -117,6 +117,7 @@ if __name__ == '__main__':
     ra, dec = np.loadtxt(INFILE_N964_2, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
     ra, dec = remove_bad_values(ra, dec)
+    print(f'After removing previous rejects, count is: {len(ra)}')
 
 
     i_bands, z_bands, n_bands = [], [], []
