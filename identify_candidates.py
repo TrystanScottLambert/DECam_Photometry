@@ -8,10 +8,10 @@ The criteria are the same used in Hu et. al., (2019):
 
 import warnings
 import numpy as np
-import convert_sexcat_into_region as con
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
+import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
 
@@ -70,6 +70,8 @@ def remove_bad_values(ra_array, dec_array):
     idx, d2d, _ = c_bad.match_to_catalog_sky(catalog)
 
     msk = d2d < 1*u.arcsec
+    if len(msk) == 1:
+        idx = np.array([idx])
     idx_bad = idx[msk]
     idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
 
@@ -122,7 +124,7 @@ if __name__ == '__main__':
 
     i_bands, z_bands, n_bands = [], [], []
     for i, _ in enumerate(ra):
-        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i])
+        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i], pad=20)
         i_bands.append(i_filter)
         z_bands.append(z_filter)
         n_bands.append(n964_filter)
@@ -132,19 +134,8 @@ if __name__ == '__main__':
     dec_rejects = dec[artifacts]
     update_candidate_red_list(ra_rejects, dec_rejects)
 
-
-
-
-    '''visually_identified = np.array([4, 13, 46, 59, 60, 211, 212, 218, 226, 227, 275, 276, 281])
-
-    rejected = np.array([47, 55, 153, 154, 285])
-    borderline = np.array([256, 214, 260, 261, 272])
-
-    ra_c, dec_c = ra[visually_identified], dec[visually_identified]
-    ra_rej, dec_rej = ra[rejected], dec[rejected]
-    ra_bord, dec_bord = ra[borderline], dec[borderline]
-    write_region_file(ra_c, dec_c, 'good_candidates.reg')
-    write_region_file(ra_c, dec_c, 'good_candidates_dist.reg', 20)
-    write_region_file(ra_rej, dec_rej, 'rejected_candidates.reg')
-    write_region_file(ra_bord, dec_bord, 'borderline_candidates.reg')'''
-    
+    write_region_file(ra[candidates], dec[candidates], 'candidates.reg')
+    with open('candidates.txt', 'w', encoding='utf8') as file:
+        file.write('# RA DEC')
+        for i, _ in enumerate(candidates):
+            file.write(f'{ra[candidates][i]} {dec[candidates][i]} \n')

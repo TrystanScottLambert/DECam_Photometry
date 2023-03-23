@@ -66,22 +66,27 @@ def start_gui(i_bands, z_bands, n_bands):
     def update_possible():
         global POSSIBLE
         global COUNTER
-        POSSIBLE.append(COUNTER)
-        update_frequency()
+        print(COUNTER, len(i_bands))
+        if COUNTER < len(i_bands):
+            POSSIBLE.append(COUNTER)
+            update_frequency()
+        if COUNTER == len(i_bands):
+            root.destroy()
 
     def update_artifact():
         global ARTIFACT
         global COUNTER
-        ARTIFACT.append(COUNTER)
-        update_frequency()
+        print(COUNTER, len(i_bands))
+        if COUNTER < len(i_bands):
+            ARTIFACT.append(COUNTER)
+            update_frequency()
+        if COUNTER == len(i_bands):
+            root.destroy()
 
 
     button_no = tkinter.Button(root, command=update_artifact, text='REJECT',bg='red')
     button_yes = tkinter.Button(root, command=update_possible, text='MAYBE',bg='green')
-    # Packing order is important. Widgets are processed sequentially and if there
-    # is no space left, because the window is too small, they are not displayed.
-    # The canvas is rather flexible in its size, so we pack it last which makes
-    # sure the UI controls are displayed as long as possible.
+
     button_quit.pack(side=tkinter.BOTTOM)
     button_yes.pack(side=tkinter.TOP)
     button_no.pack(side=tkinter.TOP)
