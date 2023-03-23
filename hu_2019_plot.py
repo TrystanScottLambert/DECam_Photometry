@@ -149,7 +149,7 @@ if __name__ == '__main__':
     idx, _,  _ = c_qso.match_to_catalog_sky(catalog)
     our_qso = Quasar(n_mag[idx], z_mag[idx], i_mag[idx])
 
-    gals_ra, gals_dec = np.loadtxt(CANDIDATE_FILE, usecols=(1,2), unpack=True)
+    gals_ra, gals_dec = np.loadtxt(CANDIDATE_FILE, unpack=True)
     c_gals = SkyCoord(ra = gals_ra*u.deg, dec = gals_dec*u.deg)
     idx_gals, d2d_gals, _ = c_gals.match_to_catalog_sky(catalog)
 

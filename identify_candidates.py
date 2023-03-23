@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     i_bands, z_bands, n_bands = [], [], []
     for i, _ in enumerate(ra):
-        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i], pad=20)
+        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i], pad=40)
         i_bands.append(i_filter)
         z_bands.append(z_filter)
         n_bands.append(n964_filter)
