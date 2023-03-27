@@ -134,7 +134,7 @@ if __name__ == '__main__':
     dec_rejects = dec[artifacts]
     update_candidate_red_list(ra_rejects, dec_rejects)
 
-    write_region_file(ra[candidates], dec[candidates], 'candidates.reg')
+    write_region_file(ra[candidates], dec[candidates], 'candidates.reg', size=8)
     with open('candidates.txt', 'w', encoding='utf8') as file:
         file.write('# RA DEC \n')
         for i, _ in enumerate(candidates):
