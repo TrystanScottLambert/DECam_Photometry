@@ -48,8 +48,6 @@ if __name__ == '__main__':
     ra_plot, dec_plot = decam_wcs.world_to_pixel_values(ra, dec)
     ra_qso_plot, dec_qso_plot = decam_wcs.world_to_pixel_values(RA_QSO, DEC_QSO)
 
-
-
     #On sky distribution plot.
     region_1 = set_region(ra_qso_plot, dec_qso_plot, 1)
     region_10 = set_region(ra_qso_plot, dec_qso_plot, 10)
@@ -70,18 +68,39 @@ if __name__ == '__main__':
 
     #on sky surface distribution plot.
     radii = np.arange(0,21,1) # Mpc
-    areas = np.pi * (radii**2) # Mpc^2
+    average_radii_mpc = [(radii[i] + radii[i+1])/2 for i in range(len(radii) -1)]
+    average_radii_arcsec = average_radii_mpc * DEG_PER_MPC
+
     areas = [np.pi * (radii[i+1]**2 -radii[i]**2) for i in range(len(radii) -1)]
+    areas_deg = areas * (DEG_PER_MPC**2)
 
     angular_seperation_deg = angular_separation(RA_QSO, DEC_QSO, ra, dec)
     angular_seperation_pMpc = angular_seperation_deg / DEG_PER_MPC
 
-    plotting.start_plot('Distance from QSO [pMpc]', r'Counts [pMpc$^{-2}$]')
     counts, _ = np.histogram(angular_seperation_pMpc.value, bins = radii)
     y = counts/areas
     y_err = np.sqrt(counts)/areas
 
-    #plt.step(radii[:-1], counts/areas[:-1], where='post', lw=2)
-    plt.errorbar(radii[:-1], y, yerr = y_err, fmt='ok', capsize=3, alpha=0.5)
-    #plt.ylim(0.5, 8)
+    fig = plt.figure(figsize = (1.4*3.54, 3.54), dpi = 600)
+    ax = fig.add_subplot(111)
+    ax.errorbar(average_radii_mpc, y, yerr = y_err, fmt='ok', ecolor='r', ms = 4, capsize=2)
+    ax.set_xlabel('Distance from QSO [pMpc]')
+    ax.set_ylabel(r'Surface Density [pMpc$^{-2}$]')
+    ax.minorticks_on()
+    ax.tick_params(which='both', width=2,direction='in')
+    ax.tick_params(which='major', length=4, direction='in')
+
+    ax1 = ax.twiny()
+    ax1.errorbar(average_radii_arcsec, y, yerr=y_err, fmt='ok', alpha=0)
+    ax1.set_xlabel('Distance from QSO ["]')
+    ax1.minorticks_on()
+    ax1.tick_params(which='both', width=2,direction='in')
+    ax1.tick_params(which='major', length=4, direction='in')
+
+    ax2 = ax.twinx()
+    ax2.errorbar(average_radii_mpc, counts/areas_deg.value, yerr=np.sqrt(counts)/areas_deg.value, alpha=0)
+    ax2.set_ylabel(r'Surface Density [deg$^{-2}$]')
+    ax2.minorticks_on()
+    ax2.tick_params(which='both', width=2,direction='in')
+    ax2.tick_params(which='major', length=4, direction='in')
     plotting.end_plot('plots/surface_density.png')
