@@ -7,18 +7,18 @@ def apply_global_settings() -> None:
     """Global settings."""
     mpl.rcParams.update({'font.size': 2})
     #mpl.rcParams['font.family'] = 'Avenir'
-    plt.rcParams['font.size'] = 12
-    plt.rcParams['axes.linewidth'] = 2
-    mpl.rc('xtick', labelsize=10)
-    mpl.rc('ytick', labelsize=10)
+    plt.rcParams['font.size'] = 8
+    plt.rcParams['axes.linewidth'] = 1.1
+    mpl.rc('xtick', labelsize=8)
+    mpl.rc('ytick', labelsize=8)
 
 def prettify_plot(x_label: str, y_label: str) -> plt.Figure:
     """Makes the plots look good."""
     plt.xlabel(x_label,fontsize=12)
     plt.ylabel(y_label,fontsize=12)
     plt.minorticks_on()
-    plt.tick_params(which='both', width=2,direction='in')
-    plt.tick_params(which='major', length=4, direction='in')
+    plt.tick_params(which='both', width=1.2,direction='in')
+    plt.tick_params(which='major', length=3, direction='in')
 
 def start_plot(x_label, y_label):
     """Starting the plot."""
