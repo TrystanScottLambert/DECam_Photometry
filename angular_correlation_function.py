@@ -73,9 +73,9 @@ Populate the random galaxies within the DECcam region.
 100 000, keeping with Ota, 2018.
 """
 
-number_random_gals=1000
-ra_rad = np.random.uniform(ra_min,ra_max, number_random_gals)
-dec_rad = np.arcsin(np.random.uniform(np.sin(dec_min), np.sin(dec_max), number_random_gals))
+NUMBER_RANDOM_GALS=1000
+ra_rad = np.random.uniform(ra_min,ra_max, NUMBER_RANDOM_GALS)
+dec_rad = np.arcsin(np.random.uniform(np.sin(dec_min), np.sin(dec_max), NUMBER_RANDOM_GALS))
 ra_deg = ra_rad*u.rad.to(u.deg)
 dec_deg = dec_rad*u.rad.to(u.deg)
 ra_pix, dec_pix = wcs.world_to_pixel_values(ra_deg, dec_deg)

@@ -68,27 +68,37 @@ if __name__ == '__main__':
 
     #on sky surface distribution plot.
     radii = np.arange(0,21,1) # Mpc
-    average_radii_mpc = [(radii[i] + radii[i+1])/2 for i in range(len(radii) -1)]
+    average_radii_mpc = np.array([(radii[i] + radii[i+1])/2 for i in range(len(radii) -1)])
     average_radii_arcsec = average_radii_mpc * DEG_PER_MPC
 
-    areas = [np.pi * (radii[i+1]**2 -radii[i]**2) for i in range(len(radii) -1)]
+    areas = np.array([np.pi * (radii[i+1]**2 -radii[i]**2) for i in range(len(radii) -1)])
     areas_deg = areas * (DEG_PER_MPC**2)
 
     angular_seperation_deg = angular_separation(RA_QSO, DEC_QSO, ra, dec)
     angular_seperation_pMpc = angular_seperation_deg / DEG_PER_MPC
 
     counts, _ = np.histogram(angular_seperation_pMpc.value, bins = radii)
+    null_count_values = np.where(counts==0)[0]
+    non_null_count_values = np.where(counts!=0)[0]
+    counts[null_count_values] = 2 # poisson distribution means a zero count is less than 2 counts.
     y = counts/areas
     y_err = np.sqrt(counts)/areas
 
     fig = plt.figure(figsize = (3.54, 3.54/2), dpi = 600)
     ax = fig.add_subplot(111)
-    ax.errorbar(average_radii_mpc, y, yerr = y_err, fmt='ok', ecolor='r', ms = 4, capsize=2)
+    #ax.errorbar(average_radii_mpc, y, yerr = y_err, fmt='ok', ecolor='r', ms = 4, capsize=2)
+    ax.errorbar(average_radii_mpc[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2)
+    ax.errorbar(average_radii_mpc[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2, uplims=True)
     ax.set_xlabel('Distance from QSO [pMpc]')
     ax.set_ylabel(r'Surface Density [pMpc$^{-2}$]')
     ax.minorticks_on()
     ax.tick_params(which='both', width=1.2,direction='in')
     ax.tick_params(which='major', length=3, direction='in')
+    ax.axvline(14.04, ls=':', color='k', alpha=0.3)
+    Y_LIM_MPC = 0.7
+    PER_DEGREE_CONVERSION_FACTOR=1./(DEG_PER_MPC.value**2)
+    #ax.set_ylim(top=Y_LIM_MPC, bottom=-0.05)
+    ax.set_yscale('log')
 
     ax1 = ax.twiny()
     ax1.errorbar(average_radii_arcsec, y, yerr=y_err, fmt='ok', alpha=0)
@@ -103,4 +113,7 @@ if __name__ == '__main__':
     ax2.minorticks_on()
     ax2.tick_params(which='both', width=1.2,direction='in')
     ax2.tick_params(which='major', length=3, direction='in')
-    plotting.end_plot('plots/surface_density.png')
+    #ax2.set_ylim(-0.05*PER_DEGREE_CONVERSION_FACTOR, Y_LIM_MPC*PER_DEGREE_CONVERSION_FACTOR)
+    ax2.set_yscale('log')
+    #plt.show()
+    plotting.end_plot('plots/surface_density_log.png')
