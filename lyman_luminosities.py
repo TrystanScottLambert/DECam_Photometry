@@ -5,6 +5,8 @@ from synphot import etau_madau
 from synphot import SpectralElement
 import astropy.constants as cons
 from astropy.cosmology import FlatLambdaCDM
+from astropy.coordinates import SkyCoord
+import astropy.units as u
 
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 QSO_REDSHIFT = 6.9018
@@ -29,38 +31,39 @@ class Filter:
     @property
     def central_wavelength(self):
         """Determines the average wavelength of the filter in angstroms"""
-        return self.transmission.avgwave().value
+        return self.transmission.avgwave()
 
     @property
     def area_of_filter(self):
         """Determines the integral of the curve. Since these are transmission curves the integration 
         will be in units of angstrom (as apposed to angstrom Flux for example.)"""
-        return self.transmission.integrate().value
+        return self.transmission.integrate()
 
     @property
     def filter_constant(self):
         """Determines the filter constant from Eq 4, Lambert et.al (2023)"""
-        return cons.c.value * (self.area_of_filter / (self.central_wavelength**2))
+        return cons.c * (self.area_of_filter / (self.central_wavelength**2))
 
     @property
     def transmission_at_lyman(self):
-        """The transmission value at the observed wavelength of lyman alpha."""
-        return self.transmission(9608).value
+        """The transmission at the observed wavelength of lyman alpha."""
+        return self.transmission(9608)
 
     @property
     def continuum_integral(self):
         """The integral seen in equation 7 of lambert et. al."""
-        wave = self.transmission.to_spectrum1d().wavelength.value
+        wave = self.transmission.to_spectrum1d().wavelength
         attenuated_transmission = etau_madau(wave, QSO_REDSHIFT) * self.transmission
-        attenuated_values = attenuated_transmission.to_spectrum1d().flux.value
+        attenuated_values = attenuated_transmission.to_spectrum1d().flux
         integrand = attenuated_values * (wave**(-2))
-        return numerical_integration(wave, integrand)
+        return numerical_integration(wave.value, integrand.value) * wave.unit * attenuated_values.unit
 
 def calculate_c(measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
     """Determines the C constant in the similtaneous equations"""
-    term_1 = z.filter_constant * measured_z_flux * nb964.transmission_at_lyman 
+    term_1 = z.filter_constant * measured_z_flux * nb964.transmission_at_lyman
     term_2 = nb964.filter_constant * measured_nb964_flux * z.transmission_at_lyman
-    return (term_1 - term_2) / z.continuum_integral
+    denominator = z.continuum_integral - (nb964.continuum_integral * z.transmission_at_lyman)
+    return (term_1 - term_2) / denominator
 
 def calculate_lyman_alpha_flux(measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
     """Determines the lyman alpha flux from the narrowband and broadband measured flux values."""
@@ -75,15 +78,26 @@ def convert_flux_to_luminosity(flux: float):
     return flux * np.pi * 4 * (lum_distance**2)
 
 if __name__ == '__main__':
-    SPECTRA_FILE = '../QSO_Spectra/J2348_dered.txt'
     NARROW_BANDPASS_FILE = '../QSO_Spectra/NB964_DECam_F29.txt'
-    I_BANDPASS_FILE = '../QSO_Spectra/decam_i_bandpass.txt'
     Z_BANDPASS_FILE = '../QSO_Spectra/decam_z_bandpass.txt'
+    NARROW_CATALOG = '../correct_stacks/N964/n964.cat'
+    Z_CATALOG = '../correct_stacks/N964/z.cat'
+    CANDIDATES_CATALOG = 'candidates.txt'
 
+
+    ra_n, dec_n, n_flux, n_flux_err = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(0, 1, 6, 7))
+    z_flux, z_flux_err = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(6, 7))
+
+    ra_candidates, dec_candidates = np.loadtxt(CANDIDATES_CATALOG, unpack=True)
+    candidates = SkyCoord(ra = ra_candidates * u.deg, dec = dec_candidates * u.deg)
+    n_catalog = SkyCoord(ra = ra_n * u.deg, dec = dec_n * u.deg)
+    idx, d2d, _ = candidates.match_to_catalog_sky(n_catalog)
+    n_flux = n_flux[idx]
+    z_flux = z_flux[idx]
 
     NB964 = Filter(NARROW_BANDPASS_FILE)
+    Z_BAND = Filter(Z_BANDPASS_FILE)
 
-    #Define the filter objects
-    narrow_band_pass = SpectralElement.from_file(NARROW_BANDPASS_FILE, wave_unit='nm')
-    i_band_pass = SpectralElement.from_file(I_BANDPASS_FILE, wave_unit='nm')
-    z_band_pass = SpectralElement.from_file(Z_BANDPASS_FILE, wave_unit='nm')
+
+    lya_flux = calculate_lyman_alpha_flux(n_flux, z_flux, NB964, Z_BAND)
+    lya_lum = convert_flux_to_luminosity(lya_flux)
