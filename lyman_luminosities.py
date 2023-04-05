@@ -56,7 +56,7 @@ class Filter:
         attenuated_transmission = etau_madau(wave, QSO_REDSHIFT) * self.transmission
         attenuated_values = attenuated_transmission.to_spectrum1d().flux
         integrand = attenuated_values * (wave**(-2))
-        return numerical_integration(wave.value, integrand.value) * wave.unit * attenuated_values.unit
+        return numerical_integration(wave.value, integrand.value)*wave.unit*attenuated_values.unit
 
 def calculate_c(measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
     """Determines the C constant in the similtaneous equations"""
@@ -65,17 +65,21 @@ def calculate_c(measured_nb964_flux: float, measured_z_flux: float, nb964: Filte
     denominator = z.continuum_integral - (nb964.continuum_integral * z.transmission_at_lyman)
     return (term_1 - term_2) / denominator
 
-def calculate_lyman_alpha_flux(measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
+def calculate_lyman_alpha_flux(
+        measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
     """Determines the lyman alpha flux from the narrowband and broadband measured flux values."""
     constant = calculate_c(measured_nb964_flux, measured_z_flux, nb964, z)
     term_1 = nb964.filter_constant * measured_nb964_flux
     term_2 = constant * nb964.continuum_integral
-    return (term_1 - term_2)/nb964.transmission_at_lyman
+    value = (term_1 - term_2)/nb964.transmission_at_lyman
+    # see http://physics.uwyo.edu/~chip/Classes/ASTR4610/Lec_Distances.pdf for units.
+    return value.to(u.erg * (u.s**(-1)) * (u.cm**(-2))) 
 
 def convert_flux_to_luminosity(flux: float):
     """converts flux into luminosity"""
     lum_distance = COSMO.luminosity_distance(QSO_REDSHIFT)
-    return flux * np.pi * 4 * (lum_distance**2)
+    value = flux * np.pi * 4 * (lum_distance**2)
+    return value.to(u.erg/u.s) #converting to same units as hu et. al., 2019
 
 if __name__ == '__main__':
     NARROW_BANDPASS_FILE = '../QSO_Spectra/NB964_DECam_F29.txt'
@@ -85,19 +89,26 @@ if __name__ == '__main__':
     CANDIDATES_CATALOG = 'candidates.txt'
 
 
-    ra_n, dec_n, n_flux, n_flux_err = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(0, 1, 6, 7))
-    z_flux, z_flux_err = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(6, 7))
+    ra_n, dec_n, n_mag = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(0, 1, 4))
+    z_mag = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=4)
 
     ra_candidates, dec_candidates = np.loadtxt(CANDIDATES_CATALOG, unpack=True)
     candidates = SkyCoord(ra = ra_candidates * u.deg, dec = dec_candidates * u.deg)
     n_catalog = SkyCoord(ra = ra_n * u.deg, dec = dec_n * u.deg)
     idx, d2d, _ = candidates.match_to_catalog_sky(n_catalog)
-    n_flux = n_flux[idx]
-    z_flux = z_flux[idx]
+
+    n_mag = n_mag[idx] + 28.987 # zpts of the filters
+    z_mag = z_mag[idx] + 30.538
+
+    '''
+    See table at https://pysynphot.readthedocs.io/en/latest/units.html 
+    for units of fnu which is what is measured photometrically.
+    '''
+    n_flux_nu = 10**((n_mag + 48.6)/(-2.5)) * u.erg * (u.cm**(-2)) * (u.s**(-1)) * (u.Hz**(-1))
+    z_flux_nu = 10**((z_mag + 48.6)/(-2.5)) * u.erg * (u.cm**(-2)) * (u.s**(-1)) * (u.Hz**(-1))
 
     NB964 = Filter(NARROW_BANDPASS_FILE)
     Z_BAND = Filter(Z_BANDPASS_FILE)
 
-
-    lya_flux = calculate_lyman_alpha_flux(n_flux, z_flux, NB964, Z_BAND)
+    lya_flux = calculate_lyman_alpha_flux(n_flux_nu, z_flux_nu, NB964, Z_BAND)
     lya_lum = convert_flux_to_luminosity(lya_flux)
