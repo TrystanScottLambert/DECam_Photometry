@@ -16,6 +16,7 @@ from plot_onsky_distribution import REGION_FILE
 
 SERSIC_INDEX = 1.5
 HALF_LIGHT_RADIUS = 0.9 # From Hu et. al., (2019)
+PSF = 1.2 # arcseconds
 
 
 def get_filter_from_image_name(file_name:str) -> str:
@@ -43,7 +44,7 @@ class DecamImage:
         """creates a lyman-alpha emitter galaxy image which can be injected into an image."""
         flux = self.calculate_counts_from_mag(mag)
         gal = galsim.Sersic(SERSIC_INDEX, HALF_LIGHT_RADIUS, flux=flux)
-        psf = galsim.Gaussian(flux=1., sigma=1.2)
+        psf = galsim.Gaussian(flux=1., sigma=PSF)
         final = galsim.Convolve([gal, psf])
         return final.drawImage(scale=self.pixel_scale).array
 
@@ -103,5 +104,8 @@ if __name__ == '__main__':
     INFILE = '../correct_stacks/N964/n964.fits'
     n_band = DecamImage(INFILE)
     xs, ys, magnitudes = n_band.populate_image_with_mock_lae(10000)
-
     n_band.write()
+    with open('mock_lae_sources.txt', 'w', encoding='utf8') as file:
+        file.write('#x_pix y_pix magnitude')
+        for i, mag in enumerate(magnitudes):
+            file.write(f'{xs[i]} {ys[i]} {mag} \n')
