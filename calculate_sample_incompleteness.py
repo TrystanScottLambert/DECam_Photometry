@@ -56,10 +56,13 @@ class DecamImage:
         return laes, mags
 
     def insert_lae(self, lae_data: np.ndarray, xpix_pos: int, ypix_pos: int) -> None:
-        """Takes the smaller 2d array and inserts it into the data field."""
+        """
+        Takes the smaller 2d array and inserts it into the data field.
+        x_pos, y_pos need to be the corner of the image NOT THE CENTER.
+        """
         x_len, y_len = lae_data.shape
         self.hdul[0].data[ypix_pos:ypix_pos+y_len, xpix_pos: xpix_pos+x_len] += lae_data
-    
+
     def _generate_positions_in_region(self, number_of_positions: int) -> List:
         """Randomly selects positions within a give region."""
         region = load_region(REGION_FILE)
@@ -83,9 +86,13 @@ class DecamImage:
         """
         x_positions, y_positions = self._generate_positions_in_region(number_of_mocks)
         laes, mags = self.generate_many_laes(number_of_mocks)
+        offset = laes[0].shape[0] / 2
+        xs, ys = [], []
         for i, lae in enumerate(laes):
             self.insert_lae(lae, x_positions[i], y_positions[i])
-        return x_positions, y_positions, mags
+            xs.append(x_positions[i] + offset)
+            ys.append(y_positions[i] + offset)
+        return xs, ys, mags
 
     def write(self):
         """Writes the injected field as a fits image ready for sextractor."""
@@ -95,6 +102,6 @@ class DecamImage:
 if __name__ == '__main__':
     INFILE = '../correct_stacks/N964/n964.fits'
     n_band = DecamImage(INFILE)
-    xs, ys, mags = n_band.populate_image_with_mock_lae(10000)
-    
+    xs, ys, magnitudes = n_band.populate_image_with_mock_lae(10000)
+
     n_band.write()
