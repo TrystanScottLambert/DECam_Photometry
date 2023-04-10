@@ -1,4 +1,4 @@
-"""Plotting the onsky distribution"""
+"""Plotting the onsky distribution and the distance from the qso distribution"""
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -8,7 +8,6 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.coordinates import angular_separation
-import astropy.units as u
 from regionfy_catalog import load_region
 import plotting
 
