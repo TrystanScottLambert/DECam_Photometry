@@ -2,6 +2,8 @@
 Module to determine the sample incompleteness of the decam images using,
 similiar to the method used in section 4.1 of Hu et. al., (2019). 
 Except we do not use the balrog package and rely purly on galsim.
+Note that we are only inserting sources into the narrow band image and
+the flux is assumed to be zero for the broad band images.
 """
 
 from typing import List
