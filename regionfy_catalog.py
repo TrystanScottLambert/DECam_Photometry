@@ -16,6 +16,7 @@ Usage:
 
 from regions import PixCoord, PolygonPixelRegion
 import numpy as np
+import glob
 
 def load_region(file_name: str):
     """
@@ -202,10 +203,7 @@ class Catalog:
 
 if __name__ == '__main__':
     REGION_FILE = 'DECAM.reg'
-    INFILE_N964 = '../correct_stacks/N964/n964.cat'
-    INFILE_Z = '../correct_stacks/N964/z.cat'
-    INFILE_I = '../correct_stacks/N964/i.cat'
+    infiles = glob.glob('../correct_stacks/N964/*.cat')
 
-    Catalog(INFILE_N964, REGION_FILE)
-    Catalog(INFILE_Z, REGION_FILE)
-    Catalog(INFILE_I, REGION_FILE)
+    for file in infiles:
+        Catalog(file, REGION_FILE)
