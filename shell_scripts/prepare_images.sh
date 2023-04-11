@@ -22,6 +22,12 @@ python3 trim.py
 cd shell_scripts/
 sh find_sources.sh
 
+# make fake sources and determine the completeness
+cd ../
+python3 inject_false_sources.py
+cd shell_scripts/
+sh find_mock_sources.sh
+
 # Remove all sources that are not within the DECAM area (remove edge cases)
 echo "Only selecting source that are within the DECam area."
 cd ../

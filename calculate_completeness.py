@@ -39,9 +39,10 @@ if __name__ == '__main__':
     with open(MOCK_SOURCES_2_SEXCAT, encoding='utf8') as file:
         mock_lines = file.readlines()
 
-    same_lines = []
-    for line in original_lines:
-        for mock_line in mock_lines:
-            if line == mock_line:
-                same_lines.append(line)
-            
+
+    ra_original, dec_original, flux = np.loadtxt(ORIGINAL_SEXCAT, usecols=(0, 1, 6), unpack=True)
+    ra_mock, dec_mock, flux_mock = np.loadtxt(MOCK_SOURCES_2_SEXCAT, usecols=(0,1,6), unpack=True)
+
+    original_cat = SkyCoord(ra = ra_original*u.deg, dec = dec_original*u.deg)
+    mock_cat = SkyCoord(ra = ra_mock*u.deg, dec = dec_mock*u.deg)
+    idx, d2d, _ = original_cat.match_to_catalog_sky(mock_cat)

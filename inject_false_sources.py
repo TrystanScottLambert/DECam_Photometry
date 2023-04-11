@@ -107,7 +107,7 @@ class DecamImage:
 if __name__ == '__main__':
     INFILE = '../correct_stacks/N964/n964.fits'
     n_band = DecamImage(INFILE)
-    xs, ys, magnitudes = n_band.populate_image_with_mock_lae(1)
+    xs, ys, magnitudes = n_band.populate_image_with_mock_lae(3000)
     n_band.write()
     with open('mock_lae_sources.txt', 'w', encoding='utf8') as file:
         file.write('#x_pix y_pix magnitude \n')
