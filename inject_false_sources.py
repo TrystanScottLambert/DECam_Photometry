@@ -19,6 +19,8 @@ from plot_onsky_distribution import REGION_FILE
 SERSIC_INDEX = 1.5
 HALF_LIGHT_RADIUS = 0.9 # From Hu et. al., (2019)
 PSF = 1.2 # arcseconds
+MIN_MAG = 21
+MAX_MAG = 26
 
 
 def get_filter_from_image_name(file_name:str) -> str:
@@ -54,7 +56,7 @@ class DecamImage:
         """
         Creates several different lyman-alpha emitters from a mag-dist from Hu et. al., (2019).
         """
-        mags = np.random.random(number_of_laes)*5 + 21 # Hu ranges from 21 to 26 in magnitude
+        mags = np.random.uniform(MIN_MAG, MAX_MAG, number_of_laes) # Hu ranges from 21 to 26 in magnitude
         laes = [self.generate_lae(mag) for mag in mags]
         return laes, mags
 
@@ -105,9 +107,9 @@ class DecamImage:
 if __name__ == '__main__':
     INFILE = '../correct_stacks/N964/n964.fits'
     n_band = DecamImage(INFILE)
-    xs, ys, magnitudes = n_band.populate_image_with_mock_lae(10000)
+    xs, ys, magnitudes = n_band.populate_image_with_mock_lae(1)
     n_band.write()
     with open('mock_lae_sources.txt', 'w', encoding='utf8') as file:
-        file.write('#x_pix y_pix magnitude')
+        file.write('#x_pix y_pix magnitude \n')
         for i, mag in enumerate(magnitudes):
             file.write(f'{xs[i]} {ys[i]} {mag} \n')
