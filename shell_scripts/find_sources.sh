@@ -3,11 +3,10 @@
 
 echo "Running sextractor on i-band."
 cd ../../correct_stacks/N964/
-sex n964.fits,i.fits -c default_i.sex 
+sex n964.fits,i.fits -c default_i.sex
 
 echo "Running sextractor on z-band."
-sex n964.fits,z.fits -c default_z.sex 
+sex n964.fits,z.fits -c default_z.sex
 
 echo "Running sextractor on N964-band."
-sex n964.fits -c default_n964.sex 
-
+sex n964.fits -c default_n964.sex
