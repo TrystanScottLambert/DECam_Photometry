@@ -49,6 +49,7 @@ def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:f
 def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray):
     """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
     with open(RED_LIST_NAME,'a+', encoding='utf8') as file:
+        file.write('\n')
         for i, _ in enumerate(ra_array):
             file.write(f'{ra_array[i]} {dec_array[i]} \n')
 

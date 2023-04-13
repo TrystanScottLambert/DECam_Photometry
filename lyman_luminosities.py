@@ -8,6 +8,8 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
+from hu_2019_plot import FILTERS
+
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 QSO_REDSHIFT = 6.9018
 LYMAN_ALPHA_OBSERVED_WAVELENGTH = 1216 * (QSO_REDSHIFT + 1) # angstrom
@@ -97,8 +99,8 @@ if __name__ == '__main__':
     n_catalog = SkyCoord(ra = ra_n * u.deg, dec = dec_n * u.deg)
     idx, d2d, _ = candidates.match_to_catalog_sky(n_catalog)
 
-    n_mag = n_mag[idx] + 28.987 # zpts of the filters
-    z_mag = z_mag[idx] + 30.538
+    n_mag = n_mag[idx] + FILTERS['n964'].zpt # zpts of the filters
+    z_mag = z_mag[idx] + FILTERS['z'].zpt
 
     '''
     See table at https://pysynphot.readthedocs.io/en/latest/units.html 

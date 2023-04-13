@@ -19,7 +19,7 @@ from plot_onsky_distribution import REGION_FILE
 SERSIC_INDEX = 1.5
 HALF_LIGHT_RADIUS = 0.9 # From Hu et. al., (2019)
 PSF = 1.2 # arcseconds
-MIN_MAG = 21
+MIN_MAG = 18
 MAX_MAG = 26
 
 
