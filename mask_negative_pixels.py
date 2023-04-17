@@ -32,6 +32,7 @@ This will create new files with the same names as the input files,
 with the very negative pixel values masked with NaNs.
 """
 
+import glob
 import numpy as np
 from astropy.io import fits
 
@@ -72,10 +73,11 @@ def mask_fits_file(filepath: str) -> None:
 
 if __name__ == '__main__':
     input_files = [
-        '../correct_stacks/N964/c4d_210831_050404_osj_N964_vik1.fits',
-        '../correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits',
-        '../correct_stacks/z/c4d_210831_053503_osj_z_vik1.fits'
+        '../correct_stacks/N964/',
+        '../correct_stacks/i/',
+        '../correct_stacks/z/'
     ]
 
     for file_path in input_files:
-        mask_fits_file(file_path)
+        file_name = glob.glob(file_path + '*c4d*j*.fits')
+        mask_fits_file(file_name[0])
