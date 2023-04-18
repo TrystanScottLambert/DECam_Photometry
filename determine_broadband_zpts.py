@@ -2,7 +2,6 @@
 Calculate the zero points of the i-band and z-band
 """
 
-
 from typing import Tuple
 import numpy as np
 import pylab as plt
@@ -23,7 +22,7 @@ def read_in_wide_band(sextractor_file_name: str, panstars_cat_name: str):
     decam_catalog, pan_cat = decam_catalog.cross_match_with_panstars(panstars_cat_name)
     return decam_catalog, pan_cat
 
-def make_wide_band_mags(decam_df: pd.DataFrame, panstars_cat: pd.DataFrame, band: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def get_broad_band_mags(decam_df: pd.DataFrame, panstars_cat: pd.DataFrame, band: str) -> Tuple:
     """Gets the magnitudes and errors for a wide-band filter."""
 
     dec_mags = decam_df['MAG_AUTO'].values
@@ -75,7 +74,7 @@ CONVERT = {
 def prepare_plotting_data(sextractor_file_name, panstars_file_name, band):
     """Gets all the necessary variables for plotting ready and removes outliers."""
     decam_catalog, panstars_catalog = read_in_wide_band(sextractor_file_name, panstars_file_name)
-    mags = make_wide_band_mags(decam_catalog, panstars_catalog, band=band)
+    mags = get_broad_band_mags(decam_catalog, panstars_catalog, band=band)
     msk = remove_outliers(mags[-2], sigma=2)
     cleaned_mags = [mag[msk] for mag in mags]
     return cleaned_mags
@@ -93,6 +92,7 @@ class BroadBand:
     def __init__(self, panstars_cat_name: str, sextractor_cat_name: str, broadband: str):
         if broadband not in 'iz':
             raise ValueError('broadband needs to be either "i" or "z".')
+        self.sextractor_cat_name = sextractor_cat_name
         mags = prepare_plotting_data(sextractor_cat_name, panstars_cat_name, broadband)
         good_values = np.where(mags[2] < 100)[0] # Obviously not physical if this isn't met.
         self.measured_mags = mags[0][good_values]
@@ -100,7 +100,7 @@ class BroadBand:
         self.expected_mags = mags[2][good_values]
         self.expected_mags_err = mags[3][good_values]
 
-    def plot(self):
+    def plot_zpt(self):
         """Plots the measured mags vs the expected mags."""
         plt.errorbar(
         self.measured_mags, self.expected_mags,
@@ -113,19 +113,23 @@ class BroadBand:
 
     def fit_straight_line(self) -> Tuple:
         """Fitting y=x+c line to the data to determine c"""
+        zpt, zpt_err = self.zero_point
+        nstd = 5.
+        popt_up = zpt + nstd * zpt_err
+        popt_dw = zpt - nstd * zpt_err
+        x_fit = np.linspace(np.sort(self.measured_mags)[0], np.sort(self.measured_mags)[-1])
+        fit = straight_line(x_fit, zpt)
+        fit_up = straight_line(x_fit, popt_up)
+        fit_dw= straight_line(x_fit, popt_dw)
+        return x_fit, fit, fit_up, fit_dw
+
+    @property
+    def zero_point(self) -> Tuple[float, float]:
         a_fit, cov = curve_fit(
             straight_line, self.measured_mags, self.expected_mags,
             sigma=self.expected_mags_err, absolute_sigma=True)
-        print(a_fit)
         uncertainties = np.sqrt(np.diag(cov))
-        nstd = 5.
-        popt_up = a_fit + nstd * uncertainties
-        popt_dw = a_fit - nstd * uncertainties
-        x_fit = np.linspace(np.sort(self.measured_mags)[0], np.sort(self.measured_mags)[-1])
-        fit = straight_line(x_fit, *a_fit)
-        fit_up = straight_line(x_fit, *popt_up)
-        fit_dw= straight_line(x_fit, *popt_dw)
-        return x_fit, fit, fit_up, fit_dw
+        return a_fit[0], uncertainties[0]
 
 
 if __name__ == '__main__':
@@ -135,9 +139,7 @@ if __name__ == '__main__':
     INFILE_PAN_Z = '../PANSTARS/PANSTARS_z.csv'
 
     i_band = BroadBand(INFILE_PAN_I, INFILE_SEX_I, 'i')
-    i_band.plot()
-    plt.show()
+    i_band.plot_zpt()
 
     z_band = BroadBand(INFILE_PAN_Z, INFILE_SEX_Z, 'z')
-    z_band.plot()
-    plt.show()
+    z_band.plot_zpt()
