@@ -9,6 +9,7 @@ from scipy.optimize import curve_fit
 import pandas as pd
 from sex_catalog import SExtractorCat
 from k_constant import calculate_k_constant_mag
+import plotting
 
 
 def remove_outliers(array, sigma):
@@ -95,6 +96,7 @@ class BroadBand:
     def __init__(self, panstars_cat_name: str, sextractor_cat_name: str, broadband: str):
         if broadband not in 'iz':
             raise ValueError('broadband needs to be either "i" or "z".')
+        self.broadband = broadband
         self.sextractor_cat_name = sextractor_cat_name
         mags = prepare_plotting_data(sextractor_cat_name, panstars_cat_name, broadband)
         good_values = np.where(mags[2] < 100)[0] # Obviously not physical if this isn't met.
@@ -105,6 +107,7 @@ class BroadBand:
 
     def plot_zpt(self):
         """Plots the measured mags vs the expected mags."""
+        plotting.start_plot('DECam magnitudes [mag]', 'Expected magnitudes [mag]')
         plt.errorbar(
             self.measured_mags, self.expected_mags,
             xerr=self.measured_mags_err, yerr=self.expected_mags_err,
@@ -112,6 +115,7 @@ class BroadBand:
         x_fit, fit, fit_up, fit_down = self.fit_straight_line()
         plt.plot(x_fit, fit, ls='--', color='k', lw=3, zorder=1)
         plt.fill_between(x_fit, fit_up, fit_down, alpha=.5, color='r')
+        plotting.end_plot(f'plots/{self.broadband}_zpt.png')
         plt.show()
 
     def fit_straight_line(self) -> Tuple:
