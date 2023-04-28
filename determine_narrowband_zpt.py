@@ -1,4 +1,9 @@
-"""Narrow band analysis and fitting."""
+"""
+Determining the narrow band zpt.
+Have to use a different method than the broad bands because
+DECAM doesn't have a calibration method. Using the method suggested
+to us via private communication from ...
+"""
 
 import pylab as plt
 import numpy as np
@@ -91,7 +96,6 @@ if __name__ == '__main__':
     plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
                   yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.3, capsize=0, zorder=0)
 
-
     # To check that the limits are in the right place
     #plt.plot(x_fit, bottom_limit(x_fit), color='b')
     #plt.plot(x_fit, upper_limit(x_fit), color='b')
@@ -102,7 +106,7 @@ if __name__ == '__main__':
 
     N964_DIR = '../correct_stacks/N964/'
     N964_SEX_CAT = N964_DIR + 'n964.cat'
-    N964_DECAM_CAT = N964_DIR + 'c4d_210831_050404_osj_N964_vik1.fits.fz'
+    N964_DECAM_CAT = N964_DIR + 'c4d_210831_050404_osj_N964_vik2.fits.fz'
 
     n964_sex_cat = SExtractorCat(N964_SEX_CAT)
     n964_sex_cat.catalog = n964_sex_cat.catalog[n964_sex_cat.catalog['MAG_AUTO'] < 3]
