@@ -150,7 +150,7 @@ class BroadBand:
         Must provide the radius of the apertures used by sextractor to determine the magnitudes
         as well as the seeing of the image. Both must be in the same units.
         """
-        return self.zero_point + calculate_k_constant_mag(aperture_radius, seeing)
+        return self.zero_point - calculate_k_constant_mag(aperture_radius, seeing)
 
 
 if __name__ == '__main__':

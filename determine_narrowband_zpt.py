@@ -10,7 +10,7 @@ import numpy as np
 from scipy import odr
 from sex_catalog import SExtractorCat
 import plotting
-
+from k_constant import calculate_k_constant_mag
 
 def straight_line(parameters, x_val):
     """Straight line for fitting to data"""
@@ -48,6 +48,8 @@ if __name__ == '__main__':
     INFILE_SEX = '../correct_stacks/N964/n964.cat'
     INFILE_Z = '../PANSTARS/PANSTARS_z.csv'
     INFILE_Y = '../PANSTARS/PANSTARS_y.csv'
+    NARROW_BAND_SEEING = 1.32 # arcseconds
+    NARROW_BAND_APERTURES = 1. # arcseconds
 
     decam_all = SExtractorCat(INFILE_SEX)
     decam_catalog_z, pan_cat_z = decam_all.cross_match_with_panstars(INFILE_Z)
@@ -83,6 +85,10 @@ if __name__ == '__main__':
     print("———————————–")
     for i, pop in enumerate(popt):
         print(f'{pop} +- {perr[i]}')
+    
+    k_const = calculate_k_constant_mag(NARROW_BAND_APERTURES, NARROW_BAND_SEEING)
+    zpt_prime = popt[1] - k_const
+    print('The zpt prime is: ', zpt_prime)
 
     NSTD = 5.
     popt_up = popt + NSTD * perr
