@@ -14,10 +14,16 @@ def gaussian(x_array: np.ndarray, mean: float, fwhm: float):
     is equivalent to the seeing of each image.
     """
     sig = fwhm * gaussian_fwhm_to_sigma
-    print(sig)
     return np.exp(-np.power(x_array - mean, 2.) / (2 * np.power(sig, 2.)))
 
-infinite_integral = quad(gaussian, 0, np.inf, args=(0, 1.32))
-definite_integral = quad(gaussian, 0, 1.35, args=(0, 1.32))
+def calculate_k_constant(aperture_radius: float, seeing: float):
+    """k(r). Make sure the aperture radius and seeing are in the same units."""
+    infinite_integral = quad(gaussian, 0, np.inf, args=(0, seeing))
+    definite_integral = quad(gaussian, 0, aperture_radius, args=(0, seeing))
+    constant = infinite_integral[0]/definite_integral[0]
+    return constant
 
-k = infinite_integral[0]/definite_integral[0]
+def calculate_k_constant_mag(aperture_radius: float, seeing: float) -> float:
+    """k(r) once converted into a magnitude."""
+    k_constant = calculate_k_constant(aperture_radius, seeing)
+    return -2.5 * np.log10(k_constant)

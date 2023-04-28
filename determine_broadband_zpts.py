@@ -8,6 +8,7 @@ import pylab as plt
 from scipy.optimize import curve_fit
 import pandas as pd
 from sex_catalog import SExtractorCat
+from k_constant import calculate_k_constant_mag
 
 
 def remove_outliers(array, sigma):
@@ -32,7 +33,8 @@ def get_broad_band_mags(decam_df: pd.DataFrame, panstars_cat: pd.DataFrame, band
 
     converted_mags, converted_mags_errors = CONVERT[band](panstars_cat)
 
-    return dec_mags, dec_mags_uncertainty, converted_mags, converted_mags_errors, pan_mags, pan_mags_uncertainty
+    return dec_mags, dec_mags_uncertainty, converted_mags,\
+          converted_mags_errors, pan_mags, pan_mags_uncertainty
 
 
 def convert_panstars_i_dec_mags(panstars_cat: pd.DataFrame):
@@ -44,7 +46,8 @@ def convert_panstars_i_dec_mags(panstars_cat: pd.DataFrame):
     r_uncertainties = panstars_cat['rMeanPSFMagErr'].values
 
     i_decam = i_panstars_mags - 0.155 * (r_panstars_mags - i_panstars_mags) + 0.015
-    converted_i_uncertainties = np.hypot(i_uncertainties, 0.155*np.hypot(i_uncertainties, r_uncertainties))
+    converted_i_uncertainties = np.hypot(
+        i_uncertainties, 0.155*np.hypot(i_uncertainties, r_uncertainties))
 
     return i_decam, converted_i_uncertainties
 
@@ -60,7 +63,8 @@ def convert_panstars_z_dec_mags(panstars_cat: pd.DataFrame):
     z_uncertainties = panstars_cat['zMeanPSFMagErr'].values
 
     z_decam = z_panstars_mags - 0.114 * (r_panstars_mags - i_panstars_mags) - 0.010
-    converted_z_uncertainties = np.hypot(z_uncertainties, 0.114*np.hypot(i_uncertainties, r_uncertainties))
+    converted_z_uncertainties = np.hypot(
+        z_uncertainties, 0.114*np.hypot(i_uncertainties, r_uncertainties))
 
     return z_decam, converted_z_uncertainties
 
@@ -69,7 +73,6 @@ CONVERT = {
     'i': convert_panstars_i_dec_mags,
     'z': convert_panstars_z_dec_mags,
 }
-
 
 def prepare_plotting_data(sextractor_file_name, panstars_file_name, band):
     """Gets all the necessary variables for plotting ready and removes outliers."""
@@ -103,9 +106,9 @@ class BroadBand:
     def plot_zpt(self):
         """Plots the measured mags vs the expected mags."""
         plt.errorbar(
-        self.measured_mags, self.expected_mags,
-        xerr=self.measured_mags_err, yerr=self.expected_mags_err,
-        fmt='ro', alpha=0.3)
+            self.measured_mags, self.expected_mags,
+            xerr=self.measured_mags_err, yerr=self.expected_mags_err,
+            fmt='ro', alpha=0.3)
         x_fit, fit, fit_up, fit_down = self.fit_straight_line()
         plt.plot(x_fit, fit, ls='--', color='k', lw=3, zorder=1)
         plt.fill_between(x_fit, fit_up, fit_down, alpha=.5, color='r')
@@ -125,11 +128,25 @@ class BroadBand:
 
     @property
     def zero_point(self) -> Tuple[float, float]:
+        """
+        Determines the zero point by fitting a straight line and determining the intercept.
+        """
         a_fit, cov = curve_fit(
             straight_line, self.measured_mags, self.expected_mags,
             sigma=self.expected_mags_err, absolute_sigma=True)
         uncertainties = np.sqrt(np.diag(cov))
         return a_fit[0], uncertainties[0]
+
+    def determine_zero_point_prime(self, aperture_radius: float, seeing: float) -> float:
+        """
+        This is the zero point minus the k_correction. This means that the magnitudes 
+        in the future would be determined by adding this constant to the k_correction
+        which is dependent on the radius.
+
+        Must provide the radius of the apertures used by sextractor to determine the magnitudes
+        as well as the seeing of the image. Both must be in the same units.
+        """
+        return self.zero_point + calculate_k_constant_mag(aperture_radius, seeing)
 
 
 if __name__ == '__main__':
@@ -137,9 +154,14 @@ if __name__ == '__main__':
     INFILE_PAN_I = '../PANSTARS/PANSTARS_i.csv'
     INFILE_SEX_Z = '../correct_stacks/N964/z.cat'
     INFILE_PAN_Z = '../PANSTARS/PANSTARS_z.csv'
+    SEEING_I = 0.7 # These comes from the seeing calculator.
+    SEEING_Z = 1.053
+    APERTURE_RADII = 1.
 
     i_band = BroadBand(INFILE_PAN_I, INFILE_SEX_I, 'i')
+    print(i_band.determine_zero_point_prime(APERTURE_RADII, SEEING_I))
     i_band.plot_zpt()
 
     z_band = BroadBand(INFILE_PAN_Z, INFILE_SEX_Z, 'z')
+    print(z_band.determine_zero_point_prime(APERTURE_RADII, SEEING_Z))
     z_band.plot_zpt()
