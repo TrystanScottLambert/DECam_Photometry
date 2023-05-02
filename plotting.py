@@ -12,7 +12,7 @@ def apply_global_settings() -> None:
     mpl.rc('xtick', labelsize=8)
     mpl.rc('ytick', labelsize=8)
 
-def prettify_plot(x_label: str, y_label: str) -> plt.Figure:
+def prettify_plot(x_label: str, y_label: str) -> None:
     """Makes the plots look good."""
     plt.xlabel(x_label,fontsize=12)
     plt.ylabel(y_label,fontsize=12)
@@ -20,7 +20,7 @@ def prettify_plot(x_label: str, y_label: str) -> plt.Figure:
     plt.tick_params(which='both', width=1.2,direction='in')
     plt.tick_params(which='major', length=3, direction='in')
 
-def start_plot(x_label, y_label):
+def start_plot(x_label: str, y_label: str) -> plt.Figure:
     """Starting the plot."""
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     prettify_plot(x_label, y_label)
