@@ -2,16 +2,16 @@
 # Preparing images for candidates selection
 
 # Unpack the .fits.fz files.
-sh unzip_fz_files.sh
+#sh unzip_fz_files.sh
 
 # Mask the very negative values from the images.
-echo "Removing negative pixels."
-cd ../
-python3 mask_negative_pixels.py
+#echo "Removing negative pixels."
+#cd ../
+#python3 mask_negative_pixels.py
 
 # Swarp the images from multi-extension to one mosaic.
-cd shell_scripts/
-sh swarp_files.sh
+#cd shell_scripts/
+#sh swarp_files.sh
 
 # Trim the images so they are the same size for source finding.
 echo "Trimming images."

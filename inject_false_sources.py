@@ -65,7 +65,10 @@ class DecamImage:
         Takes the smaller 2d array and inserts it into the data field.
         x_pos, y_pos need to be the corner of the image NOT THE CENTER.
         """
-        x_len, y_len = lae_data.shape
+        y_len, x_len = lae_data.shape
+        print(lae_data.shape)
+        print(self.hdul[0].data[ypix_pos:ypix_pos+y_len, xpix_pos: xpix_pos+x_len].shape)
+        print()
         self.hdul[0].data[ypix_pos:ypix_pos+y_len, xpix_pos: xpix_pos+x_len] += lae_data
 
     def _generate_positions_in_region(self, number_of_positions: int) -> List:
