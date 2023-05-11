@@ -5,6 +5,7 @@ import numpy as np
 from scipy.stats import gaussian_kde
 import plotting
 from sex_catalog import SExtractorCat
+from zero_points import zero_points
 
 
 HU_VALUES = {
@@ -57,9 +58,9 @@ if __name__ == '__main__':
     INFILE_SEX_I = '../correct_stacks/N964/i.cat'
     INFILE_SEX_Z = '../correct_stacks/N964/z.cat'
     INFILE_SEX_N = '../correct_stacks/N964/n964.cat'
-    I_ZPT = 30.87
-    Z_ZPT = 30.538
-    N_ZPT = 28.97
+    I_ZPT = zero_points.i_band.mag_correct(1)
+    Z_ZPT = zero_points.z_band.mag_correct(1)
+    N_ZPT = zero_points.n964_band.mag_correct(1)
 
     plot_depth(INFILE_SEX_I, I_ZPT, 'i')
     plot_depth(INFILE_SEX_Z, Z_ZPT, 'z')
