@@ -150,7 +150,7 @@ class BroadBand:
         Must provide the radius of the apertures used by sextractor to determine the magnitudes
         as well as the seeing of the image. Both must be in the same units.
         """
-        return self.zero_point - calculate_k_constant_mag(aperture_radius, seeing)
+        return self.zero_point[0] - calculate_k_constant_mag(aperture_radius, seeing)
 
 
 if __name__ == '__main__':
@@ -163,9 +163,9 @@ if __name__ == '__main__':
     APERTURE_RADII = 1.
 
     i_band = BroadBand(INFILE_PAN_I, INFILE_SEX_I, 'i')
-    print(i_band.determine_zero_point_prime(APERTURE_RADII, SEEING_I))
+    print('i prime is: ', i_band.determine_zero_point_prime(APERTURE_RADII, SEEING_I))
     i_band.plot_zpt()
 
     z_band = BroadBand(INFILE_PAN_Z, INFILE_SEX_Z, 'z')
-    print(z_band.determine_zero_point_prime(APERTURE_RADII, SEEING_Z))
+    print('z prime is: ', z_band.determine_zero_point_prime(APERTURE_RADII, SEEING_Z))
     z_band.plot_zpt()

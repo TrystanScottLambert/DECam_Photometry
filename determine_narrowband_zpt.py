@@ -85,7 +85,7 @@ if __name__ == '__main__':
     print("———————————–")
     for i, pop in enumerate(popt):
         print(f'{pop} +- {perr[i]}')
-    
+
     k_const = calculate_k_constant_mag(NARROW_BAND_APERTURES, NARROW_BAND_SEEING)
     zpt_prime = popt[1] - k_const
     print('The zpt prime is: ', zpt_prime)
