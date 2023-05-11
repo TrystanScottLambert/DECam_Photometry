@@ -35,7 +35,7 @@ COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 ARCSEC_PER_KPC = COSMO.arcsec_per_kpc_proper(REDSHIFT_QSO)
 DEG_PER_MPC = ARCSEC_PER_KPC.to(u.deg / u.Mpc)
 DEG_PER_PIX = np.abs(decam_hdu[0].header['PC2_2'])
-REGION_FILE = 'DECAM.reg'
+REGION_FILE = 'decam.reg'
 region_decam_fov = load_region(REGION_FILE)
 
 

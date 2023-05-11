@@ -14,9 +14,10 @@ Usage:
 - Run the script.
 """
 
+import glob
 from regions import PixCoord, PolygonPixelRegion
 import numpy as np
-import glob
+
 
 def load_region(file_name: str):
     """

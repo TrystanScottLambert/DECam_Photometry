@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     INFILE_N964 = '../correct_stacks/N964/c4d_210831_050404_osj_N964_vik2.fits.fz'
     INFILE_N964_WEIGHT = '../correct_stacks/N964/c4d_210831_050404_osw_N964_vik2.fits.fz'
-    SIZE = 1.5 * u.deg
+    SIZE = 2 * u.deg
 
     n964_position = get_center_of_image(INFILE_N964)
 
