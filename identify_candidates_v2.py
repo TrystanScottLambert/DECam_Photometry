@@ -10,6 +10,8 @@ import astropy.units as u
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
+from k_constant import calculate_k_constant_mag
+from zero_points import zero_points
 
 RED_LIST_NAME = 'candidates_red_list.txt'
 
@@ -81,15 +83,18 @@ if __name__ == '__main__':
     INFILE_Z = '../correct_stacks/N964/z.cat'
 
     #1. mag < 24.8 for the N964 filter.
-    mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
+    inst_mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
+    mag_n964 = inst_mag_n964 + zero_points.n964_band.mag_correct(1)
     first_cut = np.where(mag_n964<24.2)[0]
 
     #2. mag > 25.8 for the i band filter.
-    mag_i, mag_err_i, snr_i = read_all(INFILE_I)
+    inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
+    mag_i = inst_mag_i + zero_points.i_band.mag_correct(1)
     second_cut = np.where(mag_i > 25.8)[0]
 
     #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
-    mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
+    inst_mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
+    mag_z = inst_mag_i + zero_points.z_band.mag_correct(1)
     color = mag_z - mag_n964
 
     third_cut_a_1 = find_values(1.9, color)
