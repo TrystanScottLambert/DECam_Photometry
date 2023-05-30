@@ -10,7 +10,6 @@ import astropy.units as u
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
-from k_constant import calculate_k_constant_mag
 from zero_points import zero_points
 
 RED_LIST_NAME = 'candidates_red_list.txt'
@@ -79,13 +78,19 @@ def remove_bad_values(ra_array, dec_array):
 
 if __name__ == '__main__':
     INFILE_N964 = '../correct_stacks/N964/n964.cat'
+    INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
     INFILE_I = '../correct_stacks/N964/i.cat'
     INFILE_Z = '../correct_stacks/N964/z.cat'
 
-    #1. mag < 24.8 for the N964 filter.
+    #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
     inst_mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
     mag_n964 = inst_mag_n964 + zero_points.n964_band.mag_correct(1)
+
+    inst_mag_135, mag_err_135, snr_135 = read_all(INFILE_N964_135)
+    mag_135 = inst_mag_135 + zero_points.n964_band.mag_correct(1.35/2)
     first_cut = np.where(mag_n964<24.2)[0]
+    another_cut = np.where(mag_135 < 24)[0]
+    first_cut = np.intersect1d(first_cut, another_cut)
 
     #2. mag > 25.8 for the i band filter.
     inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
