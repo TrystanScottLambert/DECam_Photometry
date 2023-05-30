@@ -1,12 +1,5 @@
-"""Applying the selection criteria and identifying LAE galaxy candidates.
-The criteria are the same used in Hu et. al., (2019):
-
-1. S/N_2" > 5 and S/N_1.35" > 5 for the N964 filter. 
-2. S/N_2" < 3 for the i band filter.
-3a. z-N964 > 1.9 and S/N_2" > 3 for the z filter or
-3b. S/N_2" < 3 for the z filter. 
-
-CHANCES ARE GOOD YOU WANT TO USE identify_candidates_v2.py
+"""
+Basically the same as identify_candidates.py but using custom selection criteria.
 """
 
 import warnings
@@ -83,33 +76,28 @@ def remove_bad_values(ra_array, dec_array):
 
 
 if __name__ == '__main__':
-    INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
-    INFILE_N964_2 = '../correct_stacks/N964/n964.cat'
-    INFILE_I_2 = '../correct_stacks/N964/i.cat'
-    INFILE_Z_2 = '../correct_stacks/N964/z.cat'
+    INFILE_N964 = '../correct_stacks/N964/n964.cat'
+    INFILE_I = '../correct_stacks/N964/i.cat'
+    INFILE_Z = '../correct_stacks/N964/z.cat'
 
-    #1. S/N_2" > 5 and S/N_1.35" > 5 for the N964 filter.
-    mag_n964_2, mag_err_n964_2, snr_n964_2 = read_all(INFILE_N964_2)
-    mag_n964_1, mag_err_n964_1, snr_n964_1 = read_all(INFILE_N964_135)
+    #1. mag < 24.8 for the N964 filter.
+    mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
+    first_cut = np.where(mag_n964<24.2)[0]
 
-    first_cut_1 = find_values(5, snr_n964_1)
-    first_cut_2 = find_values(5, snr_n964_2)
-    first_cut = np.intersect1d(first_cut_1, first_cut_2)
+    #2. mag > 25.8 for the i band filter.
+    mag_i, mag_err_i, snr_i = read_all(INFILE_I)
+    second_cut = np.where(mag_i > 25.8)[0]
 
-    #2. S/N_2" < 3 for the i band filter.
-    mag_i_2, mag_err_i_2, snr_i_2 = read_all(INFILE_I_2)
-    second_cut = find_values(3, snr_i_2, 'Less')
-
-    #3a.  z-N964 > 1.9 and S/N_2" > 3 for the z filter
-    mag_z_2, mag_err_z_2, snr_z_2 = read_all(INFILE_Z_2)
-    color = mag_z_2 - mag_n964_2
+    #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
+    mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
+    color = mag_z - mag_n964
 
     third_cut_a_1 = find_values(1.9, color)
-    third_cut_a_2 = find_values(3, snr_z_2)
+    third_cut_a_2 = np.where(mag_z < 25.6)[0]
     third_cut_a = np.intersect1d(third_cut_a_1, third_cut_a_2)
 
-    #3.b  S/N_2" < 3 for the z filter.
-    third_cut_b = find_values(3, snr_z_2, 'Less')
+    #3.b  S/N_2" > 25.6 for the z filter.
+    third_cut_b = np.where(mag_z > 25.6)
 
     # Find final candiates
     top_cuts = np.intersect1d(first_cut, second_cut)
@@ -120,11 +108,10 @@ if __name__ == '__main__':
     print(f'Final candidate count is: {len(final_cut)}')
 
     # Visually inspecting the remaining candidates
-    ra, dec = np.loadtxt(INFILE_N964_2, usecols=(0,1), unpack=True)
+    ra, dec = np.loadtxt(INFILE_N964, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
     ra, dec = remove_bad_values(ra, dec)
     print(f'After removing previous rejects, count is: {len(ra)}')
-
 
     i_bands, z_bands, n_bands = [], [], []
     for i, _ in enumerate(ra):
