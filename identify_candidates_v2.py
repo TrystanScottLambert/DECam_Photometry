@@ -6,13 +6,16 @@ import warnings
 import numpy as np
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+from astropy.io import fits
 
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
 from zero_points import zero_points
 
-RED_LIST_NAME = 'candidates_red_list.txt'
+#RED_LIST_NAME = 'candidates_red_list.txt'
+RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
+
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
@@ -77,10 +80,27 @@ def remove_bad_values(ra_array, dec_array):
 
 
 if __name__ == '__main__':
-    INFILE_N964 = '../correct_stacks/N964/n964.cat'
-    INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
-    INFILE_I = '../correct_stacks/N964/i.cat'
-    INFILE_Z = '../correct_stacks/N964/z.cat'
+    #Dont forget to select the correct candidates red list above.
+    #Our data
+    #INFILE_N964 = '../correct_stacks/N964/n964.cat'
+    #INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
+    #INFILE_I = '../correct_stacks/N964/i.cat'
+    #INFILE_Z = '../correct_stacks/N964/z.cat'
+
+    #CDFS
+    INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
+    INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
+    INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
+    INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
+    IMAGES = (
+    '../CDFS_LAGER/i.fits',
+    '../CDFS_LAGER/z.fits',
+    '../CDFS_LAGER/n964.fits',
+
+    )
+
+    FITS_OBJECTS = [fits.open(image) for image in IMAGES]
+
 
     #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
     inst_mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
@@ -125,7 +145,7 @@ if __name__ == '__main__':
 
     i_bands, z_bands, n_bands = [], [], []
     for i, _ in enumerate(ra):
-        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i], pad=60)
+        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i], FITS_OBJECTS, pad=60)
         i_bands.append(i_filter)
         z_bands.append(z_filter)
         n_bands.append(n964_filter)

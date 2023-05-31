@@ -22,11 +22,11 @@ def cut_postage_stamp(r_a: float, dec: float, image, pad = PAD):
         int(y_pix)-pad:int(y_pix)+pad, int(x_pix)-pad:int(x_pix)+pad]
     return data
 
-def cut_out_stamps(r_a: float, dec: float, **kwargs):
+def cut_out_stamps(r_a: float, dec: float, fits_objects: list, **kwargs):
     """Cuts out all of the images """
-    data_i = cut_postage_stamp(r_a, dec, FITS_OBJECTS[0], **kwargs)
-    data_z = cut_postage_stamp(r_a, dec, FITS_OBJECTS[1], **kwargs)
-    data_n964 = cut_postage_stamp(r_a, dec, FITS_OBJECTS[2], **kwargs)
+    data_i = cut_postage_stamp(r_a, dec, fits_objects[0], **kwargs)
+    data_z = cut_postage_stamp(r_a, dec, fits_objects[1], **kwargs)
+    data_n964 = cut_postage_stamp(r_a, dec, fits_objects[2], **kwargs)
     return data_i, data_z, data_n964
 
 def show_stamps(r_a: float, dec: float):
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
     DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
 
-    i, z, n964 = cut_out_stamps(RA_QSO, DEC_QSO, pad=50)
+    i, z, n964 = cut_out_stamps(RA_QSO, DEC_QSO, FITS_OBJECTS, pad=50)
     plt.imshow(i)
     plt.show()
     plt.imshow(z)
