@@ -182,9 +182,9 @@ if __name__ == '__main__':
     z_band.plot_zpt()
 
     i_band_cdfs = BroadBand(INFILE_PAN_I_CDFS, INFILE_SEX_I_CDFS, 'i')
-    print('i prime cdfs is: ', i_band.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_I_CDFS))
+    print('i prime cdfs is: ', i_band_cdfs.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_I_CDFS))
     i_band_cdfs.plot_zpt()
 
-    z_band_cdfs = BroadBand(INFILE_PAN_Z_CDFS, INFILE_SEX_Z_CDFS, 'i')
-    print('z prime cdfs is: ', z_band.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_Z_CDFS))
-    i_band_cdfs.plot_zpt()
+    z_band_cdfs = BroadBand(INFILE_PAN_Z_CDFS, INFILE_SEX_Z_CDFS, 'z')
+    print('z prime cdfs is: ', z_band_cdfs.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_Z_CDFS))
+    z_band_cdfs.plot_zpt()
