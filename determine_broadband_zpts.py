@@ -7,6 +7,7 @@ import numpy as np
 import pylab as plt
 from scipy.optimize import curve_fit
 import pandas as pd
+
 from sex_catalog import SExtractorCat
 from k_constant import calculate_k_constant_mag
 import plotting
@@ -158,9 +159,19 @@ if __name__ == '__main__':
     INFILE_PAN_I = '../PANSTARS/PANSTARS_i.csv'
     INFILE_SEX_Z = '../correct_stacks/N964/z.cat'
     INFILE_PAN_Z = '../PANSTARS/PANSTARS_z.csv'
-    SEEING_I = 0.7 # These comes from the seeing calculator.
-    SEEING_Z = 1.053
-    APERTURE_RADII = 1.
+
+    INFILE_SEX_I_CDFS = '../CDFS_LAGER/i_cdfs.cat'
+    INFILE_PAN_I_CDFS = '../CDFS_LAGER/PANSTARS_i.csv'
+    INFILE_SEX_Z_CDFS = '../CDFS_LAGER/z_cdfs.cat'
+    INFILE_PAN_Z_CDFS = '../CDFS_LAGER/PANSTARS_z.csv'
+
+    SEEING_I = 1.17 # These comes from the seeing calculator.
+    SEEING_Z = 1.23
+    APERTURE_RADII = 0.94 #min kron radius
+
+    SEEING_I_CDFS = 1.22
+    SEEING_Z_CDFS = 1.14
+    APERTURE_RADII_CDFS = 0.94 #min kron radius
 
     i_band = BroadBand(INFILE_PAN_I, INFILE_SEX_I, 'i')
     print('i prime is: ', i_band.determine_zero_point_prime(APERTURE_RADII, SEEING_I))
@@ -169,3 +180,11 @@ if __name__ == '__main__':
     z_band = BroadBand(INFILE_PAN_Z, INFILE_SEX_Z, 'z')
     print('z prime is: ', z_band.determine_zero_point_prime(APERTURE_RADII, SEEING_Z))
     z_band.plot_zpt()
+
+    i_band_cdfs = BroadBand(INFILE_PAN_I_CDFS, INFILE_SEX_I_CDFS, 'i')
+    print('i prime cdfs is: ', i_band.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_I_CDFS))
+    i_band_cdfs.plot_zpt()
+
+    z_band_cdfs = BroadBand(INFILE_PAN_Z_CDFS, INFILE_SEX_Z_CDFS, 'i')
+    print('z prime cdfs is: ', z_band.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_Z_CDFS))
+    i_band_cdfs.plot_zpt()

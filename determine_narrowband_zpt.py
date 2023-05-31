@@ -9,6 +9,7 @@ import pylab as plt
 import numpy as np
 from scipy import odr
 from sex_catalog import SExtractorCat
+
 import plotting
 from k_constant import calculate_k_constant_mag
 
@@ -48,8 +49,8 @@ if __name__ == '__main__':
     INFILE_SEX = '../correct_stacks/N964/n964.cat'
     INFILE_Z = '../PANSTARS/PANSTARS_z.csv'
     INFILE_Y = '../PANSTARS/PANSTARS_y.csv'
-    NARROW_BAND_SEEING = 1.32 # arcseconds
-    NARROW_BAND_APERTURES = 1. # arcseconds
+    NARROW_BAND_SEEING = 1.47 # arcseconds
+    NARROW_BAND_APERTURES = 0.94 # arcseconds
 
     decam_all = SExtractorCat(INFILE_SEX)
     decam_catalog_z, pan_cat_z = decam_all.cross_match_with_panstars(INFILE_Z)

@@ -8,6 +8,7 @@ from astropy.wcs import WCS
 from reproject.mosaicking import find_optimal_celestial_wcs
 from reproject import reproject_interp
 from reproject.mosaicking import reproject_and_coadd
+
 from find_stars import cross_match
 import sex_utils as su
 from decam import write_positions_as_region_file
@@ -71,11 +72,3 @@ class SExtractorCat:
             exptime[final_cut] = vals
         self.catalog['exptime'] = exptime
         self.catalog = self.catalog[self.catalog.exptime != 0]
-
-
-if __name__ == '__main__':
-    DECAM_FITS_FILE = \
-        '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/c4d_211021_003940_osj_i_vik1.fits.fz'
-    SEX_FILE = '/home/trystan/Desktop/Work/PhD/DECAM/correct_stacks/i/test.cat'
-    i_cat = SExtractorCat(SEX_FILE)
-    i_cat.to_region_file(DECAM_FITS_FILE, 'delete_region_file.reg', 'red')
