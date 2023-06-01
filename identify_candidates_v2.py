@@ -86,6 +86,11 @@ if __name__ == '__main__':
     #INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
     #INFILE_I = '../correct_stacks/N964/i.cat'
     #INFILE_Z = '../correct_stacks/N964/z.cat'
+    #IMAGES = (
+    #    '../correct_stacks/N964/i.fits',
+    #    '../correct_stacks/N964/z.fits',
+    #    '../correct_stacks/N964/n964.fits',
+    #)
 
     #CDFS
     INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
@@ -96,7 +101,6 @@ if __name__ == '__main__':
     '../CDFS_LAGER/i.fits',
     '../CDFS_LAGER/z.fits',
     '../CDFS_LAGER/n964.fits',
-
     )
 
     FITS_OBJECTS = [fits.open(image) for image in IMAGES]
@@ -115,7 +119,7 @@ if __name__ == '__main__':
     #2. mag > 25.8 for the i band filter.
     inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
     mag_i = inst_mag_i + zero_points.i_band.mag_correct(1)
-    second_cut = np.where(mag_i > 25.8)[0]
+    second_cut = np.where(mag_i > 27.4)[0]
 
     #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
     inst_mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
