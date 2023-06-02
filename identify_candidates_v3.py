@@ -1,5 +1,7 @@
 """
 Basically the same as identify_candidates.py but using custom selection criteria.
+This specifically makes use of the IMACS foot print and uses the IMACS value SNR to
+determine the magnitude.
 """
 
 import warnings
@@ -7,12 +9,15 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.io import fits
+from photutils.aperture import aperture_photometry
 
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
 from zero_points import zero_points
+from regionfy_catalog import load_region, get_region_mask
 
+IMACS_REGION = load_region('../../IMACS_photometry/imacs_data/IMACS.reg')
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
@@ -28,11 +33,13 @@ def find_values(value: int, array: np.array, function: str = 'Greater') -> np.ar
         print('Function must be "Greater" or "Less"')
     return idx
 
-def read_all(catalog_name: str) -> tuple[np.array, np.array, np.array]:
+def read_all(catalog_name: str) -> tuple[np.array, np.array, np.array, np.array, np.array]:
     """Reads in the magnitudes, errors, and works out the snr."""
-    mag, err = np.loadtxt(catalog_name, usecols=(4, 5), unpack=True)
+    x_array, y_array, mag, err = np.loadtxt(catalog_name, usecols=(2, 3, 4, 5), unpack=True)
+    msk = get_region_mask(x_array, y_array, IMACS_REGION)
+    x_array, y_array, mag, err = x_array[msk], y_array[msk], mag[msk], err[msk]
     snr = calculate_snr(err)
-    return mag, err, snr
+    return mag, err, snr, x_array, y_array
 
 def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:float = 2.) -> None:
     """Writes a region file with decimal ra and dec arrays."""
@@ -93,6 +100,7 @@ if __name__ == '__main__':
         '../correct_stacks/N964/n964.fits',
     )
 
+
     #CDFS
     #RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
     #CANDIDATES_OUTPUT = 'candidates_cdfs.txt'
@@ -111,22 +119,23 @@ if __name__ == '__main__':
 
 
     #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
-    inst_mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
+    inst_mag_n964, mag_err_n964, snr_n964, _, _ = read_all(INFILE_N964)
     mag_n964 = inst_mag_n964 + zero_points.n964_band.mag_correct(1)
 
-    inst_mag_135, mag_err_135, snr_135 = read_all(INFILE_N964_135)
+    inst_mag_135, mag_err_135, snr_135, _, _ = read_all(INFILE_N964_135)
     mag_135 = inst_mag_135 + zero_points.n964_band.mag_correct(1.35/2)
     first_cut = np.where(mag_n964<24.2)[0]
     another_cut = np.where(mag_135 < 24)[0]
     first_cut = np.intersect1d(first_cut, another_cut)
 
-    #2. mag > 25.8 for the i band filter.
-    inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
+    #2. mag > 26.8 for the i band filter in IMACS
+    _, mag_err_i, snr_i, i_x, i_y = read_all(INFILE_I)
+
     mag_i = inst_mag_i + zero_points.i_band.mag_correct(1)
     second_cut = np.where(mag_i > 25.8)[0]
 
     #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
-    inst_mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
+    inst_mag_z, mag_err_z, snr_z, _, _ = read_all(INFILE_Z)
     mag_z = inst_mag_z + zero_points.z_band.mag_correct(1)
     color = mag_z - mag_n964
 

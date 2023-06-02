@@ -99,7 +99,7 @@ def is_pixel_within_region(x_coord, y_coord, region):
     """
     return PixCoord(x_coord, y_coord) in region
 
-def get_region_mask(x_array, y_array, region):
+def get_region_mask(x_array: np.ndarray, y_array: np.ndarray, region: PolygonPixelRegion) -> list[bool]:
     """
     Returns a boolean mask indicating which pixels are inside the specified region.
 

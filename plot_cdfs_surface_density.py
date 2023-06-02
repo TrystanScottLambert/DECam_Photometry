@@ -23,19 +23,26 @@ def set_region(ra_pix, dec_pix, radius_mpc: float):
                                 radius=get_radius(radius_mpc) / DEG_PER_PIX)
     return region
 
+def get_number_pixels_of_region(region_name:str)->float:
+    """Returns the number of pixels in a given region."""
+    regions = Regions.read(region_name, format='ds9')
+    number_pixels = regions[0].area
+    return number_pixels
 
-DECAM_SHAPE_FILE = '../correct_stacks/N964/n964_weight.fits'
+
+DECAM_SHAPE_FILE = '../CDFS_LAGER/n964_weight.fits'
 decam_hdu = fits.open(DECAM_SHAPE_FILE)
 decam_wcs = WCS(decam_hdu[0].header)
 
-RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
-DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
+center_y, center_x = decam_hdu[0].shape
+center_y, center_x = center_y/2, center_x/2
+RA_QSO, DEC_QSO = decam_wcs.pixel_to_world_values(center_x, center_y)
 REDSHIFT_QSO = 6.9
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 ARCSEC_PER_KPC = COSMO.arcsec_per_kpc_proper(REDSHIFT_QSO)
 DEG_PER_MPC = ARCSEC_PER_KPC.to(u.deg / u.Mpc)
 DEG_PER_PIX = np.abs(decam_hdu[0].header['PC2_2'])
-REGION_FILE = 'decam.reg'
+REGION_FILE = '../CDFS_LAGER/DECAM_CDFS.reg'
 region_decam_fov = load_region(REGION_FILE)
 
 
@@ -48,10 +55,13 @@ if __name__ == '__main__':
     regions = Regions.read(CDFS_REGION, format='ds9')
     number_pixels = regions[0].area
     area_cdfs_degrees = number_pixels * AREA_PER_PIXEL
-    print(area_cdfs_degrees)
+
+    number_pixels_qso = get_number_pixels_of_region('DECAM.reg')
+
+    print('Area ratio: ', number_pixels/number_pixels_qso)
 
 
-    INFILE = 'candidates.txt'
+    INFILE = 'candidates_cdfs.txt'
     ra, dec = np.loadtxt(INFILE, unpack=True)
 
     ra_plot, dec_plot = decam_wcs.world_to_pixel_values(ra, dec)
@@ -73,7 +83,7 @@ if __name__ == '__main__':
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
     ax.scatter(ra_plot, dec_plot)
     ax.scatter(ra_qso_plot, dec_qso_plot, marker='*', s=100, color='k')
-    plotting.end_plot('plots/on_sky_distribution.png')
+    plotting.end_plot('plots/on_sky_distribution_cdfs.png')
 
     #on sky surface distribution plot.
     radii = np.arange(0,21,1) # Mpc
@@ -98,7 +108,7 @@ if __name__ == '__main__':
     #ax.errorbar(average_radii_mpc, y, yerr = y_err, fmt='ok', ecolor='r', ms = 4, capsize=2)
     ax.errorbar(average_radii_mpc[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2)
     ax.errorbar(average_radii_mpc[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2, uplims=True)
-    ax.set_xlabel('Distance from QSO [pMpc]')
+    ax.set_xlabel('Distance from center [pMpc]')
     ax.set_ylabel(r'Surface Density [pMpc$^{-2}$]')
     ax.minorticks_on()
     ax.tick_params(which='both', width=1.2,direction='in')
@@ -111,7 +121,7 @@ if __name__ == '__main__':
 
     ax1 = ax.twiny()
     ax1.errorbar(average_radii_arcsec, y, yerr=y_err, fmt='ok', alpha=0)
-    ax1.set_xlabel('Distance from QSO [deg]')
+    ax1.set_xlabel('Distance from center [deg]')
     ax1.minorticks_on()
     ax1.tick_params(which='both', width=1.2,direction='in')
     ax1.tick_params(which='major', length=3, direction='in')
@@ -126,4 +136,4 @@ if __name__ == '__main__':
     #ax2.set_ylim(-0.05*PER_DEGREE_CONVERSION_FACTOR, Y_LIM_MPC*PER_DEGREE_CONVERSION_FACTOR)
     ax2.set_yscale('log')
     #plt.show()
-    plotting.end_plot('plots/surface_density_log.png')
+    plotting.end_plot('plots/surface_density_log_cdfs.png')
