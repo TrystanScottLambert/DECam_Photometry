@@ -7,14 +7,14 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.io import fits
+import pylab as plt
 
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
 from zero_points import zero_points
 
-#RED_LIST_NAME = 'candidates_red_list.txt'
-RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
+
 
 
 def calculate_snr(mag_err: float) -> float:
@@ -46,25 +46,25 @@ def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:f
         file.write(f'circle {pos} {size}" # width=4\n')
     file.close()
 
-def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray):
+def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray, red_list: str):
     """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
-    with open(RED_LIST_NAME,'a+', encoding='utf8') as file:
+    with open(red_list,'a+', encoding='utf8') as file:
         file.write('\n')
         for i, _ in enumerate(ra_array):
             file.write(f'{ra_array[i]} {dec_array[i]} \n')
 
-def get_red_values():
+def get_red_values(red_list:str):
     """Reads in the ra and dec of the red sources. (Not allowed to be used)"""
     try:
-        ra_rejected, dec_rejected = np.loadtxt(RED_LIST_NAME, unpack=True)
+        ra_rejected, dec_rejected = np.loadtxt(red_list, unpack=True)
     except (OSError, ValueError):
-        warnings.warn(f'{RED_LIST_NAME} not found or empty. Assuming there are no rejects.')
+        warnings.warn(f'{red_list} not found or empty. Assuming there are no rejects.')
         ra_rejected, dec_rejected = np.array([]), np.array([])
     return ra_rejected, dec_rejected
 
-def remove_bad_values(ra_array, dec_array):
+def remove_bad_values(ra_array: np.ndarray, dec_array: np.ndarray, red_list:str):
     """Removes the previously rejected ra and dec values from the current candidates."""
-    ra_bad, dec_bad = get_red_values()
+    ra_bad, dec_bad = get_red_values(red_list)
 
     catalog = SkyCoord(ra = ra_array*u.deg, dec = dec_array*u.deg)
     c_bad = SkyCoord(ra = ra_bad *u.deg, dec = dec_bad * u.deg)
@@ -80,28 +80,29 @@ def remove_bad_values(ra_array, dec_array):
 
 
 if __name__ == '__main__':
-    #Dont forget to select the correct candidates red list above.
     #Our data
-    #INFILE_N964 = '../correct_stacks/N964/n964.cat'
-    #INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
-    #INFILE_I = '../correct_stacks/N964/i.cat'
-    #INFILE_Z = '../correct_stacks/N964/z.cat'
-    #IMAGES = (
-    #    '../correct_stacks/N964/i.fits',
-    #    '../correct_stacks/N964/z.fits',
-    #    '../correct_stacks/N964/n964.fits',
-    #)
+    RED_LIST_NAME = 'candidates_red_list.txt'
+    INFILE_N964 = '../correct_stacks/N964/n964.cat'
+    INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
+    INFILE_I = '../correct_stacks/N964/i.cat'
+    INFILE_Z = '../correct_stacks/N964/z.cat'
+    IMAGES = (
+        '../correct_stacks/N964/i.fits',
+        '../correct_stacks/N964/z.fits',
+        '../correct_stacks/N964/n964.fits',
+    )
 
     #CDFS
-    INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
-    INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
-    INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
-    INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
-    IMAGES = (
-    '../CDFS_LAGER/i.fits',
-    '../CDFS_LAGER/z.fits',
-    '../CDFS_LAGER/n964.fits',
-    )
+    #RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
+    #INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
+    #INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
+    #INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
+    #INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
+    #IMAGES = (
+    #'../CDFS_LAGER/i.fits',
+    #'../CDFS_LAGER/z.fits',
+    #'../CDFS_LAGER/n964.fits',
+    #)
 
     FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     #2. mag > 25.8 for the i band filter.
     inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
     mag_i = inst_mag_i + zero_points.i_band.mag_correct(1)
-    second_cut = np.where(mag_i > 27.4)[0]
+    second_cut = np.where(mag_i > 25.8)[0]
 
     #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
     inst_mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
@@ -144,7 +145,7 @@ if __name__ == '__main__':
     # Visually inspecting the remaining candidates
     ra, dec = np.loadtxt(INFILE_N964, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
-    ra, dec = remove_bad_values(ra, dec)
+    ra, dec = remove_bad_values(ra, dec, RED_LIST_NAME)
     print(f'After removing previous rejects, count is: {len(ra)}')
 
     i_bands, z_bands, n_bands = [], [], []
@@ -157,7 +158,7 @@ if __name__ == '__main__':
     artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
     ra_rejects = ra[artifacts]
     dec_rejects = dec[artifacts]
-    update_candidate_red_list(ra_rejects, dec_rejects)
+    update_candidate_red_list(ra_rejects, dec_rejects, RED_LIST_NAME)
 
     write_region_file(ra[candidates], dec[candidates], 'candidates.reg', size=8)
     with open('candidates.txt', 'w', encoding='utf8') as file:

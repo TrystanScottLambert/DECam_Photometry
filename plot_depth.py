@@ -49,7 +49,7 @@ def plot_depth(sextractor_cat_name: str, zpt: float, broadband: str) -> None:
     plotting.start_plot(x_label='Measured Mags', y_label='SNR')
     #plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto')
     plt.scatter(mag, signal_to_noise, s= 1, color='k', alpha=0.3)
-    plt.axhline(1, ls='--', lw=1.5, color='r', alpha=0.4)
+    plt.axhline(2, ls='--', lw=1.5, color='r', alpha=0.4)
     plt.axvline(HU_VALUES[broadband], ls = ':', color='k')
     plt.xlim(22, 28)
     plotting.end_plot(f'plots/depth_{broadband}.png')
