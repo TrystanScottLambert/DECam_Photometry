@@ -113,12 +113,13 @@ class BroadBand:
 
     def plot_zpt(self):
         """Plots the measured mags vs the expected mags."""
-        plotting.start_plot('DECam magnitudes [mag]', 'Expected magnitudes [mag]')
+        plotting.start_plot('DECam magnitudes [mag]', 'Expected magnitudes - DECam magnitudes [mags]')
+        y_err = np.hypot(self.measured_mags_err, self.expected_mags_err)
         plt.errorbar(
-            self.measured_mags, self.expected_mags,
-            xerr=self.measured_mags_err, yerr=self.expected_mags_err,
+            self.measured_mags, self.expected_mags - self.measured_mags,
+            xerr=self.measured_mags_err, yerr=y_err,
             fmt='ro', alpha=0.3)
-        x_fit, fit, fit_up, fit_down = self.fit_straight_line()
+        x_fit, fit, fit_up, fit_down = self.fit_horizontal_line()
         plt.plot(x_fit, fit, ls='--', color='k', lw=3, zorder=1)
         plt.fill_between(x_fit, fit_up, fit_down, alpha=.5, color='r')
         plotting.end_plot(f'plots/{self.broadband}_zpt.png')
@@ -135,6 +136,18 @@ class BroadBand:
         fit_up = straight_line(x_fit, popt_up)
         fit_dw= straight_line(x_fit, popt_dw)
         return x_fit, fit, fit_up, fit_dw
+
+    def fit_horizontal_line(self) ->Tuple:
+        """Fitting y = c line."""
+        zpt, zpt_err = self.zero_point[0], self.zero_point[1]
+        nstd = 5.
+        popt_up = zpt + nstd * zpt_err
+        popt_dw = zpt - nstd * zpt_err
+        x_fit = np.linspace(np.sort(self.measured_mags)[0], np.sort(self.measured_mags)[-1])
+        fit = zpt * np.ones(len(x_fit))
+        fit_up = popt_up * np.ones(len(x_fit))
+        fit_down = popt_dw * np.ones(len(x_fit))
+        return x_fit, fit, fit_up, fit_down
 
     @property
     def zero_point(self) -> Tuple[float, float]:
