@@ -12,6 +12,7 @@ import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
 from zero_points import zero_points
+from zero_points_cdfs import zero_points_cdfs
 
 
 def calculate_snr(mag_err: float) -> float:
@@ -80,54 +81,57 @@ def remove_bad_values(
 
 if __name__ == '__main__':
     #Our data
-    RED_LIST_NAME = 'candidates_red_list.txt'
-    CANDIDATES_OUTPUT = 'candidates.txt'
-    CANDIDATES_REGION_OUTPUT = 'candidates.reg'
-    INFILE_N964 = '../correct_stacks/N964/n964.cat'
-    INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
-    INFILE_I = '../correct_stacks/N964/i.cat'
-    INFILE_Z = '../correct_stacks/N964/z.cat'
-    IMAGES = (
-        '../correct_stacks/N964/i.fits',
-        '../correct_stacks/N964/z.fits',
-        '../correct_stacks/N964/n964.fits',
-    )
+    #RED_LIST_NAME = 'candidates_red_list.txt'
+    #CANDIDATES_OUTPUT = 'candidates.txt'
+    #CANDIDATES_REGION_OUTPUT = 'candidates.reg'
+    #INFILE_N964 = '../correct_stacks/N964/n964.cat'
+    #INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
+    #INFILE_I = '../correct_stacks/N964/i.cat'
+    #INFILE_Z = '../correct_stacks/N964/z.cat'
+    #ZERO_POINTS = zero_points
+    #IMAGES = (
+    #    '../correct_stacks/N964/i.fits',
+    #    '../correct_stacks/N964/z.fits',
+    #    '../correct_stacks/N964/n964.fits',
+    #)
 
     #CDFS
-    #RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
-    #CANDIDATES_OUTPUT = 'candidates_cdfs.txt'
-    #CANDIDATES_REGION_OUTPUT = 'candidates_cdfs.reg'
-    #INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
-    #INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
-    #INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
-    #INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
-    #IMAGES = (
-    #'../CDFS_LAGER/i.fits',
-    #'../CDFS_LAGER/z.fits',
-    #'../CDFS_LAGER/n964.fits',
-    #)
+    RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
+    CANDIDATES_OUTPUT = 'candidates_cdfs.txt'
+    CANDIDATES_REGION_OUTPUT = 'candidates_cdfs.reg'
+    INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
+    INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
+    INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
+    INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
+    ZERO_POINTS = zero_points_cdfs
+    IMAGES = (
+    '../CDFS_LAGER/i.fits',
+    '../CDFS_LAGER/z.fits',
+    '../CDFS_LAGER/n964.fits',
+    )
 
     FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
 
     #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
     inst_mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
-    mag_n964 = inst_mag_n964 + zero_points.n964_band.mag_correct(1)
+    mag_n964 = inst_mag_n964 + ZERO_POINTS.n964_band.mag_correct(1)
 
     inst_mag_135, mag_err_135, snr_135 = read_all(INFILE_N964_135)
-    mag_135 = inst_mag_135 + zero_points.n964_band.mag_correct(1.35/2)
+    mag_135 = inst_mag_135 + ZERO_POINTS.n964_band.mag_correct(1.35/2)
     first_cut = np.where(mag_n964<24.2)[0]
     another_cut = np.where(mag_135 < 24)[0]
     first_cut = np.intersect1d(first_cut, another_cut)
 
     #2. mag > 25.8 for the i band filter.
+    # testing 26.8 from imacs
     inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
-    mag_i = inst_mag_i + zero_points.i_band.mag_correct(1)
+    mag_i = inst_mag_i + ZERO_POINTS.i_band.mag_correct(1)
     second_cut = np.where(mag_i > 25.8)[0]
 
     #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
     inst_mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
-    mag_z = inst_mag_z + zero_points.z_band.mag_correct(1)
+    mag_z = inst_mag_z + ZERO_POINTS.z_band.mag_correct(1)
     color = mag_z - mag_n964
 
     third_cut_a_1 = find_values(1.9, color)

@@ -2,6 +2,7 @@
 Calculate the zero points of the i-band and z-band
 """
 
+import os
 from typing import Tuple
 import numpy as np
 import pylab as plt
@@ -101,6 +102,10 @@ class BroadBand:
         self.sextractor_cat_name = sextractor_cat_name
         mags = prepare_plotting_data(sextractor_cat_name, panstars_cat_name, broadband)
         good_values = np.where(mags[2] < 100)[0] # Obviously not physical if this isn't met.
+        other_good_values = np.where(mags[0] < -6)[0] # specific for decam
+        more_good_values = np.where(mags[3] < 100)[0] # not physical to have errors more than 100 mags
+        good_values = np.intersect1d(good_values, other_good_values)
+        good_values = np.intersect1d(good_values, more_good_values)
         self.measured_mags = mags[0][good_values]
         self.measured_mags_err = mags[1][good_values]
         self.expected_mags = mags[2][good_values]
@@ -173,6 +178,17 @@ if __name__ == '__main__':
     SEEING_Z_CDFS = 1.14
     APERTURE_RADII_CDFS = 0.94 #min kron radius
 
+
+    i_band_cdfs = BroadBand(INFILE_PAN_I_CDFS, INFILE_SEX_I_CDFS, 'i')
+    print('i prime cdfs is: ', i_band_cdfs.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_I_CDFS))
+    i_band_cdfs.plot_zpt()
+    os.system('mv plots/i_zpt.png plots/i_zpt_cdfs.png')
+
+    z_band_cdfs = BroadBand(INFILE_PAN_Z_CDFS, INFILE_SEX_Z_CDFS, 'z')
+    print('z prime cdfs is: ', z_band_cdfs.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_Z_CDFS))
+    z_band_cdfs.plot_zpt()
+    os.system('mv plots/z_zpt.png plots/z_zpt_cdfs.png')
+
     i_band = BroadBand(INFILE_PAN_I, INFILE_SEX_I, 'i')
     print('i prime is: ', i_band.determine_zero_point_prime(APERTURE_RADII, SEEING_I))
     i_band.plot_zpt()
@@ -180,11 +196,3 @@ if __name__ == '__main__':
     z_band = BroadBand(INFILE_PAN_Z, INFILE_SEX_Z, 'z')
     print('z prime is: ', z_band.determine_zero_point_prime(APERTURE_RADII, SEEING_Z))
     z_band.plot_zpt()
-
-    i_band_cdfs = BroadBand(INFILE_PAN_I_CDFS, INFILE_SEX_I_CDFS, 'i')
-    print('i prime cdfs is: ', i_band_cdfs.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_I_CDFS))
-    i_band_cdfs.plot_zpt()
-
-    z_band_cdfs = BroadBand(INFILE_PAN_Z_CDFS, INFILE_SEX_Z_CDFS, 'z')
-    print('z prime cdfs is: ', z_band_cdfs.determine_zero_point_prime(APERTURE_RADII_CDFS, SEEING_Z_CDFS))
-    z_band_cdfs.plot_zpt()

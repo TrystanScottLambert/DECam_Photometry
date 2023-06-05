@@ -9,15 +9,31 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.io import fits
-from photutils.aperture import aperture_photometry
+from astropy.wcs import WCS
+from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
 from zero_points import zero_points
+from zero_points_cdfs import zero_points_cdfs
 from regionfy_catalog import load_region, get_region_mask
 
-IMACS_REGION = load_region('../../IMACS_photometry/imacs_data/IMACS.reg')
+IMACS_REGION = load_region('../../IMACS_photometry/imacs_data/IMACS_pixels.reg')
+IMACS_HDUL = fits.open('../../IMACS_photometry/imacs_data/night_2_theli.fits')
+IMACS_ZPT = 27.6332537149233
+
+def get_imacs_mags(pos_ra: np.ndarray, pos_dec: np.ndarray) -> np.ndarray:
+    """
+    Returns the imacs instrumental magnitudes for given positions.
+    """
+    positions = SkyCoord(ra=pos_ra * u.deg, dec=pos_dec * u.deg)
+    aperture = SkyCircularAperture(positions, r=1 * u.arcsec)
+    pix_aperture = aperture.to_pixel(WCS(IMACS_HDUL[0].header))
+    phot_table = aperture_photometry(IMACS_HDUL[0].data, pix_aperture)
+    fluxes = phot_table['aperture_sum']
+    inst_mags = -2.5 * np.log10(fluxes)
+    return inst_mags + IMACS_ZPT
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
@@ -35,11 +51,13 @@ def find_values(value: int, array: np.array, function: str = 'Greater') -> np.ar
 
 def read_all(catalog_name: str) -> tuple[np.array, np.array, np.array, np.array, np.array]:
     """Reads in the magnitudes, errors, and works out the snr."""
-    x_array, y_array, mag, err = np.loadtxt(catalog_name, usecols=(2, 3, 4, 5), unpack=True)
-    msk = get_region_mask(x_array, y_array, IMACS_REGION)
-    x_array, y_array, mag, err = x_array[msk], y_array[msk], mag[msk], err[msk]
+    ra, dec, mag, err = np.loadtxt(catalog_name, usecols=(0, 1, 4, 5), unpack=True)
+    wcs_imacs = WCS(IMACS_HDUL[0].header)
+    x_imacs, y_imacs = wcs_imacs.world_to_pixel_values(ra, dec)
+    msk = get_region_mask(x_imacs, y_imacs, IMACS_REGION)
+    ra, dec, mag, err = ra[msk], dec[msk], mag[msk], err[msk]
     snr = calculate_snr(err)
-    return mag, err, snr, x_array, y_array
+    return mag, err, snr, ra, dec
 
 def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:float = 2.) -> None:
     """Writes a region file with decimal ra and dec arrays."""
@@ -87,56 +105,60 @@ def remove_bad_values(
 
 if __name__ == '__main__':
     #Our data
-    RED_LIST_NAME = 'candidates_red_list.txt'
-    CANDIDATES_OUTPUT = 'candidates.txt'
-    CANDIDATES_REGION_OUTPUT = 'candidates.reg'
-    INFILE_N964 = '../correct_stacks/N964/n964.cat'
-    INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
-    INFILE_I = '../correct_stacks/N964/i.cat'
-    INFILE_Z = '../correct_stacks/N964/z.cat'
-    IMAGES = (
-        '../correct_stacks/N964/i.fits',
-        '../correct_stacks/N964/z.fits',
-        '../correct_stacks/N964/n964.fits',
-    )
-
+    #RED_LIST_NAME = 'candidates_red_list_imacs.txt'
+    #CANDIDATES_OUTPUT = 'candidates_imacs.txt'
+    #CANDIDATES_REGION_OUTPUT = 'candidates_imacs.reg'
+    #INFILE_N964 = '../correct_stacks/N964/n964.cat'
+    #INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
+    #INFILE_I = '../correct_stacks/N964/i.cat'
+    #INFILE_Z = '../correct_stacks/N964/z.cat'
+    #ZERO_POINTS = zero_points
+    #IMAGES = (
+    #    '../correct_stacks/N964/i.fits',
+    #    '../correct_stacks/N964/z.fits',
+    #    '../correct_stacks/N964/n964.fits',
+    #)
+    #FITS_OBJECTS = [IMACS_HDUL, fits.open(IMAGES[1]), fits.open(IMAGES[2])]
 
     #CDFS
-    #RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
-    #CANDIDATES_OUTPUT = 'candidates_cdfs.txt'
-    #CANDIDATES_REGION_OUTPUT = 'candidates_cdfs.reg'
-    #INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
-    #INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
-    #INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
-    #INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
-    #IMAGES = (
-    #'../CDFS_LAGER/i.fits',
-    #'../CDFS_LAGER/z.fits',
-    #'../CDFS_LAGER/n964.fits',
-    #)
+    RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
+    CANDIDATES_OUTPUT = 'candidates_cdfs.txt'
+    CANDIDATES_REGION_OUTPUT = 'candidates_cdfs.reg'
+    INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
+    INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
+    INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
+    INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
+    ZERO_POINTS = zero_points_cdfs
+    IMAGES = (
+    '../CDFS_LAGER/i.fits',
+    '../CDFS_LAGER/z.fits',
+    '../CDFS_LAGER/n964.fits',
+    )
 
     FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
 
     #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
-    inst_mag_n964, mag_err_n964, snr_n964, _, _ = read_all(INFILE_N964)
-    mag_n964 = inst_mag_n964 + zero_points.n964_band.mag_correct(1)
+    inst_mag_n964, mag_err_n964, snr_n964, ra, dec = read_all(INFILE_N964)
+    mag_n964 = inst_mag_n964 + ZERO_POINTS.n964_band.mag_correct(1)
 
     inst_mag_135, mag_err_135, snr_135, _, _ = read_all(INFILE_N964_135)
-    mag_135 = inst_mag_135 + zero_points.n964_band.mag_correct(1.35/2)
-    first_cut = np.where(mag_n964<24.2)[0]
+    mag_135 = inst_mag_135 + ZERO_POINTS.n964_band.mag_correct(1.35/2)
+    first_cut = np.where(mag_n964 < 24.2)[0]
     another_cut = np.where(mag_135 < 24)[0]
     first_cut = np.intersect1d(first_cut, another_cut)
 
     #2. mag > 26.8 for the i band filter in IMACS
-    _, mag_err_i, snr_i, i_x, i_y = read_all(INFILE_I)
-
-    mag_i = inst_mag_i + zero_points.i_band.mag_correct(1)
-    second_cut = np.where(mag_i > 25.8)[0]
+    inst_mag_i, mag_err_i, snr_i, i_ra, i_dec = read_all(INFILE_I)
+    if INFILE_I == '../correct_stacks/N964/i.cat':
+        mag_i = get_imacs_mags(i_ra, i_dec)
+    else:
+        mag_i = inst_mag_i + zero_points_cdfs.i_band.mag_correct(1)
+    second_cut = np.where(mag_i > 26.8)[0]
 
     #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
     inst_mag_z, mag_err_z, snr_z, _, _ = read_all(INFILE_Z)
-    mag_z = inst_mag_z + zero_points.z_band.mag_correct(1)
+    mag_z = inst_mag_z + ZERO_POINTS.z_band.mag_correct(1)
     color = mag_z - mag_n964
 
     third_cut_a_1 = find_values(1.9, color)
@@ -155,9 +177,10 @@ if __name__ == '__main__':
     print(f'Final candidate count is: {len(final_cut)}')
 
     # Visually inspecting the remaining candidates
-    ra, dec = np.loadtxt(INFILE_N964, usecols=(0,1), unpack=True)
+    #ra, dec = np.loadtxt(INFILE_N964, usecols=(0,1), unpack=True)
     ra, dec = ra[final_cut], dec[final_cut]
     ra, dec = remove_bad_values(ra, dec, RED_LIST_NAME)
+    print(ra, dec)
     print(f'After removing previous rejects, count is: {len(ra)}')
 
     i_bands, z_bands, n_bands = [], [], []
