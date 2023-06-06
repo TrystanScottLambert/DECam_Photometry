@@ -4,6 +4,7 @@ Basically the same as identify_candidates.py but using custom selection criteria
 
 from dataclasses import dataclass
 from abc import abstractmethod
+from rich.progress import track
 from typing import Protocol
 import warnings
 import numpy as np
@@ -12,7 +13,7 @@ import astropy.units as u
 from astropy.io import fits
 
 import convert_sexcat_into_region as con
-import postage_stamps as ps
+from postage_stamps import cut_out_mulitple_stamps
 from gui import start_gui
 from zero_points import zero_points, ZeroPoints
 from zero_points_cdfs import zero_points_cdfs
@@ -61,7 +62,6 @@ def get_red_values(red_list:str) -> tuple[np.ndarray, np.ndarray]:
     """Reads in the ra and dec of the red sources. (Not allowed to be used)"""
     try:
         ra_rejected, dec_rejected = np.loadtxt(red_list, unpack=True)
-        print(ra_rejected)
     except (OSError, ValueError):
         warnings.warn(f'{red_list} not found or empty. Assuming there are no rejects.')
         ra_rejected, dec_rejected = None, None
@@ -215,23 +215,14 @@ class MagCutSelection(SelectionCriteria):
 def perform_selection(selection: MagCutSelection):
     """Opens the gui for the user to reject candidates and write to file."""
     cut = selection.apply_selection_criteria()
-    print(cut)
     print(f'Final candidate count is: {len(cut)}')
 
     ra, dec = np.loadtxt(selection.inputs.infile_n964, usecols=(0,1), unpack=True)
-    print(ra)
     ra, dec = ra[cut], dec[cut]
     ra, dec = remove_bad_values(ra, dec, selection.inputs.red_list_name)
     print(f'After removing previous rejects, count is: {len(ra)}')
 
-    i_bands, z_bands, n_bands = [], [], []
-    for i, _ in enumerate(ra): 
-        i_filter, z_filter, n964_filter = ps.cut_out_stamps(
-            ra[i], dec[i], selection.inputs.fits_objects, pad=60)
-        i_bands.append(i_filter)
-        z_bands.append(z_filter)
-        n_bands.append(n964_filter)
-
+    i_bands, z_bands, n_bands = cut_out_mulitple_stamps(ra, dec, selection.inputs.fits_objects, pad=60)
     artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
     ra_rejects = ra[artifacts]
     dec_rejects = dec[artifacts]
@@ -263,14 +254,14 @@ if __name__ == '__main__':
         infile_z='../CDFS_LAGER/z_cdfs.cat',
         zero_point_function=zero_points_cdfs,
         images=(
-            '../CDFS_LAGER/i.fits',
-            '../CDFS_LAGER/z.fits',
-            '../CDFS_LAGER/n964.fits'),
+            '../CDFS_LAGER/CDFS_i.fits.fz',
+            '../CDFS_LAGER/CDFS_z.fits.fz',
+            '../CDFS_LAGER/CDFS_NB.fits.fz'),
         aperture_radii=1.
     )
 
     our_selection = MagCutSelection(our_inputs, 24.2, 24, 25.8, 25.6)
     cdfs_selection = MagCutSelection(cdfs_inputs, 24.2, 24, 25.8, 25.6)
 
-    perform_selection(our_selection)
+    #perform_selection(our_selection)
     perform_selection(cdfs_selection)

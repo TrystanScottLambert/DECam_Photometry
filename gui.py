@@ -76,7 +76,6 @@ def start_gui(i_bands, z_bands, n_bands):
 
         canvas.draw()
 
-
     def update_possible():
         global POSSIBLE
         global COUNTER
