@@ -2,6 +2,9 @@
 Basically the same as identify_candidates.py but using custom selection criteria.
 """
 
+from dataclasses import dataclass
+from abc import abstractmethod
+from typing import Protocol
 import warnings
 import numpy as np
 from astropy.coordinates import SkyCoord
@@ -11,7 +14,7 @@ from astropy.io import fits
 import convert_sexcat_into_region as con
 import postage_stamps as ps
 from gui import start_gui
-from zero_points import zero_points
+from zero_points import zero_points, ZeroPoints
 from zero_points_cdfs import zero_points_cdfs
 
 
@@ -19,23 +22,14 @@ def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
     return (2.5/np.log(10))/mag_err
 
-def find_values(value: int, array: np.array, function: str = 'Greater') -> np.array:
-    """Allows user to identify values in an array 'Greater' than or 'Less' than a given value."""
-    if function == 'Greater':
-        idx = np.where(array > value)[0]
-    elif function == 'Less':
-        idx = np.where(array < value)[0]
-    else:
-        print('Function must be "Greater" or "Less"')
-    return idx
-
-def read_all(catalog_name: str) -> tuple[np.array, np.array, np.array]:
+def read_all(catalog_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Reads in the magnitudes, errors, and works out the snr."""
     mag, err = np.loadtxt(catalog_name, usecols=(4, 5), unpack=True)
     snr = calculate_snr(err)
     return mag, err, snr
 
-def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:float = 2.) -> None:
+def write_region_file(
+        ra_array:np.ndarray, dec_array:np.ndarray, outfile:str, size:float = 2.) -> None:
     """Writes a region file with decimal ra and dec arrays."""
     positions = [con.convert_decimal_degrees_into_celestial(ra_array[i], dec_array[i]) \
                   for i in range(len(ra_array))]
@@ -43,6 +37,19 @@ def write_region_file(ra_array:np.array, dec_array:np.array, outfile:str, size:f
     for pos in positions:
         file.write(f'circle {pos} {size}" # width=4\n')
     file.close()
+
+def write_txt_file(ra_array: np.ndarray, dec_array: np.ndarray, outfile:str) -> None:
+    """Writes a text file of decimal ra dn dec arrays."""
+    with open(outfile, 'w', encoding='utf8') as file:
+        file.write('# RA DEC \n')
+        for i, _ in enumerate(ra_array):
+            file.write(f'{ra_array[i]} {dec_array[i]} \n')
+
+def write_output(
+        ra_candidates: np.ndarray, dec_candidates: np.ndarray, out_suffix: str, **kwargs) -> None:
+    """Writes both a text file and a region file of the given candidates."""
+    write_region_file(ra_candidates, dec_candidates, out_suffix+'.reg', **kwargs)
+    write_txt_file(ra_candidates, dec_candidates, out_suffix+'.txt')
 
 def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray, red_list: str) -> None:
     """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
@@ -57,7 +64,7 @@ def get_red_values(red_list:str) -> tuple[np.ndarray, np.ndarray]:
         ra_rejected, dec_rejected = np.loadtxt(red_list, unpack=True)
     except (OSError, ValueError):
         warnings.warn(f'{red_list} not found or empty. Assuming there are no rejects.')
-        ra_rejected, dec_rejected = np.array([]), np.array([])
+        ra_rejected, dec_rejected = np.ndarray([]), np.ndarray([])
     return ra_rejected, dec_rejected
 
 def remove_bad_values(
@@ -72,92 +79,150 @@ def remove_bad_values(
 
     msk = d2d < 1*u.arcsec
     if len(msk) == 1:  # edge case of n=1. Then value isn't read as an array but as a float.
-        idx = np.array([idx])
+        idx = np.ndarray([idx])
     idx_bad = idx[msk]
     idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
 
     return ra_array[idx_good], dec_array[idx_good]
 
+@dataclass
+class Inputs:
+    """Inputs for running the candidate determination."""
+    red_list_name: str
+    output_name: str
+    infile_n964: str
+    infile_n964_135: str
+    infile_i: str
+    infile_z: str
+    zero_point_function: ZeroPoints
+    images: list[str]
+    aperture_radii: float
 
-if __name__ == '__main__':
-    #Our data
-    #RED_LIST_NAME = 'candidates_red_list.txt'
-    #CANDIDATES_OUTPUT = 'candidates.txt'
-    #CANDIDATES_REGION_OUTPUT = 'candidates.reg'
-    #INFILE_N964 = '../correct_stacks/N964/n964.cat'
-    #INFILE_N964_135 = '../correct_stacks/N964/n964_135.cat'
-    #INFILE_I = '../correct_stacks/N964/i.cat'
-    #INFILE_Z = '../correct_stacks/N964/z.cat'
-    #ZERO_POINTS = zero_points
-    #IMAGES = (
-    #    '../correct_stacks/N964/i.fits',
-    #    '../correct_stacks/N964/z.fits',
-    #    '../correct_stacks/N964/n964.fits',
-    #)
-
-    #CDFS
-    RED_LIST_NAME = 'candidates_red_list_cdfs.txt'
-    CANDIDATES_OUTPUT = 'candidates_cdfs.txt'
-    CANDIDATES_REGION_OUTPUT = 'candidates_cdfs.reg'
-    INFILE_N964 = '../CDFS_LAGER/n964_cdfs.cat'
-    INFILE_N964_135 = '../CDFS_LAGER/n964_135_cdfs.cat'
-    INFILE_I = '../CDFS_LAGER/i_cdfs.cat'
-    INFILE_Z = '../CDFS_LAGER/z_cdfs.cat'
-    ZERO_POINTS = zero_points_cdfs
-    IMAGES = (
-    '../CDFS_LAGER/i.fits',
-    '../CDFS_LAGER/z.fits',
-    '../CDFS_LAGER/n964.fits',
-    )
-
-    FITS_OBJECTS = [fits.open(image) for image in IMAGES]
+    @property
+    def fits_objects(self):
+        """Reads in the images as fits objects."""
+        return [fits.open(image) for image in self.images]
 
 
-    #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
-    inst_mag_n964, mag_err_n964, snr_n964 = read_all(INFILE_N964)
-    mag_n964 = inst_mag_n964 + ZERO_POINTS.n964_band.mag_correct(1)
+class SelectionCriteria(Protocol):
+    """Abstract base class for selection criteria."""
 
-    inst_mag_135, mag_err_135, snr_135 = read_all(INFILE_N964_135)
-    mag_135 = inst_mag_135 + ZERO_POINTS.n964_band.mag_correct(1.35/2)
-    first_cut = np.where(mag_n964<24.2)[0]
-    another_cut = np.where(mag_135 < 24)[0]
-    first_cut = np.intersect1d(first_cut, another_cut)
+    inputs: Inputs
+    n964_2_lim: float
+    n964_135_lim: float
+    i_lim: float
+    z_lim: float
 
-    #2. mag > 25.8 for the i band filter.
-    # testing 26.8 from imacs
-    inst_mag_i, mag_err_i, snr_i = read_all(INFILE_I)
-    mag_i = inst_mag_i + ZERO_POINTS.i_band.mag_correct(1)
-    second_cut = np.where(mag_i > 25.8)[0]
+    @abstractmethod
+    def select_n964(self) -> np.ndarray:
+        """The selection criteria for the n964 filter."""
 
-    #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
-    inst_mag_z, mag_err_z, snr_z = read_all(INFILE_Z)
-    mag_z = inst_mag_z + ZERO_POINTS.z_band.mag_correct(1)
-    color = mag_z - mag_n964
+    @abstractmethod
+    def select_i(self) -> np.ndarray:
+        """The selection criteria for the i band filter."""
 
-    third_cut_a_1 = find_values(1.9, color)
-    third_cut_a_2 = np.where(mag_z < 25.6)[0]
-    third_cut_a = np.intersect1d(third_cut_a_1, third_cut_a_2)
+    @abstractmethod
+    def select_z(self) -> np.ndarray:
+        """The selection criteria for the z band filter."""
 
-    #3.b  S/N_2" > 25.6 for the z filter.
-    third_cut_b = np.where(mag_z > 25.6)
+    def apply_selection_criteria(self) -> np.ndarray:
+        """Applies all the selction criteria to the input."""
+        msk_n964 = self.select_n964()
+        msk_i = self.select_i()
+        msk_z = self.select_z()
+        first = np.intersect1d(msk_n964, msk_i)
+        return np.intersect1d(first, msk_z)
 
-    # Find final candiates
-    top_cuts = np.intersect1d(first_cut, second_cut)
-    final_cut_a = np.intersect1d(top_cuts, third_cut_a)
-    final_cut_b = np.intersect1d(top_cuts, third_cut_b)
+    @property
+    @abstractmethod
+    def n964_data(self) -> tuple:
+        """Read in the n964 data."""
 
-    final_cut = np.union1d(final_cut_a, final_cut_b)
-    print(f'Final candidate count is: {len(final_cut)}')
+    @property
+    @abstractmethod
+    def i_data(self) -> tuple:
+        """Read in the n964 data."""
 
-    # Visually inspecting the remaining candidates
-    ra, dec = np.loadtxt(INFILE_N964, usecols=(0,1), unpack=True)
-    ra, dec = ra[final_cut], dec[final_cut]
-    ra, dec = remove_bad_values(ra, dec, RED_LIST_NAME)
+    @property
+    @abstractmethod
+    def z_data(self) -> tuple:
+        """Read in the n964 data."""
+
+
+class MagCutSelection(SelectionCriteria):
+    """Selection using mag cuts."""
+
+    def __init__(
+            self, inputs: Inputs, n964_2_lim: float, n964_135_lim: float, i_lim: float, z_lim: float
+            ) -> None:
+        self.inputs = inputs
+        self.n964_2_lim = n964_2_lim
+        self.n964_135_lim =  n964_135_lim
+        self.i_lim = i_lim
+        self.z_lim = z_lim
+
+    @property
+    def n964_data(self) -> tuple:
+        inst_mag_n964, _, _ = read_all(self.inputs.infile_n964)
+        inst_mag_135, _, _ = read_all(self.inputs.infile_n964_135)
+        mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(
+            self.inputs.aperture_radii)
+        mag_n964_135 = inst_mag_135 + self.inputs.zero_point_function.n964_band.mag_correct(
+            self.inputs.aperture_radii)
+        return mag_n964, mag_n964_135
+
+    def select_n964(self) -> np.ndarray:
+        #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
+        two_arcsecond_cut = np.where(self.n964_data[0] < self.n964_2_lim)[0]
+        one_arcsecond_cut = np.where(self.n964_data[1] < self.n964_135_lim)[0]
+        n964_cut = np.intersect1d(two_arcsecond_cut, one_arcsecond_cut)
+        return n964_cut
+
+    @property
+    def i_data(self) -> tuple:
+        inst_mag_i, _, _ = read_all(self.inputs.infile_i)
+        mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(
+            self.inputs.aperture_radii)
+        return (mag_i,)
+
+    def select_i(self) -> np.ndarray:
+        #2. mag > 25.8 for the i band filter.
+        return np.where(self.i_data[0] > self.i_lim)[0]
+
+    @property
+    def z_data(self) -> tuple:
+        inst_mag_z, _, _ = read_all(self.inputs.infile_z)
+        mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(
+            self.inputs.aperture_radii)
+        return (mag_z,)
+
+    def select_z(self) -> np.ndarray:
+        #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
+        #3.b  S/N_2" > 25.6 for the z filter.
+        color_selection = 1.9
+        color = self.z_data[0] - self.n964_data[0]
+
+        z_cut_a_1 = np.where(color > color_selection)
+        z_cut_a_2 = np.where(self.z_data[0] < self.z_lim)[0]
+        z_cut_a = np.intersect1d(z_cut_a_1, z_cut_a_2)
+
+        z_cut_b = np.where(self.z_data[0] > self.z_lim)[0]
+        return np.union1d(z_cut_a, z_cut_b)
+
+def perform_selection(selection: MagCutSelection):
+    """Opens the gui for the user to reject candidates and write to file."""
+    cut = selection.apply_selection_criteria()
+    print(f'Final candidate count is: {len(cut)}')
+
+    ra, dec = np.loadtxt(selection.inputs.infile_n964, usecols=(0,1), unpack=True)
+    ra, dec = ra[cut], dec[cut]
+    ra, dec = remove_bad_values(ra, dec, selection.inputs.red_list_name)
     print(f'After removing previous rejects, count is: {len(ra)}')
 
     i_bands, z_bands, n_bands = [], [], []
     for i, _ in enumerate(ra):
-        i_filter, z_filter, n964_filter = ps.cut_out_stamps(ra[i], dec[i], FITS_OBJECTS, pad=60)
+        i_filter, z_filter, n964_filter = ps.cut_out_stamps(
+            ra[i], dec[i], selection.inputs.fits_objects, pad=60)
         i_bands.append(i_filter)
         z_bands.append(z_filter)
         n_bands.append(n964_filter)
@@ -165,10 +230,42 @@ if __name__ == '__main__':
     artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
     ra_rejects = ra[artifacts]
     dec_rejects = dec[artifacts]
-    update_candidate_red_list(ra_rejects, dec_rejects, RED_LIST_NAME)
+    update_candidate_red_list(ra_rejects, dec_rejects, selection.inputs.red_list_name)
+    write_output(ra[candidates], dec[candidates], selection.inputs.output_name, size=8)
 
-    write_region_file(ra[candidates], dec[candidates], CANDIDATES_REGION_OUTPUT, size=8)
-    with open(CANDIDATES_OUTPUT, 'w', encoding='utf8') as file:
-        file.write('# RA DEC \n')
-        for i, _ in enumerate(candidates):
-            file.write(f'{ra[candidates][i]} {dec[candidates][i]} \n')
+if __name__ == '__main__':
+    our_inputs = Inputs(
+        red_list_name='candidates_red_list.txt',
+        output_name='candidates',
+        infile_n964='../correct_stacks/N964/n964.cat',
+        infile_n964_135='../correct_stacks/N964/n964_135.cat',
+        infile_i = '../correct_stacks/N964/i.cat',
+        infile_z='../correct_stacks/N964/z.cat',
+        zero_point_function=zero_points,
+        images=(
+        '../correct_stacks/N964/i.fits',
+        '../correct_stacks/N964/z.fits',
+        '../correct_stacks/N964/n964.fits'),
+        aperture_radii=1.
+    )
+
+    cdfs_inputs = Inputs(
+        red_list_name='candidates_red_list_cdfs.txt',
+        output_name='candidates_cdfs',
+        infile_n964='../CDFS_LAGER/n964_cdfs.cat',
+        infile_n964_135='../CDFS_LAGER/n964_135_cdfs.cat',
+        infile_i = '../CDFS_LAGER/i_cdfs.cat',
+        infile_z='../CDFS_LAGER/z_cdfs.cat',
+        zero_point_function=zero_points_cdfs,
+        images=(
+            '../CDFS_LAGER/i.fits',
+            '../CDFS_LAGER/z.fits',
+            '../CDFS_LAGER/n964.fits'),
+        aperture_radii=1.
+    )
+
+    our_selection = MagCutSelection(our_inputs, 24.2, 24, 25.8, 25.6)
+    cdfs_selection = MagCutSelection(cdfs_inputs, 24.2, 24, 25.8, 25.6)
+
+    perform_selection(our_selection)
+    perform_selection(cdfs_selection)
