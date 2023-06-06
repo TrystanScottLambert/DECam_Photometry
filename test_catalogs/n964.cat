@@ -1,0 +1,24 @@
+#   1 ALPHAPEAK_J2000        Right ascension of brightest pix (J2000)                   [deg]
+#   2 DELTAPEAK_J2000        Declination of brightest pix (J2000)                       [deg]
+#   3 X_IMAGE                Object position along x                                    [pixel]
+#   4 Y_IMAGE                Object position along y                                    [pixel]
+#   5 MAG_APER               Fixed aperture magnitude vector                            [mag]
+#   6 MAGERR_APER            RMS error vector for fixed aperture mag.                   [mag]
+#   7 MAG_AUTO               Kron-like elliptical aperture magnitude                    [mag]
+#   8 MAGERR_AUTO            RMS error for AUTO magnitude                               [mag]
+#   9 FLUX_AUTO              Flux within a Kron-like elliptical aperture                [count]
+#  10 FLUXERR_AUTO           RMS error for AUTO flux                                    [count]
+#  11 FLUX_APER              Flux vector within fixed circular aperture(s)              [count]
+#  12 FLUXERR_APER           RMS error vector for aperture flux(es)                     [count]
+#  13 CLASS_STAR             S/G classifier output                                     
+357.6797413 -31.8158819   7198.0000     65.9993  -5.8   0.2319  -4.1902   0.2403     47.43256     10.49628     48.26603     10.30624  0.431
+357.6398531 -31.8160291   7650.0112     65.9960  -5.8   0.2722  -4.0262   0.2254     40.78339     8.463009     39.96186     10.01781  0.376
+357.6300557 -31.8156884   7761.2212     71.3812  -5.8   0.2627  -3.9562   0.1978     38.23703     6.962737     41.23792     9.976722  0.638
+357.6450594 -31.8159356   7591.2109     66.8460  0   0.1019  -5.4540   0.1461     151.9193     20.43311     105.9686     9.941252  0.356
+357.5974019 -31.8154221   8130.5029     75.9518  0   0.2558  -4.1410   0.2378      45.3316     9.924206     42.07573     9.909931  0.625
+357.6228151 -31.8148134   7843.2676     82.4600  0   0.2667  -4.2612   0.1449     50.63821     6.755301     40.50842     9.946738  0.372
+357.6256425 -31.8155536   7810.8892     72.7688  0   0.1174  -5.5162   0.1533     160.8754      22.7104     91.81182     9.926375  0.353
+357.5851339 -31.8151609   8269.2090     80.8075  0   0.1086  -5.3319   0.1533     135.7524     19.15883     99.15189     9.919538  0.381
+357.6762919 -31.8143954   7237.3408     85.8690  0   0.3195  -4.0195   0.1638      40.5332      6.11486     34.17296     10.05331  0.642
+356.9459237 -31.8150234  15512.8262     86.8434  0   0.1331  -4.9885   0.0815     98.95084     7.429722     83.29532      10.2108  0.645
+357.6363174 -31.8148417   7689.8330     81.9895  -5.8   0.1616  -4.2618   0.2716     50.66422     12.67238     66.21833     9.851294  0.394

@@ -54,7 +54,6 @@ def write_output(
 def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray, red_list: str) -> None:
     """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
     with open(red_list,'a+', encoding='utf8') as file:
-        file.write('\n')
         for i, _ in enumerate(ra_array):
             file.write(f'{ra_array[i]} {dec_array[i]} \n')
 
@@ -168,7 +167,7 @@ class MagCutSelection(SelectionCriteria):
         mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(
             self.inputs.aperture_radii)
         mag_n964_135 = inst_mag_135 + self.inputs.zero_point_function.n964_band.mag_correct(
-            self.inputs.aperture_radii)
+            1.35/2)
         return mag_n964, mag_n964_135
 
     def select_n964(self) -> np.ndarray:
