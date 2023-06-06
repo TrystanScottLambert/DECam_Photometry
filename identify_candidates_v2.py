@@ -61,9 +61,10 @@ def get_red_values(red_list:str) -> tuple[np.ndarray, np.ndarray]:
     """Reads in the ra and dec of the red sources. (Not allowed to be used)"""
     try:
         ra_rejected, dec_rejected = np.loadtxt(red_list, unpack=True)
+        print(ra_rejected)
     except (OSError, ValueError):
         warnings.warn(f'{red_list} not found or empty. Assuming there are no rejects.')
-        ra_rejected, dec_rejected = np.ndarray([]), np.ndarray([])
+        ra_rejected, dec_rejected = None, None
     return ra_rejected, dec_rejected
 
 def remove_bad_values(
@@ -71,16 +72,19 @@ def remove_bad_values(
         ) -> tuple[np.ndarray, np.ndarray]:
     """Removes the previously rejected ra and dec values from the current candidates."""
     ra_bad, dec_bad = get_red_values(red_list)
+    if ra_bad is not None:
+        c_bad = SkyCoord(ra = ra_bad *u.deg, dec = dec_bad * u.deg)
+        catalog = SkyCoord(ra = ra_array*u.deg, dec = dec_array*u.deg)
+        idx, d2d, _ = c_bad.match_to_catalog_sky(catalog)
 
-    catalog = SkyCoord(ra = ra_array*u.deg, dec = dec_array*u.deg)
-    c_bad = SkyCoord(ra = ra_bad *u.deg, dec = dec_bad * u.deg)
-    idx, d2d, _ = c_bad.match_to_catalog_sky(catalog)
+        msk = d2d < 1*u.arcsec
+        if len(msk) == 1:  # edge case of n=1. Then value isn't read as an array but as a float.
+            idx = np.ndarray([idx])
+        idx_bad = idx[msk]
+        idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
+    else:
+        idx_good = np.arange(len(ra_array))
 
-    msk = d2d < 1*u.arcsec
-    if len(msk) == 1:  # edge case of n=1. Then value isn't read as an array but as a float.
-        idx = np.ndarray([idx])
-    idx_bad = idx[msk]
-    idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
 
     return ra_array[idx_good], dec_array[idx_good]
 
@@ -211,15 +215,17 @@ class MagCutSelection(SelectionCriteria):
 def perform_selection(selection: MagCutSelection):
     """Opens the gui for the user to reject candidates and write to file."""
     cut = selection.apply_selection_criteria()
+    print(cut)
     print(f'Final candidate count is: {len(cut)}')
 
     ra, dec = np.loadtxt(selection.inputs.infile_n964, usecols=(0,1), unpack=True)
+    print(ra)
     ra, dec = ra[cut], dec[cut]
     ra, dec = remove_bad_values(ra, dec, selection.inputs.red_list_name)
     print(f'After removing previous rejects, count is: {len(ra)}')
 
     i_bands, z_bands, n_bands = [], [], []
-    for i, _ in enumerate(ra):
+    for i, _ in enumerate(ra): 
         i_filter, z_filter, n964_filter = ps.cut_out_stamps(
             ra[i], dec[i], selection.inputs.fits_objects, pad=60)
         i_bands.append(i_filter)
