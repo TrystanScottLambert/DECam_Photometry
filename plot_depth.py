@@ -82,6 +82,6 @@ if __name__ == '__main__':
     plot_depth(INFILE_SEX_N, N_ZPT, 'n964')
     #plot_depth(INFILE_SEX_N_135, N_ZPT_135, 'n964')
 
-    plot_depth(INFILE_SEX_I_CDFS, I_ZPT_CDFS, 'i')
-    plot_depth(INFILE_SEX_Z_CDFS, Z_ZPT_CDFS, 'z')
-    plot_depth(INFILE_SEX_N_CDFS, N_ZPT_CDFS, 'n964')
+    #plot_depth(INFILE_SEX_I_CDFS, I_ZPT_CDFS, 'i')
+    #plot_depth(INFILE_SEX_Z_CDFS, Z_ZPT_CDFS, 'z')
+    #plot_depth(INFILE_SEX_N_CDFS, N_ZPT_CDFS, 'n964')

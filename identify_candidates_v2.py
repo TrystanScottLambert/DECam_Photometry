@@ -4,7 +4,6 @@ Basically the same as identify_candidates.py but using custom selection criteria
 
 from dataclasses import dataclass
 from abc import abstractmethod
-from rich.progress import track
 from typing import Protocol
 import warnings
 import numpy as np
@@ -260,8 +259,8 @@ if __name__ == '__main__':
         aperture_radii=1.
     )
 
-    our_selection = MagCutSelection(our_inputs, 24.2, 24, 25.8, 25.6)
-    cdfs_selection = MagCutSelection(cdfs_inputs, 24.2, 24, 25.8, 25.6)
 
+    our_selection = MagCutSelection(our_inputs, 24.66, 25.10, 26.15, 26.20)
+    cdfs_selection = MagCutSelection(cdfs_inputs, 24.66, 25.10, 26.15, 26.20)
     #perform_selection(our_selection)
     perform_selection(cdfs_selection)
