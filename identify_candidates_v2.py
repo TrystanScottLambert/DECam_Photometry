@@ -3,6 +3,7 @@ Basically the same as identify_candidates.py but using custom selection criteria
 """
 
 from dataclasses import dataclass
+import pylab as plt
 from abc import abstractmethod
 from typing import Protocol
 import warnings

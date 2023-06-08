@@ -9,7 +9,7 @@ import numpy as np
 def read_in_weights(infile: str) -> np.ndarray:
     """Reads in the data from the weights files"""
     hdu = fits.open(infile)
-    data = hdu[1].data
+    data = hdu[0].data
     return data
 
 def mask_data(data: np.ndarray, limit) -> np.ndarray:
@@ -27,7 +27,8 @@ def create_weight_mask(weights: list[tuple]) -> np.ndarray:
 def mask_catalog(x_array: np.array, y_array: np.array, mask: np.ndarray) -> np.ndarray:
     """Determines which indicies in the given x and y arrays are masked."""
     cat_mask = [
-        mask[int(round(y_array[i])), int(round(x_val))] != 0 for i, x_val in enumerate(x_array)]
+        mask[int(y_array[i]) -1, int(x_val) -1] != 0 for i, x_val in enumerate(x_array)
+        ]
     return cat_mask
 
 def get_header_body(infile: str):
@@ -45,6 +46,7 @@ class Catalog:
     def __init__(self, sex_catalog:str, weights: list[tuple]):
         self.sex_catalog = sex_catalog
         self.master_mask = create_weight_mask(weights)
+        print('Number of good pixels is ', len(np.where(self.master_mask !=0)[0]))
         self.header, self.body = get_header_body(sex_catalog)
         self.x_array, self.y_array = np.loadtxt(self.sex_catalog, usecols=(2,3), unpack=True)
         self.mask = mask_catalog(self.x_array, self.y_array, self.master_mask)
@@ -67,14 +69,14 @@ class Catalog:
 
 if __name__ == '__main__':
     WEIGHTS = [
-        ('CDFS_NB.fits.weight.fits.fz', 0.25),
-        ('CDFS_z.fits.weight.fits.fz', 0.1),
-        ('CDFS_i.fits.weight.fits.fz', 0.25)]
+        ('../correct_stacks/N964/n964_weight.fits', 0.008),
+        ('../correct_stacks/N964/i_weight.fits', 0.0008),
+        ('../correct_stacks/N964/z_weight.fits', 0.001)]
 
-    SEX_CATALOGS = ['n964_cdfs.cat',
-               'n964_135_cdfs.cat',
-               'i_cdfs.cat',
-               'z_cdfs.cat']
+    SEX_CATALOGS = ['../correct_stacks/N964/n964.cat',
+               '../correct_stacks/N964/n964_135.cat',
+               '../correct_stacks/N964/i.cat',
+               '../correct_stacks/N964/z.cat']
 
     for sex_cat in SEX_CATALOGS:
         Catalog(sex_cat, WEIGHTS)
