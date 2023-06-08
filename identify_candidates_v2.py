@@ -263,5 +263,5 @@ if __name__ == '__main__':
 
     our_selection = MagCutSelection(our_inputs, 24.66, 25.10, 26.15, 26.20)
     cdfs_selection = MagCutSelection(cdfs_inputs, 24.66, 25.10, 26.15, 26.20)
-    #perform_selection(our_selection)
-    perform_selection(cdfs_selection)
+    perform_selection(our_selection)
+    #perform_selection(cdfs_selection)
