@@ -203,7 +203,12 @@ class MagCutSelection(SelectionCriteria):
         #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
         #3.b  S/N_2" > 25.6 for the z filter.
         color_selection = 1.9
-        color = self.z_data[0] - self.n964_data[0]
+        inst_kron_mag_n964 = np.loadtxt(self.inputs.infile_n964, usecols=(6), unpack=True)
+        inst_kron_mag_z =  np.loadtxt(self.inputs.infile_z, usecols=(6), unpack=True)
+        # 0.945" is the minimum kron radius.
+        kron_mag_n964 = inst_kron_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(0.945)
+        kron_mag_z = inst_kron_mag_z + self.inputs.zero_point_function.z_band.mag_correct(0.945)
+        color = kron_mag_z - kron_mag_n964
 
         z_cut_a_1 = np.where(color > color_selection)
         z_cut_a_2 = np.where(self.z_data[0] < self.z_lim)[0]
@@ -263,7 +268,11 @@ class ClassicSNR(SelectionCriteria):
         #3a.  z-N964 > 1.9 and S/N_2" > 3 for the z filter
         #3.b  S/N_2" < 3 for the z filter.
         color_selection = 1.9
-        color = self.z_data[0] - self.n964_data[0]
+        inst_kron_mag_n964 = np.loadtxt(self.inputs.infile_n964, usecols=(6), unpack=True)
+        inst_kron_mag_z =  np.loadtxt(self.inputs.infile_z, usecols=(6), unpack=True)
+        kron_mag_n964 = inst_kron_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(0.945)
+        kron_mag_z = inst_kron_mag_z + self.inputs.zero_point_function.z_band.mag_correct(0.945)
+        color = kron_mag_z - kron_mag_n964
 
         z_cut_a_1 = np.where(color > color_selection)
         z_cut_a_2 = np.where(self.z_data[1] > self.z_lim)[0]

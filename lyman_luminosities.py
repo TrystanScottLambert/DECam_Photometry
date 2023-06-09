@@ -122,5 +122,3 @@ if __name__ == '__main__':
     log_10_lya = np.log10(lya_lum.value)
     plt.hist(log_10_lya, bins=np.arange(42.4, 43.8,0.1))
     plt.show()
-
-    
