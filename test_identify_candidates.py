@@ -9,7 +9,7 @@ import numpy as np
 from zero_points import zero_points
 from identify_candidates_v2 import calculate_snr, write_region_file,\
     write_txt_file, write_output, update_candidate_red_list, remove_bad_values,\
-    Inputs, MagCutSelection
+    Inputs, MagCutSelection, ClassicSNR
 class TestSNR(unittest.TestCase):
     """Testing that SNR function works."""
     def test_calculate_snr(self):
@@ -125,7 +125,6 @@ class TestMagCutSelection(unittest.TestCase):
 
     def test_z_data(self):
         """Testing that the z data is converting correctly."""
-        print(self.selection.z_data)
         self.assertAlmostEqual(self.selection.z_data[0][0], 25.56102665)
         self.assertAlmostEqual(self.selection.z_data[0][1],129.56102665)
         self.assertAlmostEqual(self.selection.z_data[0][3],-68.43897335)
@@ -139,7 +138,6 @@ class TestMagCutSelection(unittest.TestCase):
         """Testing that the i selection."""
         good_i_vals = self.selection.select_i()
         self.assertEqual(list(good_i_vals), [0, 1, 2, 9])
-        print(good_i_vals)
 
     def test_z_selection(self):
         """Testing z selection."""
@@ -148,6 +146,32 @@ class TestMagCutSelection(unittest.TestCase):
 
     def test_apply_selection(self):
         """Testing that the selection is being applied correctly."""
+        reduced = self.selection.apply_selection_criteria()
+        self.assertEqual(list(reduced), [0, 1, 2])
+
+class TestClassicSNR(unittest.TestCase):
+    """Testing that the selection criteria for snr is working correctly."""
+    inputs = Inputs(
+        'test_red.txt', 'test_mag', 'test_catalogs/n964.cat', 'test_catalogs/n964_135.cat',
+        'test_catalogs/i.cat', 'test_catalogs/z.cat', zero_points, images = ('1','1','1'),
+        aperture_radii=1.
+    )
+    selection = ClassicSNR(inputs, 5, 5, 3, 3)
+
+    def test_n964_selection(self):
+        """Testing that the selection criteria is working."""
+        self.assertEqual(list(self.selection.select_n964()),[0, 1, 2])
+
+    def test_i_selection(self):
+        """Testing i selection working correctly"""
+        self.assertEqual(list(self.selection.select_i()), [0, 1, 2, 9])
+
+    def test_z_selection(self):
+        """Testing that the z selection is working correctly."""
+        self.assertEqual(list(self.selection.select_z()), [0, 1, 2, 5])
+
+    def test_apply_selection(self):
+        """Testing all combinations."""
         reduced = self.selection.apply_selection_criteria()
         self.assertEqual(list(reduced), [0, 1, 2])
 
