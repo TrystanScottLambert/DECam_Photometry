@@ -1,6 +1,7 @@
 """This module is for determining the lyman-alpha luminosity from NB964 filter and z-filter."""
 
 import numpy as np
+import pylab as plt
 from synphot import etau_madau
 from synphot import SpectralElement
 import astropy.constants as cons
@@ -8,7 +9,7 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-from hu_2019_plot import FILTERS
+from zero_points_cdfs import zero_points_cdfs
 
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 QSO_REDSHIFT = 6.9018
@@ -86,9 +87,13 @@ def convert_flux_to_luminosity(flux: float):
 if __name__ == '__main__':
     NARROW_BANDPASS_FILE = '../QSO_Spectra/NB964_DECam_F29.txt'
     Z_BANDPASS_FILE = '../QSO_Spectra/decam_z_bandpass.txt'
-    NARROW_CATALOG = '../correct_stacks/N964/n964.cat'
-    Z_CATALOG = '../correct_stacks/N964/z.cat'
-    CANDIDATES_CATALOG = 'candidates.txt'
+    #NARROW_CATALOG = '../correct_stacks/N964/n964.cat'
+    #Z_CATALOG = '../correct_stacks/N964/z.cat'
+    #CANDIDATES_CATALOG = 'candidates.txt'
+
+    NARROW_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
+    Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
+    CANDIDATES_CATALOG = 'candidates_cdfs.txt'
 
 
     ra_n, dec_n, n_mag = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(0, 1, 4))
@@ -99,8 +104,8 @@ if __name__ == '__main__':
     n_catalog = SkyCoord(ra = ra_n * u.deg, dec = dec_n * u.deg)
     idx, d2d, _ = candidates.match_to_catalog_sky(n_catalog)
 
-    n_mag = n_mag[idx] + FILTERS['n964'].zpt # zpts of the filters
-    z_mag = z_mag[idx] + FILTERS['z'].zpt
+    n_mag = n_mag[idx] + zero_points_cdfs.n964_band.mag_correct(1)
+    z_mag = z_mag[idx] + zero_points_cdfs.z_band.mag_correct(1)
 
     '''
     See table at https://pysynphot.readthedocs.io/en/latest/units.html 
@@ -114,3 +119,8 @@ if __name__ == '__main__':
 
     lya_flux = calculate_lyman_alpha_flux(n_flux_nu, z_flux_nu, NB964, Z_BAND)
     lya_lum = convert_flux_to_luminosity(lya_flux)
+    log_10_lya = np.log10(lya_lum.value)
+    plt.hist(log_10_lya, bins=np.arange(42.4, 43.8,0.1))
+    plt.show()
+
+    

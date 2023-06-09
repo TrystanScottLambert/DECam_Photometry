@@ -212,6 +212,67 @@ class MagCutSelection(SelectionCriteria):
         z_cut_b = np.where(self.z_data[0] > self.z_lim)[0]
         return np.union1d(z_cut_a, z_cut_b)
 
+class ClassicSNR(SelectionCriteria):
+    """Selection using mag cuts."""
+
+    def __init__(
+            self, inputs: Inputs, n964_2_lim: float, n964_135_lim: float, i_lim: float, z_lim: float
+            ) -> None:
+        self.inputs = inputs
+        self.n964_2_lim = n964_2_lim
+        self.n964_135_lim =  n964_135_lim
+        self.i_lim = i_lim
+        self.z_lim = z_lim
+
+    @property
+    def n964_data(self) -> tuple:
+        inst_mag_n964, _, snr_n964 = read_all(self.inputs.infile_n964)
+        inst_mag_135, _, snr_135 = read_all(self.inputs.infile_n964_135)
+        mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(
+            self.inputs.aperture_radii)
+        mag_n964_135 = inst_mag_135 + self.inputs.zero_point_function.n964_band.mag_correct(
+            1.35/2)
+        return mag_n964, mag_n964_135, snr_n964, snr_135
+
+    def select_n964(self) -> np.ndarray:
+        #1. S/N_2" > 5 and S/N_1.35" > 5 for the N964 filter.
+        two_arcsecond_cut = np.where(self.n964_data[2] > self.n964_2_lim)[0]
+        one_arcsecond_cut = np.where(self.n964_data[3] > self.n964_135_lim)[0]
+        n964_cut = np.intersect1d(two_arcsecond_cut, one_arcsecond_cut)
+        return n964_cut
+
+    @property
+    def i_data(self) -> tuple:
+        inst_mag_i, _, snr_i = read_all(self.inputs.infile_i)
+        mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(
+            self.inputs.aperture_radii)
+        return mag_i, snr_i
+
+    def select_i(self) -> np.ndarray:
+         #2. S/N_2" < 3 for the i band filter.
+        return np.where(self.i_data[1] < self.i_lim)[0]
+
+    @property
+    def z_data(self) -> tuple:
+        inst_mag_z, mag_z, z_snr = read_all(self.inputs.infile_z)
+        mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(
+            self.inputs.aperture_radii)
+        return mag_z, z_snr
+
+    def select_z(self) -> np.ndarray:
+        #3a.  z-N964 > 1.9 and S/N_2" > 3 for the z filter
+        #3.b  S/N_2" < 3 for the z filter.
+        color_selection = 1.9
+        color = self.z_data[0] - self.n964_data[0]
+
+        z_cut_a_1 = np.where(color > color_selection)
+        z_cut_a_2 = np.where(self.z_data[1] > self.z_lim)[0]
+        z_cut_a = np.intersect1d(z_cut_a_1, z_cut_a_2)
+
+        z_cut_b = np.where(self.z_data[1] < self.z_lim)[0]
+        return np.union1d(z_cut_a, z_cut_b)
+
+
 def perform_selection(selection: MagCutSelection):
     """Opens the gui for the user to reject candidates and write to file."""
     cut = selection.apply_selection_criteria()
@@ -261,7 +322,8 @@ if __name__ == '__main__':
     )
 
 
-    our_selection = MagCutSelection(our_inputs, 24.66, 25.10, 26.15, 26.20)
-    cdfs_selection = MagCutSelection(cdfs_inputs, 24.66, 25.10, 26.15, 26.20)
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
+    #our_selection = MagCutSelection(our_inputs, 24.66, 25.10, 26.15, 26.20)
+    #cdfs_selection = MagCutSelection(cdfs_inputs, 24.66, 25.10, 26.15, 26.20)
+    cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection_classic)
