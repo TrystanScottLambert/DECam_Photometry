@@ -25,13 +25,13 @@ def straight_line(parameters, x_val):
 def bottom_limit(x_val):
     """Lower limit to remove outlier values when making the fit."""
     m = 1
-    c = 28.5
+    c = 28.85
     return m * x_val + c
 
 def upper_limit(x_val):
     """Upper limit to remove the upper outliers."""
     m = 1
-    c = 29.2
+    c = 29.15
     return m * x_val + c
 
 def is_point_in_limits(x_val:float, y_val:float):
@@ -75,8 +75,8 @@ delta_pan = z - y
 delta_decam = z - n964
 delta_pan_err = np.hypot(z_err, y_err)
 delta_decam_err = np.hypot(z_err, n964_err)
-#cut_x = np.where((delta_pan > -0.2) & (delta_pan < 0.6))[0]
-#cut_y = np.where((delta_decam > 28.75) & (delta_decam < 29.752))
+cut_x = np.where((delta_pan > -0.2) & (delta_pan < 0.6))[0]
+cut_y = np.where((delta_decam > 28.75) & (delta_decam < 29.752))
 final_cut = np.arange(len(delta_pan)) #np.intersect1d(cut_x, cut_y)
 fit_cut = index_in_limits(delta_pan[final_cut], delta_decam[final_cut])
 
@@ -114,7 +114,7 @@ plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[fi
 #plt.plot(x_fit, upper_limit(x_fit), color='b')
 plt.plot(x_fit, fit,'r', lw=2)
 plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
-#plt.xlim(-0.3, 0.7)
+plt.xlim(-0.3, 0.7)
 plotting.end_plot('plots/N964_zpt_calculation_cdfs.png')
 
 #N964_DIR = '../correct_stacks/N964/'

@@ -42,14 +42,14 @@ def plot_depth(sextractor_cat_name: str, zpt: float, broadband: str) -> None:
     mag, signal_to_noise  = mag[signal_to_noise_cut], signal_to_noise[signal_to_noise_cut]
 
     # Do some shadding instead of a scatter plot.
-    #nbins = 100
-    #kernal = gaussian_kde((mag, signal_to_noise))
-    #x_i, y_i = np.mgrid[
-    #    mag.min():mag.max():nbins*1j, signal_to_noise.min():signal_to_noise.max():nbins*1j]
-    #z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
+    nbins = 100
+    kernal = gaussian_kde((mag, signal_to_noise))
+    x_i, y_i = np.mgrid[
+        mag.min():mag.max():nbins*1j, signal_to_noise.min():signal_to_noise.max():nbins*1j]
+    z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
     plotting.start_plot(x_label='Measured Mags', y_label='SNR')
-    #plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto')
-    plt.scatter(mag, signal_to_noise, s= 0.01, color='k', alpha=0.3)
+    plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto')
+    #plt.scatter(mag, signal_to_noise, s= 0.01, color='k', alpha=0.3)
     plt.axhline(5, ls='--', lw=1.5, color='r', alpha=0.4)
     plt.axvline(HU_VALUES[broadband], ls = ':', color='k')
     plt.xlim(22, 28)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     #plot_depth(INFILE_SEX_N, N_ZPT, 'n964')
     #plot_depth(INFILE_SEX_N_135, N_ZPT_135, 'n964')
 
-    #plot_depth(INFILE_SEX_I_CDFS, I_ZPT_CDFS, 'i')
-    #plot_depth(INFILE_SEX_Z_CDFS, Z_ZPT_CDFS, 'z')
-    #plot_depth(INFILE_SEX_N_CDFS, N_ZPT_CDFS, 'n964')
-    plot_depth(INFILE_SEX_N135_CDFS, N_ZPT_135_CDFS, 'n964')
+    plot_depth(INFILE_SEX_I_CDFS, I_ZPT_CDFS, 'i')
+    plot_depth(INFILE_SEX_Z_CDFS, Z_ZPT_CDFS, 'z')
+    plot_depth(INFILE_SEX_N_CDFS, N_ZPT_CDFS, 'n964')
+    #plot_depth(INFILE_SEX_N135_CDFS, N_ZPT_135_CDFS, 'n964')

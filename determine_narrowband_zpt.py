@@ -12,6 +12,7 @@ from sex_catalog import SExtractorCat
 
 import plotting
 from k_constant import calculate_k_constant_mag
+from identify_candidates_v2 import write_region_file
 
 def straight_line(parameters, x_val):
     """Straight line for fitting to data"""
@@ -56,6 +57,8 @@ if __name__ == '__main__':
     decam_catalog_z, pan_cat_z = decam_all.cross_match_with_panstars(INFILE_Z)
     decam_catalog_y, pan_cat_y = decam_all.cross_match_with_panstars(INFILE_Y)
 
+    ra = pan_cat_z['raMean'].values
+    dec = pan_cat_z['decMean'].values
     z = pan_cat_z['zMeanPSFMag'].values
     y = pan_cat_z['yMeanPSFMag'].values
     z_err = pan_cat_z['zMeanPSFMagErr'].values
@@ -64,6 +67,8 @@ if __name__ == '__main__':
     n964_err = decam_catalog_z['MAGERR_AUTO'].values
     cut = np.where(y != -999)[0]
     z, y, n964, z_err, y_err, n964_err = z[cut], y[cut], n964[cut], z_err[cut], y_err[cut], n964_err[cut]
+    ra, dec = ra[cut], dec[cut]
+    write_region_file(ra, dec, 'narrow_band_panstars.reg', 4)
 
     delta_pan = z - y
     delta_decam = z - n964
@@ -73,7 +78,7 @@ if __name__ == '__main__':
     cut_y = np.where((delta_decam > 28.75) & (delta_decam < 29.752))
     final_cut = np.intersect1d(cut_x, cut_y)
     fit_cut = index_in_limits(delta_pan[final_cut], delta_decam[final_cut])
-
+    ra, dec = ra[final_cut][fit_cut], dec[final_cut][fit_cut]
     straight_line_model = odr.Model(straight_line)
     data = odr.RealData(delta_pan[final_cut][fit_cut], delta_decam[final_cut][fit_cut],
                         sx=delta_pan[final_cut][fit_cut], sy=delta_decam[final_cut][fit_cut])

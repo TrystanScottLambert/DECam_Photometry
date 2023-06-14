@@ -8,6 +8,7 @@ import numpy as np
 import pylab as plt
 from scipy.optimize import curve_fit
 import pandas as pd
+from astropy.stats import sigma_clipped_stats
 
 from sex_catalog import SExtractorCat
 from k_constant import calculate_k_constant_mag
@@ -101,11 +102,14 @@ class BroadBand:
         self.broadband = broadband
         self.sextractor_cat_name = sextractor_cat_name
         mags = prepare_plotting_data(sextractor_cat_name, panstars_cat_name, broadband)
+        diffs = mags[2] - mags[0]
+        diff_cut = np.where((diffs>30) & (diffs <32))[0]  # specifically for this research.
         good_values = np.where(mags[2] < 100)[0] # Obviously not physical if this isn't met.
-        other_good_values = np.where(mags[0] < 0)[0] # specific for decam
+        other_good_values = np.where(mags[0] < -6)[0] # specific for decam
         more_good_values = np.where(mags[3] < 100)[0] # not physical to have errors more than 100 mags
         good_values = np.intersect1d(good_values, other_good_values)
         good_values = np.intersect1d(good_values, more_good_values)
+        good_values = np.intersect1d(good_values, diff_cut)
         self.measured_mags = mags[0][good_values]
         self.measured_mags_err = mags[1][good_values]
         self.expected_mags = mags[2][good_values]
@@ -118,9 +122,9 @@ class BroadBand:
         plt.errorbar(
             self.measured_mags, self.expected_mags - self.measured_mags,
             xerr=self.measured_mags_err, yerr=y_err,
-            fmt='ro', alpha=0.3)
+            fmt='ko', alpha=0.3, ms=2.5, elinewidth=1.5)
         x_fit, fit, fit_up, fit_down = self.fit_horizontal_line()
-        plt.plot(x_fit, fit, ls='--', color='k', lw=3, zorder=1)
+        plt.plot(x_fit, fit, ls='--', color='r', lw=3, zorder=1)
         plt.fill_between(x_fit, fit_up, fit_down, alpha=.5, color='r')
         plotting.end_plot(f'plots/{self.broadband}_zpt.png')
         plt.show()
@@ -154,9 +158,10 @@ class BroadBand:
         """
         Determines the zero point by fitting a straight line and determining the intercept.
         """
+        cut = np.where((self.measured_mags > -14) & (self.measured_mags < -11))
         a_fit, cov = curve_fit(
-            straight_line, self.measured_mags, self.expected_mags,
-            sigma=self.expected_mags_err, absolute_sigma=True)
+            straight_line, self.measured_mags[cut], self.expected_mags[cut],
+            sigma=self.expected_mags_err[cut], absolute_sigma=True)
         uncertainties = np.sqrt(np.diag(cov))
         return a_fit[0], uncertainties[0]
 
@@ -178,9 +183,9 @@ if __name__ == '__main__':
     INFILE_SEX_Z = '../correct_stacks/N964/z.cat'
     INFILE_PAN_Z = '../PANSTARS/PANSTARS_z.csv'
 
-    INFILE_SEX_I_CDFS = '../CDFS_LAGER/i_cdfs.cat'
+    INFILE_SEX_I_CDFS = '../CDFS_LAGER/i_cdfs_depth.cat'
     INFILE_PAN_I_CDFS = '../CDFS_LAGER/PANSTARS_i.csv'
-    INFILE_SEX_Z_CDFS = '../CDFS_LAGER/z_cdfs.cat'
+    INFILE_SEX_Z_CDFS = '../CDFS_LAGER/z_cdfs_depth.cat'
     INFILE_PAN_Z_CDFS = '../CDFS_LAGER/PANSTARS_z.csv'
 
     SEEING_I = 1.17 # These comes from the seeing calculator.
