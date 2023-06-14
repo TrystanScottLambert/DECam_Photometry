@@ -29,8 +29,8 @@ def read_in_wide_band(sextractor_file_name: str, panstars_cat_name: str):
 def get_broad_band_mags(decam_df: pd.DataFrame, panstars_cat: pd.DataFrame, band: str) -> Tuple:
     """Gets the magnitudes and errors for a wide-band filter."""
 
-    dec_mags = decam_df['MAG_AUTO'].values
-    dec_mags_uncertainty = decam_df['MAGERR_AUTO'].values
+    dec_mags = decam_df['MAG_APER'].values
+    dec_mags_uncertainty = decam_df['MAGERR_APER'].values
     pan_mags = panstars_cat[f'{band}MeanPSFMag'].values
     pan_mags_uncertainty = panstars_cat[f'{band}MeanPSFMagErr'].values
 
@@ -102,7 +102,7 @@ class BroadBand:
         self.sextractor_cat_name = sextractor_cat_name
         mags = prepare_plotting_data(sextractor_cat_name, panstars_cat_name, broadband)
         good_values = np.where(mags[2] < 100)[0] # Obviously not physical if this isn't met.
-        other_good_values = np.where(mags[0] < -6)[0] # specific for decam
+        other_good_values = np.where(mags[0] < 0)[0] # specific for decam
         more_good_values = np.where(mags[3] < 100)[0] # not physical to have errors more than 100 mags
         good_values = np.intersect1d(good_values, other_good_values)
         good_values = np.intersect1d(good_values, more_good_values)
@@ -185,11 +185,11 @@ if __name__ == '__main__':
 
     SEEING_I = 1.17 # These comes from the seeing calculator.
     SEEING_Z = 1.23
-    APERTURE_RADII = 0.94 #min kron radius
+    APERTURE_RADII = 1 #min kron radius
 
     SEEING_I_CDFS = 1.22
     SEEING_Z_CDFS = 1.14
-    APERTURE_RADII_CDFS = 0.94 #min kron radius
+    APERTURE_RADII_CDFS = 1 #min kron radius
 
 
     i_band_cdfs = BroadBand(INFILE_PAN_I_CDFS, INFILE_SEX_I_CDFS, 'i')

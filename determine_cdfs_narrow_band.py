@@ -25,13 +25,13 @@ def straight_line(parameters, x_val):
 def bottom_limit(x_val):
     """Lower limit to remove outlier values when making the fit."""
     m = 1
-    c = 29.2
+    c = 28.5
     return m * x_val + c
 
 def upper_limit(x_val):
     """Upper limit to remove the upper outliers."""
     m = 1
-    c = 29.5
+    c = 29.2
     return m * x_val + c
 
 def is_point_in_limits(x_val:float, y_val:float):
@@ -52,7 +52,7 @@ INFILE_SEX = '../CDFS_LAGER/n964_cdfs.cat'
 INFILE_Z = '../CDFS_LAGER/PANSTARS_z.csv'
 INFILE_Y = '../PANSTARS/PANSTARS_y.csv'
 NARROW_BAND_SEEING = 1.18 # arcseconds
-NARROW_BAND_APERTURES = 0.94 # arcseconds
+NARROW_BAND_APERTURES = 1 # arcseconds
 
 decam_all = SExtractorCat(INFILE_SEX)
 decam_catalog_z, pan_cat_z = decam_all.cross_match_with_panstars(INFILE_Z)
@@ -62,18 +62,22 @@ z = pan_cat_z['zMeanPSFMag'].values
 y = pan_cat_z['yMeanPSFMag'].values
 z_err = pan_cat_z['zMeanPSFMagErr'].values
 y_err = pan_cat_z['zMeanPSFMagErr'].values
-n964 = decam_catalog_z['MAG_AUTO'].values
-n964_err = decam_catalog_z['MAGERR_AUTO'].values
+n964 = decam_catalog_z['MAG_APER'].values
+n964_err = decam_catalog_z['MAGERR_APER'].values
 cut = np.where(y != -999)[0]
+print(len(cut))
+print(len(decam_all.catalog))
+print(len(pan_cat_z))
 z, y, n964, z_err, y_err, n964_err = z[cut], y[cut], n964[cut], z_err[cut], y_err[cut], n964_err[cut]
+print(len(z))
 
 delta_pan = z - y
 delta_decam = z - n964
 delta_pan_err = np.hypot(z_err, y_err)
 delta_decam_err = np.hypot(z_err, n964_err)
-cut_x = np.where((delta_pan > -0.2) & (delta_pan < 0.6))[0]
-cut_y = np.where((delta_decam > 28.75) & (delta_decam < 29.752))
-final_cut = np.intersect1d(cut_x, cut_y)
+#cut_x = np.where((delta_pan > -0.2) & (delta_pan < 0.6))[0]
+#cut_y = np.where((delta_decam > 28.75) & (delta_decam < 29.752))
+final_cut = np.arange(len(delta_pan)) #np.intersect1d(cut_x, cut_y)
 fit_cut = index_in_limits(delta_pan[final_cut], delta_decam[final_cut])
 
 straight_line_model = odr.Model(straight_line)
@@ -93,7 +97,7 @@ k_const = calculate_k_constant_mag(NARROW_BAND_APERTURES, NARROW_BAND_SEEING)
 zpt_prime = popt[1] - k_const
 print('The zpt prime cdfs is: ', zpt_prime)
 
-NSTD = 5.
+NSTD = 1.
 popt_up = popt + NSTD * perr
 popt_dw = popt - NSTD * perr
 x_fit = np.linspace(-0.3, 0.7, 100)
@@ -110,7 +114,7 @@ plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[fi
 #plt.plot(x_fit, upper_limit(x_fit), color='b')
 plt.plot(x_fit, fit,'r', lw=2)
 plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
-plt.xlim(-0.3, 0.7)
+#plt.xlim(-0.3, 0.7)
 plotting.end_plot('plots/N964_zpt_calculation_cdfs.png')
 
 #N964_DIR = '../correct_stacks/N964/'

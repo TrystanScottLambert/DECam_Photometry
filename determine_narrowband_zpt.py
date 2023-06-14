@@ -43,7 +43,7 @@ def is_point_in_limits(x_val:float, y_val:float):
 def index_in_limits(x_array, y_array):
     """Returns an array of indicies of all the values within the limits"""
     idx = [i for i in range(len(x_array)) if is_point_in_limits(x_array[i], y_array[i])]
-    return np.array(idx)
+    return np.array(idx).astype(int)
 
 if __name__ == '__main__':
     INFILE_SEX = '../correct_stacks/N964/n964.cat'

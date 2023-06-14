@@ -18,6 +18,6 @@ sh find_mock_sources.sh		# Sources from DECAM + Injected images.
 echo "Only selecting source that are within the DECam area."
 cd ../
 python3 regionfy_catalog.py 
-python3 mask_sex_catalog.py
+#python3 mask_sex_catalog.py
 
 echo "Images are prepared for candidate search."
