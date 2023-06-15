@@ -50,7 +50,7 @@ class Filter:
     @property
     def transmission_at_lyman(self):
         """The transmission at the observed wavelength of lyman alpha."""
-        return self.transmission(9608)
+        return self.transmission(LYMAN_ALPHA_OBSERVED_WAVELENGTH)
 
     @property
     def continuum_integral(self):
@@ -59,7 +59,7 @@ class Filter:
         attenuated_transmission = etau_madau(wave, QSO_REDSHIFT) * self.transmission
         attenuated_values = attenuated_transmission.to_spectrum1d().flux
         integrand = attenuated_values * (wave**(-2))
-        return numerical_integration(wave.value, integrand.value)*wave.unit*attenuated_values.unit
+        return numerical_integration(wave.value, integrand.value)*(wave.unit**-1)
 
 def calculate_c(measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
     """Determines the C constant in the similtaneous equations"""
@@ -76,12 +76,12 @@ def calculate_lyman_alpha_flux(
     term_2 = constant * nb964.continuum_integral
     value = (term_1 - term_2)/nb964.transmission_at_lyman
     # see http://physics.uwyo.edu/~chip/Classes/ASTR4610/Lec_Distances.pdf for units.
-    return value.to(u.erg * (u.s**(-1)) * (u.cm**(-2))) 
+    return value.to(u.erg * (u.s**(-1)) * (u.cm**(-2)))
 
 def convert_flux_to_luminosity(flux: float):
     """converts flux into luminosity"""
     lum_distance = COSMO.luminosity_distance(QSO_REDSHIFT)
-    value = flux * np.pi * 4 * (lum_distance**2)
+    value = (flux * np.pi * 4 * (lum_distance**2))/(QSO_REDSHIFT + 1)
     return value.to(u.erg/u.s) #converting to same units as hu et. al., 2019
 
 if __name__ == '__main__':
@@ -120,5 +120,5 @@ if __name__ == '__main__':
     lya_flux = calculate_lyman_alpha_flux(n_flux_nu, z_flux_nu, NB964, Z_BAND)
     lya_lum = convert_flux_to_luminosity(lya_flux)
     log_10_lya = np.log10(lya_lum.value)
-    plt.hist(log_10_lya, bins=np.arange(42.4, 43.8,0.1))
+    plt.hist(log_10_lya, bins=np.arange(42.0, 43.8,0.1))
     plt.show()

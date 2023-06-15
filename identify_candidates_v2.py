@@ -330,10 +330,14 @@ if __name__ == '__main__':
         aperture_radii=1.
     )
 
+    i_depth = 25.66
+    z_depth = 25.58
+    n_depth = 24.66
+    n_135_depth = 25.10
 
-    #our_selection = MagCutSelection(our_inputs, 24.66, 25.10, 26.15, 26.20)
+    #our_selection = MagCutSelection(our_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
-    #cdfs_selection = MagCutSelection(cdfs_inputs, 24.66, 25.10, 26.15, 26.20)
+    #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
     cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
 
     #perform_selection(our_selection)
