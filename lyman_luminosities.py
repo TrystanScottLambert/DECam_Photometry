@@ -61,27 +61,24 @@ class Filter:
         integrand = attenuated_values * (wave**(-2))
         return numerical_integration(wave.value, integrand.value)*(wave.unit**-1)
 
-def calculate_c(measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
-    """Determines the C constant in the similtaneous equations"""
-    term_1 = z.filter_constant * measured_z_flux * nb964.transmission_at_lyman
-    term_2 = nb964.filter_constant * measured_nb964_flux * z.transmission_at_lyman
-    denominator = z.continuum_integral - (nb964.continuum_integral * z.transmission_at_lyman)
-    return (term_1 - term_2) / denominator
-
 def calculate_lyman_alpha_flux(
         measured_nb964_flux: float, measured_z_flux: float, nb964: Filter, z: Filter):
-    """Determines the lyman alpha flux from the narrowband and broadband measured flux values."""
-    constant = calculate_c(measured_nb964_flux, measured_z_flux, nb964, z)
-    term_1 = nb964.filter_constant * measured_nb964_flux
-    term_2 = constant * nb964.continuum_integral
-    value = (term_1 - term_2)/nb964.transmission_at_lyman
-    # see http://physics.uwyo.edu/~chip/Classes/ASTR4610/Lec_Distances.pdf for units.
+    """
+    Determines the lyman alpha flux from the narrowband and broadband measured flux values.
+    see http://physics.uwyo.edu/~chip/Classes/ASTR4610/Lec_Distances.pdf for units.
+    """
+    ratio = z.continuum_integral / nb964.continuum_integral
+    numerator_t1 = z.filter_constant * measured_z_flux
+    numerator_t2 = nb964.filter_constant * measured_nb964_flux * ratio
+    denominator_t1 = z.transmission_at_lyman
+    denominator_t2 = nb964.transmission_at_lyman * ratio
+    value = (numerator_t1 - numerator_t2)/(denominator_t1 - denominator_t2)
     return value.to(u.erg * (u.s**(-1)) * (u.cm**(-2)))
 
 def convert_flux_to_luminosity(flux: float):
     """converts flux into luminosity"""
     lum_distance = COSMO.luminosity_distance(QSO_REDSHIFT)
-    value = (flux * np.pi * 4 * (lum_distance**2))/(QSO_REDSHIFT + 1)
+    value = (flux * np.pi * 4 * (lum_distance**2))#/(QSO_REDSHIFT + 1)
     return value.to(u.erg/u.s) #converting to same units as hu et. al., 2019
 
 if __name__ == '__main__':
