@@ -104,7 +104,7 @@ if __name__ == '__main__':
     fit_up = straight_line(popt_up, x_fit)
     fit_dw= straight_line(popt_dw, x_fit)
 
-    fig = plotting.start_plot(x_label = 'z - y', y_label = 'N964 - z')
+    fig = plotting.start_plot(x_label = 'z - y', y_label = 'z - NB964')
     plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
                   yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.3, capsize=0, zorder=0)
 
