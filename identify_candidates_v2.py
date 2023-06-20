@@ -332,8 +332,8 @@ if __name__ == '__main__':
 
     i_depth = 25.66
     z_depth = 25.58
-    n_depth = 24.66
-    n_135_depth = 25.10
+    n_depth = 23.66#24.66
+    n_135_depth = 24.10#25.10
 
     #our_selection = MagCutSelection(our_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
