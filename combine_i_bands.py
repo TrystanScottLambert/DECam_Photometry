@@ -61,7 +61,8 @@ def convert_counts_to_flux_density(counts: np.ndarray, zero_point: float):
 
 def calculate_weighted_flux(fluxes: np.ndarray, flux_uncertainties: np.ndarray) -> np.ndarray:
     """
-    Determines the weighted flux for the given bands. arrays represent the flux of a single source in 
+    Determines the weighted flux for the given bands.
+    Arrays represent the flux of a single source in 
     multiple bands and not multiple sources in a single band.
     """
     return np.sum(fluxes/(flux_uncertainties**2)) / np.sum(1./(flux_uncertainties**2))
@@ -71,7 +72,7 @@ def calculate_weighted_fluxerr(flux_uncertainties: np.ndarray) -> np.ndarray:
     return np.sum((1./(flux_uncertainties**2))**(-0.5))
 
 if __name__ == '__main__':
-    DECAM_CAT_NAME  = '../correct_stacks/N964/n964.cat'
+    DECAM_CAT_NAME  = '../correct_stacks/N964/i.cat'
     IMACS_NIGHT1 = '../../IMACS_photometry/imacs_data/night_1_theli.fits'
     IMACS_NIGHT1_WEIGHT = '../../IMACS_photometry/imacs_data/night_1_theli.weight.fits'
     IMACS_NIGHT2 = '../../IMACS_photometry/imacs_data/night_2_theli.fits'
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     decam_catalog = SExtractorCat(DECAM_CAT_NAME)
     decam_ra = list(decam_catalog.catalog['ALPHAPEAK_J2000'])
     decam_dec = list(decam_catalog.catalog['DELTAPEAK_J2000'])
-    decam_mags = np.array(decam_catalog.catalog['MAG_APER']) + zero_points.n964_band.mag_correct(1)
+    decam_mags = np.array(decam_catalog.catalog['MAG_APER']) + zero_points.i_band.mag_correct(1)
     decam_mag_err = np.array(decam_catalog.catalog['MAGERR_APER'])
 
     decam_flux_density = convert_abmag_to_flux_density(decam_mags)
@@ -105,14 +106,23 @@ if __name__ == '__main__':
 
     weighted_fluxes = [calculate_weighted_flux(flux, flux_errs[i]) for i, flux in enumerate(fluxes)]
     weighted_flux_errs = [calculate_weighted_fluxerr(fluxerrs) for fluxerrs in flux_errs]
-
-    weighted_mags = np.array([-2.5 * np.log10(flux.value) for flux in weighted_fluxes])
+    F_NU = 3.631e-20 * u.erg * (u.cm**(-2)) * (u.s**(-1)) * (u.Hz**(-1)) # See https://en.wikipedia.org/wiki/AB_magnitude
+    weighted_mags = np.array([-2.5 * np.log10(flux/F_NU) for flux in weighted_fluxes])
 
     snr = np.array([weighted_flux/weighted_flux_errs[i] for i, weighted_flux in enumerate(weighted_fluxes)])
-    
 
-    cut = np.where((snr>4.9) & (snr<5.1))[0]
-    plt.hist(decam_mags,bins=500)
-    plt.axvline(np.median(decam_mags[cut]),ls='--', color='k')
-    print('Depth value in DECAm mags is: ', np.median(decam_mags[cut]))
+    cut = np.where((snr>2.9) & (snr<3.1))[0]
+    plt.hist(weighted_mags[cut])
+    plt.axvline(np.median(weighted_mags[cut]),ls='--', color='k')
+    plt.axvline(np.mean(weighted_mags[cut]))
+    print('Depth value in DECAm mags is: ', np.median(weighted_mags[cut]))
+    plt.xlabel('Weighted Magnitudes')
+    plt.ylabel('Counts')
+    plt.show()
+
+    plt.scatter(weighted_mags, snr, s=0.1, color='k')
+    plt.axhline(3, ls=':')
+    plt.ylim(0, 15)
+    plt.xlabel('Weighted Magnitudes')
+    plt.ylabel('SNR')
     plt.show()
