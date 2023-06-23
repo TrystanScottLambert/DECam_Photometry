@@ -357,15 +357,15 @@ if __name__ == '__main__':
 
     i_depth = 25.66
     z_depth = 25.58
-    n_depth = 24.66#23.66# 
-    n_135_depth = 25.10#25.10# 24.10# 
+    n_depth = 23.66#24.66#
+    n_135_depth = 24.10#25.10#
 
     #imacs_selection = ImacsSelection(imacs_inputs, n_depth, n_135_depth, i_depth, z_depth)
-    our_selection = MagCutSelection(our_inputs, n_depth, n_135_depth, i_depth, z_depth)
+    #our_selection = MagCutSelection(our_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
-    #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
+    cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
 
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection)
     #perform_selection(imacs_selection)

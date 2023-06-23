@@ -49,8 +49,12 @@ matched_z_cat_cdfs = cross_match_to_sexcat(ra_cdfs, dec_cdfs, z_cdfs_cat)
 matched_n_cat_cdfs = cross_match_to_sexcat(ra_cdfs, dec_cdfs, n_cdfs_cat)
 matched_n135_cat_cdfs = cross_match_to_sexcat(ra_cdfs, dec_cdfs, n135_cdfs_cat)
 
-# Changing the narrowband
-cdfs_us_ratio = 20385305/2.87e7
-matched_n_cat['MAG_AB'] = matched_n_cat['MAG_APER'] + zero_points.n964_band.mag_correct(1)
-reduced = matched_n_cat[matched_n_cat['MAG_AB'] < 24.10]
-print(len(reduced))
+### Manual method:
+ratio = 2.87e7/20385305
+x = -np.arange(1, -0.1, -0.1)
+us = np.array([18, 22, 25, 29, 38, 56, 82, 121, 186, 251, 310])
+them = np.array([16, 17, 20, 22, 28, 35, 55, 82, 137, 222, 309])
+plt.plot(x, us, label='this work', lw=3, color='r')
+plt.plot(x, them * ratio, label='Hu', lw=2, ls=':', color='k')
+plt.legend()
+plt.show()
