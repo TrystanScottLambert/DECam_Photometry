@@ -280,6 +280,17 @@ class ClassicSNR(SelectionCriteria):
         z_cut_b = np.where(self.z_data[1] < self.z_lim)[0]
         return np.union1d(z_cut_a, z_cut_b)
 
+class ImacsSelection(MagCutSelection):
+    """
+    Selection for when we use the imacs combined i-band values and area.
+    RUN combine_i_bands.py before running this. The current data files 
+    need to be generated.
+    """
+
+    @property
+    def i_data(self) -> tuple:
+        return (np.loadtxt(self.inputs.infile_i),)
+
 
 def perform_selection(selection: MagCutSelection):
     """Opens the gui for the user to reject candidates and write to file."""
@@ -329,15 +340,32 @@ if __name__ == '__main__':
         aperture_radii=1.
     )
 
+    imacs_inputs = Inputs(
+        red_list_name = 'candidates_red_list_imacs.txt',
+        output_name = 'candidates_imacs',
+        infile_n964 = 'imacs_n964.cat',
+        infile_n964_135 = 'imacs_n964_135.cat',
+        infile_i='imacs_i.dat',
+        infile_z='imacs_z.cat',
+        zero_point_function=zero_points,
+        images = (
+            '../../IMACS_photometry/imacs_data/night_2_theli.fits',
+            '../correct_stacks/N964/z.fits',
+            '../correct_stacks/N964/n964.fits'),
+        aperture_radii=1
+    )
+
     i_depth = 25.66
     z_depth = 25.58
-    n_depth = 23.66#24.66
-    n_135_depth = 24.10#25.10
+    n_depth = 24.66#23.66# 
+    n_135_depth = 25.10# 24.10# 
 
+    #imacs_selection = ImacsSelection(imacs_inputs, n_depth, n_135_depth, 26.21, z_depth)
     #our_selection = MagCutSelection(our_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
-    cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
+    cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, 26.21, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
 
     #perform_selection(our_selection)
     perform_selection(cdfs_selection)
+    #perform_selection(imacs_selection)

@@ -71,6 +71,22 @@ def calculate_weighted_fluxerr(flux_uncertainties: np.ndarray) -> np.ndarray:
     """Determines the flux uncertainties of a single source across multiple bands."""
     return np.sum((1./(flux_uncertainties**2))**(-0.5))
 
+def reduce_sextractor_file(infile: str, outfile:str, mask: np.ndarray) -> None:
+    """
+    Makes a new sextractor with only the rows given by the mask.
+    """
+    with open(infile, encoding='utf8') as sex_file:
+        lines = sex_file.readlines()
+
+    header = [line for line in lines if line[0]== '#']
+    body = np.array([line for line in lines if line[0]!= '#'])
+    reduced_body = body[mask]
+    with open(outfile, 'w', encoding='utf8') as reduced_file:
+        for line in header:
+            reduced_file.write(line)
+        for line in reduced_body:
+            reduced_file.write(line)
+
 if __name__ == '__main__':
     DECAM_CAT_NAME  = '../correct_stacks/N964/i.cat'
     IMACS_NIGHT1 = '../../IMACS_photometry/imacs_data/night_1_theli.fits'
@@ -126,3 +142,13 @@ if __name__ == '__main__':
     plt.xlabel('Weighted Magnitudes')
     plt.ylabel('SNR')
     plt.show()
+
+
+    ### Update the files
+    cut = np.where(weighted_mags>0)[0]
+    reduce_sextractor_file('../correct_stacks/N964/n964.cat', 'imacs_n964.cat', cut)
+    reduce_sextractor_file('../correct_stacks/N964/n964_135.cat', 'imacs_n964_135.cat', cut)
+    reduce_sextractor_file('../correct_stacks/N964/z.cat', 'imacs_z.cat', cut)
+    with open('imacs_i.dat', 'w', encoding='utf8') as file:
+        for i in cut:
+            file.write(f'{weighted_mags[i]} \n')
