@@ -45,3 +45,8 @@ plt.plot(limits, np.array(our_counts) / DECAM_AREA, label = 'This Work')
 plt.plot(limits, np.array(cdfs_counts) / CDFS_AREA, label = 'CDFS')
 plt.legend()
 end_plot('plots/cummulative_eduardo.png')
+
+start_plot('magnitdue limit', 'Normalized-Count Ratio')
+plt.plot(limits, (np.array(our_counts) / DECAM_AREA)/(np.array(cdfs_counts) / CDFS_AREA))
+end_plot('plots/eduardo_ratio.png')
+
