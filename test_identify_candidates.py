@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 
 from zero_points import zero_points
-from identify_candidates_v2 import calculate_snr, write_region_file,\
+from identify_candidates import calculate_snr, write_region_file,\
     write_txt_file, write_output, update_candidate_red_list, remove_bad_values,\
     Inputs, MagCutSelection, ClassicSNR
 class TestSNR(unittest.TestCase):

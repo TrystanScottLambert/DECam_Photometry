@@ -305,12 +305,16 @@ class EduaradoSelection(ClassicSNR):
     def z_data(self) -> tuple:
         inst_mag_z, inst_mag_z_err, _ = read_all(self.inputs.infile_z)
         mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
+        cut = np.where(inst_mag_z == 99)[0]
+        mag_z[cut] = self.z_lim
         return mag_z, inst_mag_z_err
 
     @property
     def i_data(self) -> tuple:
         inst_mag_i, inst_mag_i_err, _ = read_all(self.inputs.infile_i)
         mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
+        cut = np.where(inst_mag_i == 99)[0]
+        mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err
     
     def narrow_color_select(self):
@@ -447,8 +451,8 @@ if __name__ == '__main__':
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
     #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, 26.21, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
-    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, None, None)
-    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, None, None)
+    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth, z_depth)
+    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 26.94, 27.35)
 
     #perform_selection(our_selection)
     perform_selection(cdfs_selection)

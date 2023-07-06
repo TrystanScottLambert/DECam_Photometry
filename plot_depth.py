@@ -77,12 +77,12 @@ if __name__ == '__main__':
     N_ZPT_CDFS = zero_points_cdfs.n964_band.mag_correct(1)
     N_ZPT_135_CDFS = zero_points_cdfs.n964_band.mag_correct(1.35/2)
 
-    plot_depth(INFILE_SEX_I, I_ZPT, 'i')
-    plot_depth(INFILE_SEX_Z, Z_ZPT, 'z')
-    plot_depth(INFILE_SEX_N, N_ZPT, 'n964')
+    #plot_depth(INFILE_SEX_I, I_ZPT, 'i')
+    #plot_depth(INFILE_SEX_Z, Z_ZPT, 'z')
+    #plot_depth(INFILE_SEX_N, N_ZPT, 'n964')
     #plot_depth(INFILE_SEX_N_135, N_ZPT_135, 'n964')
 
-    #plot_depth(INFILE_SEX_I_CDFS, I_ZPT_CDFS, 'i')
-    #plot_depth(INFILE_SEX_Z_CDFS, Z_ZPT_CDFS, 'z')
-    #plot_depth(INFILE_SEX_N_CDFS, N_ZPT_CDFS, 'n964')
+    plot_depth(INFILE_SEX_I_CDFS, I_ZPT_CDFS, 'i')
+    plot_depth(INFILE_SEX_Z_CDFS, Z_ZPT_CDFS, 'z')
+    plot_depth(INFILE_SEX_N_CDFS, N_ZPT_CDFS, 'n964')
     #plot_depth(INFILE_SEX_N135_CDFS, N_ZPT_135_CDFS, 'n964')
