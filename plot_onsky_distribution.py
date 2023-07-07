@@ -8,6 +8,8 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.coordinates import angular_separation
+
+from plot_cumulative import CDFS_AREA
 from regionfy_catalog import load_region
 import plotting
 
@@ -42,16 +44,14 @@ region_decam_fov = load_region(REGION_FILE)
 if __name__ == '__main__':
     #Determine Area of CDFS
     CDFS_REGION = '../CDFS_LAGER/DECAM_CDFS.reg'
-    CDFS_CANDIDATES = 'candidates_cdfs.txt'
+    CDFS_CANDIDATES = 'candidates_cdfs_e.txt'
     number_candidates_cdfs = len(np.loadtxt(CDFS_CANDIDATES))
-    AREA_PER_PIXEL = (0.27/3600) * (0.27/3600)  # square degrees
-    regions = Regions.read(CDFS_REGION, format='ds9')
-    number_pixels = regions[0].area
-    area_cdfs_degrees = number_pixels * AREA_PER_PIXEL
-    print(area_cdfs_degrees)
+    area_cdfs_arcsec = CDFS_AREA * u.arcsec
+    area_cdfs_deg = area_cdfs_arcsec.to(u.deg)
+    area_cdfs_degrees = area_cdfs_deg.value
 
 
-    INFILE = 'candidates.txt'
+    INFILE = 'candidates_e.txt'
     ra, dec = np.loadtxt(INFILE, unpack=True)
 
     ra_plot, dec_plot = decam_wcs.world_to_pixel_values(ra, dec)
