@@ -8,7 +8,7 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from pandas import DataFrame
 
-from plot_cumulative import cross_match_to_sexcat
+from plot_cumulative import cross_match_to_sexcat, add_ab_mags
 from sex_catalog import SExtractorCat
 from zero_points import zero_points, ZeroPoints
 from zero_points_cdfs import zero_points_cdfs
@@ -49,3 +49,4 @@ end_plot('plots/cummulative_eduardo.png')
 start_plot('magnitdue limit', 'Normalized-Count Ratio')
 plt.plot(limits, (np.array(our_counts) / DECAM_AREA)/(np.array(cdfs_counts) / CDFS_AREA))
 end_plot('plots/eduardo_ratio.png')
+

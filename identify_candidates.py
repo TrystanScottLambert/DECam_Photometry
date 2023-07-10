@@ -455,5 +455,5 @@ if __name__ == '__main__':
     cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 26.94, 27.35)
 
     #perform_selection(our_selection)
-    perform_selection(cdfs_selection_classic)
+    perform_selection(cdfs_selection)
     #perform_selection(imacs_selection)
