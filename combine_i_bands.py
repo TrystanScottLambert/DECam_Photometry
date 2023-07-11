@@ -16,7 +16,8 @@ from photutils.aperture import SkyCircularAperture, ApertureStats
 from sex_catalog import SExtractorCat
 from zero_points import zero_points
 
-IMACS_ZPT = 27.633
+IMACS_ZPT_NIGHT1 = 27.633
+IMACS_ZPT_NIGHT2 = 27.65
 
 def get_imacs_datawcs(imacs_name: str) -> fits.HDUList:
     """Reads in the imacs data. Returns the data and wcs"""
@@ -25,14 +26,15 @@ def get_imacs_datawcs(imacs_name: str) -> fits.HDUList:
 
 def perform_imacs_photometry(
         imacs_data: np.ndarray, imacs_wcs: WCS,
-        apertures: SkyCircularAperture, uncertainty_map: np.ndarray
+        apertures: SkyCircularAperture, uncertainty_map: np.ndarray,
+        imacs_zpt: float
         ) -> np.ndarray:
     """Does aperture photometry, counts to instrumental mags, to AB mags, to flux density"""
     phot_table = ApertureStats(imacs_data, apertures, wcs = imacs_wcs, error=uncertainty_map)
     counts = phot_table.sum
     count_err = phot_table.sum_err
     mag_err = propagate_conterr_magerr(counts, count_err)
-    flux_density = convert_counts_to_flux_density(counts, IMACS_ZPT)
+    flux_density = convert_counts_to_flux_density(counts, imacs_zpt)
     flux_density_err = propgate_magerr_fluxerr(flux_density, mag_err)
     return flux_density, flux_density_err
 
@@ -114,8 +116,8 @@ if __name__ == '__main__':
     positions = SkyCoord(ra = decam_ra * u.deg, dec = decam_dec * u.deg)
     apertures = SkyCircularAperture(positions, r=1. * u.arcsec)
 
-    night1_flux_density = perform_imacs_photometry(hdu1_data, hdu1_wcs, apertures, uncertainty_1)
-    night2_flux_density = perform_imacs_photometry(hdu2_data, hdu2_wcs, apertures, uncertainty_2)
+    night1_flux_density = perform_imacs_photometry(hdu1_data, hdu1_wcs, apertures, uncertainty_1, IMACS_ZPT_NIGHT1)
+    night2_flux_density = perform_imacs_photometry(hdu2_data, hdu2_wcs, apertures, uncertainty_2, IMACS_ZPT_NIGHT2)
 
     fluxes = np.dstack([night1_flux_density[0], night2_flux_density[0], decam_flux_density])[0]
     flux_errs = np.dstack([night1_flux_density[1], night2_flux_density[1], decam_flux_density_err])[0]
@@ -127,7 +129,7 @@ if __name__ == '__main__':
 
     snr = np.array([weighted_flux/weighted_flux_errs[i] for i, weighted_flux in enumerate(weighted_fluxes)])
 
-    cut = np.where((snr>2.9) & (snr<3.1))[0]
+    cut = np.where((snr>4.9) & (snr<5.1))[0]
     plt.hist(weighted_mags[cut])
     plt.axvline(np.median(weighted_mags[cut]),ls='--', color='k')
     plt.axvline(np.mean(weighted_mags[cut]))

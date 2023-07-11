@@ -15,7 +15,7 @@ from plotting import start_plot, end_plot
 
 N135_LIM = 25.10
 N_LIM = 24.66
-Z_LIM = 25.58
+Z_LIM = 26.16
 depth = -np.arange(1, -0.01, -0.01)
 CDFS_AREA = 20385305 # Arcseconds
 DECAM_AREA = 2.87e7 # Arcseconds
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     #Plotting
     # Run the identify candidates scripts and update the cdfs candidates.
     #IMACS
-    start_plot('Relative Narrow Band Selection', r'Counts per Area [arcsecond$^{-2}$]')
+    '''start_plot('Relative Narrow Band Selection', r'Counts per Area [arcsecond$^{-2}$]')
     plt.plot(depth, np.array(counts_imacs)/IMACS_AREA, label='This work', color='k', lw=3)
     plt.plot(depth, np.array(counts_cdfs)/CDFS_AREA, label='CDFS', color='r', ls=':', lw=2)
     plt.legend()
@@ -106,11 +106,11 @@ if __name__ == '__main__':
     plt.plot(depth, np.array(z_counts_imacs)/IMACS_AREA, label='This work', color='k', lw=3)
     plt.plot(depth, np.array(z_counts_cdfs)/CDFS_AREA, label='CDFS', color='r', ls=':', lw=2)
     plt.legend()
-    end_plot('plots/cp_z_ic.png')
+    end_plot('plots/cp_z_ic.png')'''
 
 
     ##DECAM
-    '''start_plot('Relative Narrow Band Selection', r'Counts per Area [arcsecond$^{-2}$]')
+    start_plot('Relative Narrow Band Selection', r'Counts per Area [arcsecond$^{-2}$]')
     plt.plot(depth, np.array(counts)/DECAM_AREA, label='This work', color='k', lw=3)
     plt.plot(depth, np.array(counts_cdfs)/CDFS_AREA, label='CDFS', color='r', ls=':', lw=2)
     plt.legend()
@@ -126,4 +126,4 @@ if __name__ == '__main__':
     plt.plot(depth, np.array(z_counts)/DECAM_AREA, label='This work', color='k', lw=3)
     plt.plot(depth, np.array(z_counts_cdfs)/CDFS_AREA, label='CDFS', color='r', ls=':', lw=2)
     plt.legend()
-    end_plot('plots/cp_z_dc.png')'''
+    end_plot('plots/cp_z_dc.png')
