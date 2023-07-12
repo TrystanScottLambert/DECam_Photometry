@@ -69,3 +69,45 @@ if __name__ == '__main__':
     plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m')
     end_plot('tracks.png')
     plt.show()
+
+
+    #GIF
+
+    i_band_spectrum = i_band.band.to_spectrum1d()
+    z_band_spectrum = z_band.band.to_spectrum1d()
+    n_band_spectrum = n_band.band.to_spectrum1d()
+
+    i_colors = []
+    z_colors = []
+    for redshift in plot_redshift_range:
+        spectrum = LaeSpectrum(redshift).spectrum
+        spectrum_1d = spectrum.to_spectrum1d()
+        fig = plt.figure()
+        ax_track = fig.add_subplot(121)
+        ax_spec = fig.add_subplot(122)
+        i_mag = i_band.observe_magnitude(spectrum)
+        z_mag = z_band.observe_magnitude(spectrum)
+        n_mag = n_band.observe_magnitude(spectrum)
+        i_colors.append(i_mag.value  - z_mag.value)
+        z_colors.append(z_mag.value  - n_mag.value)
+        ax_spec.plot(i_band_spectrum.spectral_axis.value, i_band_spectrum.flux.value)
+        ax_spec.plot(z_band_spectrum.spectral_axis.value, z_band_spectrum.flux.value)
+        ax_spec.plot(n_band_spectrum.spectral_axis.value, n_band_spectrum.flux.value)
+        ax_spec.set_xlabel('Wavelength [angstrom]')
+        ax_spec.set_ylabel('Filter Transmission')
+        ax_spec.set_xlim(5000, 12000)
+        ax_track.plot(i_colors, z_colors)
+        ax_track.set_xlim(-2, 4)
+        ax_track.set_ylim(-2.6, 3)
+        ax_track.axhline(0.75, ls=':', color='k')
+        ax_track.axvline(1, ls=':', color='k')
+        ax_spec_real = ax_spec.twinx()
+        ax_spec_real.plot(spectrum_1d.spectral_axis.value,
+                          spectrum_1d.flux.value, color='k',
+                          label=f'z = {round(redshift, 1)}')
+        ax_spec_real.legend(handlelength=0, handletextpad=0, frameon=False)
+        ax_spec_real.set_ylabel('Flux [PHOTLAM]')
+        ax_track.set_ylabel('Z - NB965')
+        ax_track.set_xlabel('I - Z')
+        plt.savefig(f'test_delete_{round(redshift, 1)}.png')
+        plt.close()
