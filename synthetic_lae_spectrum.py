@@ -29,7 +29,7 @@ class LaeSpectrum:
     EW_LYA    = 50. *u.angstrom
     LOG_LUM_LYA = 43.33 #Matthee+15, Table 6, alpha=-1.5 UDS+COSMOS+SA22 (flux in erg/s)
     wavelength_rest = np.arange(500, 2500, 1) * u.angstrom
-    flux_rest = gaussian(wavelength_rest, LLYA_REST, SIG_LYA, 1./u.angstrom)
+    flux_rest = gaussian(wavelength_rest, LLYA_REST, SIG_LYA, 1.)
 
     def __init__(self, redshift: float, include_absorption=True) -> None:
         """Initializaing the spectrum based on the redshift"""
@@ -42,8 +42,9 @@ class LaeSpectrum:
         self._ew_lya_obs = LaeSpectrum.EW_LYA * (1 + redshift)
 
         wavelength = LaeSpectrum.wavelength_rest * (1 + redshift)
-        flux = (LaeSpectrum.flux_rest * self._flux/1) + (self._flux/self._ew_lya_obs)
-        flux = su.convert_flux(wavelength, flux, out_flux_unit=su.PHOTLAM)
+        #flux = (LaeSpectrum.flux_rest * self._flux/1) + (self._flux/self._ew_lya_obs)
+        #flux = su.convert_flux(wavelength, flux, out_flux_unit=su.PHOTLAM)
+        flux = (LaeSpectrum.flux_rest.value * self._flux.value) + (self._flux.value/self._ew_lya_obs.value)
 
 
         self.spectrum = SourceSpectrum(
@@ -71,3 +72,9 @@ class LaeSpectrum:
                     output_file.write(f'{wavelength} {flux} \n')
                 except IndexError:
                     pass
+
+if __name__ == '__main__':
+    qso_spectrum = LaeSpectrum(6.9)
+    qso_spectrum.spectrum.plot()
+    plt.show()
+    
