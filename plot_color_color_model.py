@@ -6,7 +6,7 @@ from rich.progress import track
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy import units as u
-from synphot import Observation, SpectralElement, SourceSpectrum, Empirical1D
+from synphot import Observation, SpectralElement, SourceSpectrum, Empirical1D, etau_madau
 import synphot.units as su
 
 from plotting import start_plot, end_plot
@@ -39,8 +39,8 @@ if __name__ == '__main__':
     z_band = Filter(Z_BANDPASS_FILE)
     i_band = Filter(I_BANDPASS_FILE)
     n_band = Filter(N_BANDPASS_FILE)
-    plot_redshift_range = np.arange(3, 8, 0.1)
-    point_redshift_range = np.arange(3, 9, 1)
+    plot_redshift_range = np.arange(5, 8, 0.01)
+    point_redshift_range = np.arange(5, 9, 1)
 
     def work_out_colors_for_redshift(redshift_range: np.ndarray):
         """Determines the color terms i - z and z-nb for the given redshift range."""
@@ -77,9 +77,9 @@ if __name__ == '__main__':
     z_band_spectrum = z_band.band.to_spectrum1d()
     n_band_spectrum = n_band.band.to_spectrum1d()
 
-    '''i_colors = []
+    i_colors = []
     z_colors = []
-    for redshift in plot_redshift_range:
+    for i, redshift in enumerate(plot_redshift_range):
         spectrum = LaeSpectrum(redshift).spectrum
         spectrum_1d = spectrum.to_spectrum1d()
         fig = plt.figure()
@@ -97,8 +97,8 @@ if __name__ == '__main__':
         ax_spec.set_ylabel('Filter Transmission')
         ax_spec.set_xlim(5000, 12000)
         ax_track.plot(i_colors, z_colors)
-        ax_track.set_xlim(-2, 4)
-        ax_track.set_ylim(-2.6, 3)
+        ax_track.set_xlim(-2, 6)
+        ax_track.set_ylim(-3, 3)
         ax_track.axhline(0.75, ls=':', color='k')
         ax_track.axvline(1, ls=':', color='k')
         ax_spec_real = ax_spec.twinx()
@@ -109,12 +109,12 @@ if __name__ == '__main__':
         ax_spec_real.set_ylabel('Flux [PHOTLAM]')
         ax_track.set_ylabel('Z - NB965')
         ax_track.set_xlabel('I - Z')
-        plt.savefig(f'test_delete_{round(redshift, 1)}.png')
-        plt.close()'''
+        plt.savefig(f'test_delete_{i}.png')
+        plt.close()
 
 
     #GIF Shapely
-    infile_shapely = 'shapely_template.dat'
+    '''infile_shapely = 'shapely_template.dat'
     wave, flux = np.loadtxt(infile_shapely, unpack=True)
     wave = wave*u.angstrom
     flux = flux*su.FNU
@@ -122,8 +122,10 @@ if __name__ == '__main__':
 
     i_colors = []
     z_colors = []
-    for redshift in np.arange(4, 8,0.1):
+    for i, redshift in enumerate(np.arange(4, 8, 0.05)):
         spectrum = SourceSpectrum(shapely_spectrum.model, z=redshift, keep_neg=True)
+        extinction_curve = etau_madau(spectrum.to_spectrum1d().spectral_axis, redshift)
+        spectrum = spectrum * extinction_curve
         spectrum_1d = spectrum.to_spectrum1d()
         fig = plt.figure()
         ax_track = fig.add_subplot(121)
@@ -140,7 +142,7 @@ if __name__ == '__main__':
         ax_spec.set_ylabel('Filter Transmission')
         ax_spec.set_xlim(5000, 12000)
         ax_track.plot(i_colors, z_colors)
-        ax_track.set_xlim(-2, 4)
+        ax_track.set_xlim(-2, 6)
         ax_track.set_ylim(-2.6, 3)
         ax_track.axhline(0.75, ls=':', color='k')
         ax_track.axvline(1, ls=':', color='k')
@@ -152,5 +154,5 @@ if __name__ == '__main__':
         ax_spec_real.set_ylabel('Flux [PHOTLAM]')
         ax_track.set_ylabel('Z - NB965')
         ax_track.set_xlabel('I - Z')
-        plt.savefig(f'test_delete_{round(redshift, 1)}.png')
-        plt.close()
+        plt.savefig(f'test_delete_{i}.png')
+        plt.close()'''
