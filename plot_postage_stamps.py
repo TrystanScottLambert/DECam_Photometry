@@ -6,9 +6,9 @@ import pylab as plt
 from astropy.io import fits
 from astropy.wcs import WCS
 
-PAD = 15 # pixels
+PAD = 20 # pixels
 
-def cut_postage_stamp(r_a: float, dec: float, image):
+def cut_postage_stamp(r_a: float, dec: float, image: fits.hdu.HDUList) -> np.ndarray:
     """Cutting out a postage stamp centered on r_a, and dec (in decimal degrees)"""
     wcs = WCS(image[0].header)
     x_pix, y_pix  = wcs.world_to_pixel_values(r_a, dec)

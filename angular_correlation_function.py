@@ -56,46 +56,51 @@ def full_angular_separation_function(data_data, data_random, random_random, thet
     return average_x_values, y_values, y_err_values
 
 
-INFILE = 'candidates.txt'
-DECAM_REGION_FILE = 'DECAM.reg'
-FITS_FILE  = '../correct_stacks/N964/n964.fits'
+if __name__ == '__main__':
+    INFILE = 'candidates_cdfs_e.txt'
+    DECAM_REGION_FILE = '../CDFS_LAGER/DECAM_CDFS.reg'#'DECAM.reg'
+    FITS_FILE  = '../CDFS_LAGER/n964.fits'#'../correct_stacks/N964/n964.fits'
 
-hdul = fits.open(FITS_FILE)
-wcs = WCS(hdul[0].header)
-ra_candidates, dec_candidates = np.loadtxt(INFILE, unpack=True)
-decam_region = load_region(DECAM_REGION_FILE)
+    hdul = fits.open(FITS_FILE)
+    wcs = WCS(hdul[0].header)
+    ra_candidates, dec_candidates = np.loadtxt(INFILE, unpack=True)
+    decam_region = load_region(DECAM_REGION_FILE)
 
-ra_min, ra_max = 355.95*u.deg.to(u.rad), 358.3*u.deg.to(u.rad)
-dec_min, dec_max = -31.82*u.deg.to(u.rad), -29.84*u.deg.to(u.rad)
+    #ra_min, ra_max = 355.95*u.deg.to(u.rad), 358.3*u.deg.to(u.rad)
+    #dec_min, dec_max = -31.82*u.deg.to(u.rad), -29.84*u.deg.to(u.rad)
 
-"""
-Populate the random galaxies within the DECcam region.
-100 000, keeping with Ota, 2018.
-"""
-
-NUMBER_RANDOM_GALS=1000
-ra_rad = np.random.uniform(ra_min,ra_max, NUMBER_RANDOM_GALS)
-dec_rad = np.arcsin(np.random.uniform(np.sin(dec_min), np.sin(dec_max), NUMBER_RANDOM_GALS))
-ra_deg = ra_rad*u.rad.to(u.deg)
-dec_deg = dec_rad*u.rad.to(u.deg)
-ra_pix, dec_pix = wcs.world_to_pixel_values(ra_deg, dec_deg)
-
-msk = get_region_mask(ra_pix, dec_pix, decam_region)
-ra_random, dec_random = ra_deg[msk], dec_deg[msk]
-
-print('DD')
-data_data_dist = count_differences(ra_candidates, dec_candidates)
-print('DR')
-data_random_dist = count_differnces_diff_arrays(ra_candidates, dec_candidates, ra_random, dec_random)
-print('RR')
-random_random_dist = count_differences(ra_random, dec_random)
+    ra_min, ra_max = 53.8853418 * u.deg.to(u.rad), 51.4000866 * u.deg.to(u.rad)
+    dec_min, dec_max = -29 * u.deg.to(u.rad), -27*u.deg.to(u.rad)
 
 
-x, y, yerr = full_angular_separation_function(data_data_dist, data_random_dist, random_random_dist, np.arange(0,1.9,0.1))
+    """
+    Populate the random galaxies within the DECcam region.
+    100 000, keeping with Ota, 2018.
+    """
+
+    NUMBER_RANDOM_GALS=1000
+    ra_rad = np.random.uniform(ra_min,ra_max, NUMBER_RANDOM_GALS)
+    dec_rad = np.arcsin(np.random.uniform(np.sin(dec_min), np.sin(dec_max), NUMBER_RANDOM_GALS))
+    ra_deg = ra_rad*u.rad.to(u.deg)
+    dec_deg = dec_rad*u.rad.to(u.deg)
+    ra_pix, dec_pix = wcs.world_to_pixel_values(ra_deg, dec_deg)
+
+    msk = get_region_mask(ra_pix, dec_pix, decam_region)
+    ra_random, dec_random = ra_deg[msk], dec_deg[msk]
+
+    print('DD')
+    data_data_dist = count_differences(ra_candidates, dec_candidates)
+    print('DR')
+    data_random_dist = count_differnces_diff_arrays(ra_candidates, dec_candidates, ra_random, dec_random)
+    print('RR')
+    random_random_dist = count_differences(ra_random, dec_random)
 
 
-plotting.start_plot(r'$\theta$ [deg]', r'$\omega$ ($\theta$)')
-plt.errorbar(x, y, yerr=yerr, fmt='o')
-plt.scatter(x, y)
-plt.axhline(0, ls ='--', color='k', alpha=0.5)
-plotting.end_plot('plots/angular_tpcf.png')
+    x, y, yerr = full_angular_separation_function(data_data_dist, data_random_dist, random_random_dist, np.arange(0,1.9,0.1))
+
+
+    plotting.start_plot(r'$\theta$ [deg]', r'$\omega$ ($\theta$)')
+    plt.errorbar(x, y, yerr=yerr, fmt='o')
+    plt.scatter(x, y)
+    plt.axhline(0, ls ='--', color='k', alpha=0.5)
+    plotting.end_plot('plots/angular_tpcf_cdfs.png')

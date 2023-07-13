@@ -48,20 +48,20 @@ region_decam_fov = load_region(REGION_FILE)
 
 if __name__ == '__main__':
     #Determine Area of CDFS
-    CDFS_REGION = '../CDFS_LAGER/DECAM_CDFS.reg'
-    CDFS_CANDIDATES = 'candidates_cdfs.txt'
-    number_candidates_cdfs = len(np.loadtxt(CDFS_CANDIDATES))
-    AREA_PER_PIXEL = (0.27/3600) * (0.27/3600)  # square degrees
-    regions = Regions.read(CDFS_REGION, format='ds9')
-    number_pixels = regions[0].area
-    area_cdfs_degrees = number_pixels * AREA_PER_PIXEL
+    #CDFS_REGION = '../CDFS_LAGER/DECAM_CDFS.reg'
+    #CDFS_CANDIDATES = 'candidates_cdfs_e.txt'
+    #number_candidates_cdfs = len(np.loadtxt(CDFS_CANDIDATES))
+    #AREA_PER_PIXEL = (0.27/3600) * (0.27/3600)  # square degrees
+    #regions = Regions.read(CDFS_REGION, format='ds9')
+    #number_pixels = regions[0].area
+    #area_cdfs_degrees = number_pixels * AREA_PER_PIXEL
 
-    number_pixels_qso = get_number_pixels_of_region('DECAM.reg')
+    #number_pixels_qso = get_number_pixels_of_region('DECAM.reg')
 
-    print('Area ratio: ', number_pixels/number_pixels_qso)
+    #print('Area ratio: ', number_pixels/number_pixels_qso)
 
 
-    INFILE = 'candidates_cdfs.txt'
+    INFILE = 'candidates_cdfs_e.txt'
     ra, dec = np.loadtxt(INFILE, unpack=True)
 
     ra_plot, dec_plot = decam_wcs.world_to_pixel_values(ra, dec)
@@ -82,7 +82,6 @@ if __name__ == '__main__':
     region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
     ax.scatter(ra_plot, dec_plot)
-    ax.scatter(ra_qso_plot, dec_qso_plot, marker='*', s=100, color='k')
     plotting.end_plot('plots/on_sky_distribution_cdfs.png')
 
     #on sky surface distribution plot.
@@ -128,7 +127,7 @@ if __name__ == '__main__':
 
     ax2 = ax.twinx()
     ax2.errorbar(average_radii_mpc, counts/areas_deg.value, yerr=np.sqrt(counts)/areas_deg.value, alpha=0)
-    ax2.axhline(number_candidates_cdfs/area_cdfs_degrees)
+    #ax2.axhline(number_candidates_cdfs/area_cdfs_degrees)
     ax2.set_ylabel(r'Surface Density [deg$^{-2}$]')
     ax2.minorticks_on()
     ax2.tick_params(which='both', width=1.2,direction='in')
