@@ -2,6 +2,7 @@
 Making postage stamp plots for the paper.
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from pandas import DataFrame
@@ -31,6 +32,7 @@ n_fits = fits.open(N_FITS)
 SIGMA_I_3 = '>26.16'
 SIGMA_Z_3 = '>26.23'
 
+os.system('rm postage_stamps/*.png')
 def fancy_round(mag) -> str:
     """
     Rounds a given mag value which can be either a flot or a string.
@@ -97,11 +99,11 @@ for i, ra_val in enumerate(ra):
     ax_n.get_yaxis().set_visible(False)
 
     ax_i.imshow(i_data, vmin=i_min, vmax=i_max, cmap='gray_r')
-    ax_i.scatter(20.5, 20.5, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    ax_i.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
     ax_n.imshow(n_data, vmin=n_min, vmax=n_max, cmap='gray_r')
-    ax_n.scatter(20.5, 20.5, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    ax_n.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
     ax_z.imshow(z_data, vmin=z_min, vmax=z_max, cmap='gray_r')
-    ax_z.scatter(20.5, 20.5, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    ax_z.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
 
     ax_i.text(0.75, 0.1, f'{round(i_snr[i], 1)}',
      horizontalalignment='center',

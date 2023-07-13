@@ -12,8 +12,9 @@ def cut_postage_stamp(r_a: float, dec: float, image: fits.hdu.HDUList) -> np.nda
     """Cutting out a postage stamp centered on r_a, and dec (in decimal degrees)"""
     wcs = WCS(image[0].header)
     x_pix, y_pix  = wcs.world_to_pixel_values(r_a, dec)
-    data = image[0].data[
-        int(y_pix)-PAD:int(y_pix)+PAD, int(x_pix)-PAD:int(x_pix)+PAD]
+    x_pix = np.around(x_pix).astype(int)
+    y_pix = np.around(y_pix).astype(int)
+    data = image[0].data[y_pix-PAD:y_pix+PAD, x_pix-PAD:x_pix+PAD]
     return data
 
 IMAGES = (
