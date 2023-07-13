@@ -1,3 +1,4 @@
 *.reg
 *.fits
 postage_stamps/*
+postage_stamps_cdfs/*

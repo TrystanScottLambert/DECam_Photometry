@@ -451,9 +451,9 @@ if __name__ == '__main__':
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
     #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
-    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth, z_depth)
-    #cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 26.94, 27.35)
+    #our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth, z_depth)
+    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
 
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection)
     #perform_selection(imacs_selection)

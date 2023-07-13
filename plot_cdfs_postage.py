@@ -1,5 +1,5 @@
 """
-Making postage stamp plots for the paper.
+Making postage stamp plot for the cdfs galaxies.
 """
 
 import os
@@ -13,26 +13,26 @@ import scipy.ndimage as ndimage
 from plot_cumulative import cross_match_to_sexcat
 from sex_catalog import SExtractorCat
 from plot_postage_stamps import cut_postage_stamp
-from zero_points import zero_points
+from zero_points_cdfs import zero_points_cdfs
 from plotting import end_plot
 
 
 # Our candidates
-INFILE_US = 'candidates_e.txt'
-I_CATALOG = '../correct_stacks/N964/i.cat'
-Z_CATALOG = '../correct_stacks/N964/z.cat'
-N_CATALOG = '../correct_stacks/N964/n964.cat'
-I_FITS = '../correct_stacks/N964/i.fits'
-Z_FITS = '../correct_stacks/N964/z.fits'
-N_FITS = '../correct_stacks/N964/n964.fits'
+INFILE_US = 'candidates_cdfs_e.txt'
+I_CATALOG = '../CDFS_LAGER/i_cdfs.cat'
+Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
+N_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
+I_FITS = '../CDFS_LAGER/CDFS_i.fits.fz'
+Z_FITS = '../CDFS_LAGER/CDFS_z.fits.fz'
+N_FITS = '../CDFS_LAGER/CDFS_NB.fits.fz'
 i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
 
-SIGMA_I_3 = '>26.16'
-SIGMA_Z_3 = '>26.23'
+SIGMA_I_3 = '>27.35'
+SIGMA_Z_3 = '>26.94'
 
-os.system('rm postage_stamps/*.png')
+os.system('rm postage_stamps_cdfs/*.png')
 def fancy_round(mag) -> str:
     """
     Rounds a given mag value which can be either a flot or a string.
@@ -55,16 +55,15 @@ def replace_non_detections(catalog: DataFrame, replacement_value: str) -> DataFr
     catalog['SNR'] = (2.5/np.log(10))/catalog['MAGERR_APER']
     return catalog
 
-catalog_names = [I_CATALOG, N_CATALOG, Z_CATALOG]
 ra, dec = np.loadtxt(INFILE_US, unpack=True)
 
 i_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(I_CATALOG))
 z_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(Z_CATALOG))
 n_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(N_CATALOG))
 
-i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points.i_band.mag_correct(1)
-z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points.z_band.mag_correct(1)
-n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points.n964_band.mag_correct(1)
+i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points_cdfs.i_band.mag_correct(1)
+z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points_cdfs.z_band.mag_correct(1)
+n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points_cdfs.n964_band.mag_correct(1)
 
 i_cat = replace_non_detections(i_cat, SIGMA_I_3)
 z_cat = replace_non_detections(z_cat, SIGMA_Z_3)
@@ -75,9 +74,9 @@ z_snr, z_mag = np.array(z_cat['SNR']), np.array(z_cat['MAG_CORR'])
 n_snr, n_mag = np.array(n_cat['SNR']), np.array(n_cat['MAG_CORR'])
 
 for i, ra_val in enumerate(ra):
-    z_data = cut_postage_stamp(ra_val, dec[i], z_fits)
-    i_data = cut_postage_stamp(ra_val, dec[i], i_fits)
-    n_data = cut_postage_stamp(ra_val, dec[i], n_fits)
+    z_data = cut_postage_stamp(ra_val, dec[i], z_fits, hdu_number=1)
+    i_data = cut_postage_stamp(ra_val, dec[i], i_fits, hdu_number=1)
+    n_data = cut_postage_stamp(ra_val, dec[i], n_fits, hdu_number=1)
     z_scale = ZScaleInterval()
     z_min, z_max = z_scale.get_limits(z_data)
     i_min, i_max = z_scale.get_limits(i_data)
@@ -135,5 +134,5 @@ for i, ra_val in enumerate(ra):
      verticalalignment='center',
      transform = ax_n.transAxes, fontsize=20, color='w')
 
-    end_plot(f'postage_stamps/candidate_{i+1}.png')
+    end_plot(f'postage_stamps_cdfs/candidate_cdfs_{i+1}.png')
     plt.close()
