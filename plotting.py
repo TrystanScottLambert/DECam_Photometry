@@ -26,6 +26,14 @@ def start_plot(x_label: str, y_label: str) -> plt.Figure:
     prettify_plot(x_label, y_label)
     return fig
 
+def prettify_axis(axis: plt.axes, x_label: str, y_label: str) -> None:
+    """Does prettify plot but for a given axis"""
+    axis.set_xlabel(x_label, fontsize=12)
+    axis.set_ylabel(y_label, fontsize=12)
+    axis.minorticks_on()
+    axis.tick_params(which='both', width=1.2,direction='in')
+    axis.tick_params(which='major', length=3, direction='in')
+
 
 def end_plot(outfile: str) -> None:
     """Saves the figure correctly."""
