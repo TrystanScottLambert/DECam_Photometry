@@ -27,7 +27,7 @@ FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
 if __name__ == '__main__':
     INFILE = 'candidates.txt'
-    ra, dec = np.loadtxt(INFILE, usecols=(1,2), unpack=True)
+    ra, dec = np.loadtxt(INFILE, unpack=True)
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     gs = fig.add_gridspec(len(ra), 3, hspace=0, wspace=0, width_ratios=[1, 1, 1],

@@ -300,7 +300,7 @@ class EduaradoSelection(ClassicSNR):
         inst_mag_n964, inst_mag_n964_err, _ = read_all(self.inputs.infile_n964)
         mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(self.inputs.aperture_radii)
         return mag_n964, inst_mag_n964_err
-    
+
     @property
     def z_data(self) -> tuple:
         inst_mag_z, inst_mag_z_err, _ = read_all(self.inputs.infile_z)
@@ -327,25 +327,32 @@ class EduaradoSelection(ClassicSNR):
         n964_mag, n964_err = self.n964_data
         color = z_mag - n964_mag
         significance = 2.5 * np.hypot(z_err, n964_err)
-        first_cut = np.where(color > 0.75)[0]
+        first_cut = np.where(color > 1.75)[0]#0.75)[0]
         final_cut = []
         for idx in first_cut:
             if np.abs(color[idx]) > significance[idx]:
                 final_cut.append(idx)
         return np.array(final_cut)
-    
+
     def continuum_color_select(self):
         """Looking for the continuum break via I-Z > 1.0"""
         z_mag, _ = self.z_data
         i_mag, _ = self.i_data
-        color = i_mag - z_mag 
+        color = i_mag - z_mag
         cut = np.where(color > 1.)[0]
         return cut
-    
+
+    def select_i_band(self):
+        """Implementing an I-band cut."""
+        i_mag, _ = self.i_data
+        cut = np.where(i_mag > self.i_lim)[0]
+        return cut
+
     def apply_selection_criteria(self) -> np.ndarray:
         narrow_band_excess = self.narrow_color_select()
         continuum_break = self.continuum_color_select()
-        return np.intersect1d(narrow_band_excess, continuum_break)
+        i_non_detect = self.select_i_band()
+        return np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect)
 
 
 def perform_selection(selection: SelectionCriteria):
@@ -442,6 +449,7 @@ if __name__ == '__main__':
     )
 
     i_depth = 26.23
+    i_depth_2_sigma = 26.68
     z_depth = 26.16
     n_depth = 24.66#24.66#
     n_135_depth = 25.10#25.10#
@@ -451,9 +459,9 @@ if __name__ == '__main__':
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
     #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
-    #our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth, z_depth)
-    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
+    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth_2_sigma, z_depth)
+    #cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
 
-    #perform_selection(our_selection)
-    perform_selection(cdfs_selection)
+    perform_selection(our_selection)
+    #perform_selection(cdfs_selection)
     #perform_selection(imacs_selection)
