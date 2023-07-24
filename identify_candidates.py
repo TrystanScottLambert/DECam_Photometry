@@ -327,7 +327,7 @@ class EduaradoSelection(ClassicSNR):
         n964_mag, n964_err = self.n964_data
         color = z_mag - n964_mag
         significance = 2.5 * np.hypot(z_err, n964_err)
-        first_cut = np.where(color > 1.75)[0]#0.75)[0]
+        first_cut = np.where(color > 0.75)[0]#0.75)[0]
         final_cut = []
         for idx in first_cut:
             if np.abs(color[idx]) > significance[idx]:
@@ -459,9 +459,9 @@ if __name__ == '__main__':
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
     #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
-    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth_2_sigma, z_depth)
-    #cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
+    #our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth_2_sigma, z_depth)
+    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
 
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection)
     #perform_selection(imacs_selection)
