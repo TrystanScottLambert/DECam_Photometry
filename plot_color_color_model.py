@@ -59,21 +59,21 @@ if __name__ == '__main__':
     qso_i_color, qso_z_color = work_out_colors_for_redshift([6.9])
 
     start_plot('I - Z', 'Z - NB964')
-    plt.plot(plot_i_color, plot_z_color, lw=0.5)
+    plt.plot(plot_i_color, plot_z_color, lw=2)
     plt.scatter(point_i_color, point_z_color, marker='s', color='r')
     for i_color, z_color, redshift in zip(point_i_color, point_z_color, point_redshift_range):
         plt.text(i_color, z_color, f'{redshift}', fontsize=20)
 
     plt.axvline(1, ls=':', color='k', alpha=0.5)
-    plt.axhline(0.75, ls=':', color='k', alpha=0.5)
+    plt.axhline(0.78, ls=':', color='k', alpha=0.5)
     print(qso_i_color, qso_z_color)
-    plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m')
-    end_plot('tracks.png')
+    plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m', zorder=-1)
+    end_plot('plots/tracks.png')
     plt.show()
 
 
     #GIF Chiara
-    i_band_spectrum = i_band.band.to_spectrum1d()
+    '''i_band_spectrum = i_band.band.to_spectrum1d()
     z_band_spectrum = z_band.band.to_spectrum1d()
     n_band_spectrum = n_band.band.to_spectrum1d()
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         ax_track.set_ylabel('Z - NB965')
         ax_track.set_xlabel('I - Z')
         plt.savefig(f'test_delete_{i}.png')
-        plt.close()
+        plt.close()'''
 
 
     #GIF Shapely
