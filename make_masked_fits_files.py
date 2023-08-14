@@ -88,8 +88,8 @@ def read_region_file(file_name: str) -> list[PolygonPixelRegion]:
 if __name__ == '__main__':
     INFILE = '../CDFS_LAGER/cdfs_masks.reg'
     n964_file = '../CDFS_LAGER/n964_weight.fits'
-    z_file = '../CDFS_LAGER/i_weight.fits'
-    i_file = '../CDFS_LAGER/z_weight.fits'
+    i_file = '../CDFS_LAGER/i_weight.fits'
+    z_file = '../CDFS_LAGER/z_weight.fits'
     hdu = fits.open(n964_file)
     n964 = get_weights_mask(n964_file, 0.25)
     i = get_weights_mask(i_file, 0.4)
@@ -100,19 +100,31 @@ if __name__ == '__main__':
     thing[i] = 0
     thing[z] = 0
 
-    #wcs = WCS(fits.open(n964_file)[0].header)
+    wcs = WCS(fits.open(n964_file)[0].header)
     regions  = read_region_file(INFILE)
     decam_region = read_region_file('../CDFS_LAGER/DECAM_CDFS.reg')[0]
     masks = [region.to_mask() for region in track(regions, 'making masks')]
     real_masks = [mask.to_image(hdu[0].data.shape) for mask in track(masks, 'to data shape')]
+    region_mask = np.zeros(hdu[0].data.shape)
+    for mask in real_masks:
+        region_mask += mask
+    region_mask = np.abs(region_mask -1)
+    print('Made it here')
+    final_mask = region_mask * thing
 
-    #decam_mask = decam_region.to_mask()
-    #decam_real_mask = decam_mask.to_image(hdu[0].data.shape)
+    print('Trying decam mask')
+    decam_mask = decam_region.to_mask()
+    decam_real_mask = decam_mask.to_image(hdu[0].data.shape)
+    print('WE DID IT')
+    
+    print('Adding everything together')
+    final_mask = final_mask * decam_real_mask
+    print('JUST NEED TO PLOT')
 
-    #fig = plt.figure()
-    #ax = fig.add_subplot(111, projection=wcs)
-    #ax.imshow(thing, cmap='Greys_r')
-    #decam_region.plot()
-    #for region in regions:
-    #    region.plot(ax = ax, facecolor='k', fill=True, edgecolor='none')
-    #plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    ax.imshow(final_mask)
+    plt.show()
+
+    hdu[0].data = final_mask
+    hdu.writeto('CDFS_MASK.fits', overwrite=True)

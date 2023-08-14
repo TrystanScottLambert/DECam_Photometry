@@ -16,7 +16,7 @@ from plotting import start_plot, end_plot
 
 
 INNER_AREA_OF_SUPRESSION = 5487762.05698824
-CDFS_AREA = 20385305 # Arcseconds
+CDFS_AREA = 22355466 # Arcseconds
 DECAM_AREA = 2.87e7 # Arcseconds 23212237.94301176  #The area minus the inner region.
 IMACS_AREA = 5.01046e6 # Arcseconds
 
