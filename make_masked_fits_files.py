@@ -116,7 +116,7 @@ if __name__ == '__main__':
     decam_mask = decam_region.to_mask()
     decam_real_mask = decam_mask.to_image(hdu[0].data.shape)
     print('WE DID IT')
-    
+
     print('Adding everything together')
     final_mask = final_mask * decam_real_mask
     print('JUST NEED TO PLOT')
