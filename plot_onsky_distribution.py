@@ -8,6 +8,7 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.coordinates import angular_separation
+from astropy.visualization import ZScaleInterval
 
 from plot_cumulative import CDFS_AREA
 from regionfy_catalog import load_region
@@ -27,6 +28,9 @@ def set_region(ra_pix, dec_pix, radius_mpc: float):
 
 
 DECAM_SHAPE_FILE = '../correct_stacks/N964/n964_weight.fits'
+CDFS_IMAGE_FILE = '../correct_stacks/N964/n964.fits'
+
+image_data = fits.open(CDFS_IMAGE_FILE)
 decam_hdu = fits.open(DECAM_SHAPE_FILE)
 decam_wcs = WCS(decam_hdu[0].header)
 
@@ -39,12 +43,17 @@ DEG_PER_MPC = ARCSEC_PER_KPC.to(u.deg / u.Mpc)
 DEG_PER_PIX = np.abs(decam_hdu[0].header['PC2_2'])
 REGION_FILE = 'decam.reg'
 region_decam_fov = load_region(REGION_FILE)
+region_decam_mask = fits.open('DECAM_MASK.fits')
+region_decam_mask = region_decam_mask[0].data
+region_decam_mask[region_decam_mask == 0] = np.nan
 
+image_data[0].data = image_data[0].data * region_decam_mask
 
 if __name__ == '__main__':
     #Determine Area of CDFS
     CDFS_REGION = '../CDFS_LAGER/DECAM_CDFS.reg'
     CDFS_CANDIDATES = 'candidates_cdfs_e.txt'
+    
     number_candidates_cdfs = len(np.loadtxt(CDFS_CANDIDATES))
     area_cdfs_arcsec = CDFS_AREA * u.arcsec
     area_cdfs_deg = area_cdfs_arcsec.to(u.deg)
@@ -64,6 +73,9 @@ if __name__ == '__main__':
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(projection = decam_wcs)
+    zscale = ZScaleInterval()
+    lower, upper = zscale.get_limits(image_data[0].data)
+    ax.imshow(image_data[0].data, cmap='gray_r', vmin=lower, vmax=upper)
     ax.set_xlabel('RA')
     ax.set_ylabel('DEC')
     ax.imshow(decam_hdu[0].data, alpha=0)
@@ -71,7 +83,7 @@ if __name__ == '__main__':
     region_10.plot(ax=ax, color='red', lw=2.0, ls=':')
     #region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
-    ax.scatter(ra_plot, dec_plot)
+    ax.scatter(ra_plot, dec_plot, s=10)
     ax.scatter(ra_qso_plot, dec_qso_plot, marker='*', s=100, color='k')
     plotting.end_plot('plots/on_sky_distribution.png')
 
