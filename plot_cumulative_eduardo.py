@@ -45,27 +45,47 @@ ARCSEC_PER_KPC = COSMO.arcsec_per_kpc_comoving(REDSHIFT_QSO)
 DEG_PER_MPC = ARCSEC_PER_KPC.to(u.deg / u.Mpc)
 inner_region_distance = DEG_PER_MPC * 75 * u.Mpc
 results = distances_to_quasar < inner_region_distance
-inner = len(np.where(results ==True)[0])
+inner = len(np.where(results == True)[0])
 outer = len(np.where(results == False)[0])
 inner_area = (inner_region_distance.to(u.arcsec) **2) * np.pi
-outer_area = 23212237.94301176
+outer_area = 27036703.3248 #from functions in plot_radial_distribution
 
 
+#Error propagation
+def propagate_ratio(numerator: float, denominator: float, u_numerator: float, u_denominator: float) -> float:
+    """Propagates the uncertainty based on the numerator and denominator uncertainties"""
+    ratio = numerator/denominator
+    uncertainty = ratio * np.hypot(u_numerator/numerator, u_denominator/denominator)
+    return ratio, uncertainty
 
+cdfs_density =  len(ra_cdfs)/CDFS_AREA
+our_density = len(ra_us)/DECAM_AREA
+cdfs_uncertainty = np.sqrt(len(ra_cdfs))/CDFS_AREA
+our_uncertainty = np.sqrt(len(ra_us))/DECAM_AREA
+inner_density = (inner/inner_area.value)
+outer_density  = (outer/23212237.94301176)
+inner_uncertainty = np.sqrt(inner)/inner_area.value
+outer_uncertainty = np.sqrt(outer)/23212237.94301176
+inner_ratio = propagate_ratio(inner_density, cdfs_density, inner_uncertainty, cdfs_uncertainty)
+outer_ratio = propagate_ratio(outer_density, cdfs_density, outer_uncertainty, cdfs_uncertainty)
+ratio, uncertainty = propagate_ratio(our_density, cdfs_density, our_uncertainty, cdfs_uncertainty)
+main_result_ratio = propagate_ratio(outer_density, inner_density, outer_uncertainty, inner_uncertainty)
 
 #Printing values
-print('CDFS density [arcseconds ^{-2}]: ', len(ra_cdfs)/CDFS_AREA)
-print('our density [arcseconds ^{-2})]: ', len(ra_us)/DECAM_AREA)
-print('Ratio: ', (len(ra_us)/DECAM_AREA)/(len(ra_cdfs)/CDFS_AREA))
+print('CDFS density [arcseconds ^{-2}]: ', cdfs_density, '+-', cdfs_uncertainty)
+print('our density [arcseconds ^{-2})]: ', our_density, '+-', our_uncertainty)
+print('Ratio: ',  ratio, '+-', uncertainty)
 print('-----------------------------')
 print('Inner 75cMpc is:')
-print('Density[arcseconds ^{-2})]: ', inner/inner_area.value)
-print('Ratio: ', (inner/inner_area.value)/(len(ra_cdfs)/CDFS_AREA))
+print('Density[arcseconds ^{-2})]: ', inner_density, '+-', inner_uncertainty)
+print('Ratio: ', inner_ratio[0], '+-', inner_ratio[1])
 print('-----------------------------')
 print('Outer 75 cMpc')
-print('Density[arcseconds ^{-2})]: ', outer/23212237.94301176)
-print('Ratio: ', (outer/23212237.94301176)/(len(ra_cdfs)/CDFS_AREA))
+print('Density[arcseconds ^{-2})]: ', outer_density, '+-', outer_uncertainty)
+print('Ratio: ', outer_ratio[0], '+-', outer_ratio[1])
 print('-----------------------------')
+print('Ratio of inner density and outer density:')
+print('Ratio: ', main_result_ratio[0], '+-', main_result_ratio[1])
 
 our_cat = cross_match_to_sexcat(ra_us, dec_us, SExtractorCat(SEX_US))
 cdfs_cat = cross_match_to_sexcat(ra_cdfs, dec_cdfs, SExtractorCat(SEX_CDFS))

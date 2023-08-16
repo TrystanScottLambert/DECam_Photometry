@@ -61,7 +61,7 @@ def create_annulus_cutout(image: np.ndarray, center: tuple, inner_radius: float,
     """
     y_indicies, x_indicies = np.indices(image.shape)
 
-    distance_from_center = np.sqrt((x_indicies - center[1])**2 + (y_indicies - center[0])**2)
+    distance_from_center = np.sqrt((x_indicies - center[0])**2 + (y_indicies - center[1])**2)
 
     mask = np.logical_and(distance_from_center >= inner_radius, distance_from_center <= outer_radius)
 
@@ -86,7 +86,7 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     areas = np.array([area.value for area in areas_vals])
     null_count_values = np.where(counts==0)[0]
     non_null_count_values = np.where(counts!=0)[0]
-    counts[null_count_values] = 0#2 # poisson distribution means a zero count is less than 2 counts.
+    counts[null_count_values] = 2 # poisson distribution means a zero count is less than 2 counts.
     y = counts/areas
     y_err = np.sqrt(counts)/areas
 
@@ -95,16 +95,16 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     ax = fig.add_subplot(111)
     ax.errorbar(distances[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2)
     ax.errorbar(distances[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2, uplims=True)
-    ax.set_xlabel('Distance from QSO [pMpc]')
-    ax.set_ylabel(r'Surface Density [deg^{-2}$]')
+    ax.set_xlabel('Distance from center [pMpc]')
+    ax.set_ylabel(r'Surface Density [deg$^{-2}$]')
     ax.minorticks_on()
     ax.tick_params(which='both', width=1.2,direction='in')
     ax.tick_params(which='major', length=3, direction='in')
-    #ax.set_yscale('log')
+    ax.set_yscale('log')
 
     ax1 = ax.twiny()
     ax1.errorbar(separations, y, yerr=y_err, fmt='ok', alpha=0)
-    ax1.set_xlabel('Distance from QSO [deg]')
+    ax1.set_xlabel('Distance from center [deg]')
     ax1.minorticks_on()
     ax1.tick_params(which='both', width=1.2,direction='in')
     ax1.tick_params(which='major', length=3, direction='in')
@@ -124,7 +124,8 @@ if __name__ == '__main__':
     decam_center = decam.wcs.world_to_pixel_values(RA_QSO, DEC_QSO)
 
 
-    radii_mpc = np.arange(0,21,1) * u.Mpc
+    BIN_WIDTH = 2
+    radii_mpc = np.arange(0,20+BIN_WIDTH,BIN_WIDTH) * u.Mpc
     radii_deg = radii_mpc * DEG_PER_MPC
     radii_pix = radii_deg / cdfs.deg_per_pix
     average_radii_mpc = np.array([(radii_mpc[i].value + radii_mpc[i+1].value)/2 for i in range(len(radii_mpc) -1)]) * u.Mpc
