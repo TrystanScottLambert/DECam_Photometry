@@ -21,12 +21,12 @@ RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24) * u.deg
 DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1 *u.deg
 qso_position = SkyCoord(ra = RA_QSO, dec = DEC_QSO)
 cdfs_hdu = fits.open('CDFS_MASK.fits')
+decam_hdu = fits.open('DECAm_MASK.fits')
 pix_scale = cdfs_hdu[0].header['PC2_2'] * 3600 #arcseconds
+pix_decam = decam_hdu[0].header['PC2_2'] * 3600
 
-
-INNER_AREA_OF_SUPRESSION = 5487762.05698824
 CDFS_AREA = len(np.where(cdfs_hdu[0].data == 1)[0]) * (pix_scale**2) # Arcseconds
-DECAM_AREA = 2.87e7 # Arcseconds 23212237.94301176  #The area minus the inner region.
+DECAM_AREA = len(np.where(decam_hdu[0].data == 1)[0]) * (pix_decam**2)
 IMACS_AREA = 5.01046e6 # Arcseconds
 
 INFILE_US = 'candidates_e.txt'
@@ -48,7 +48,7 @@ results = distances_to_quasar < inner_region_distance
 inner = len(np.where(results == True)[0])
 outer = len(np.where(results == False)[0])
 inner_area = (inner_region_distance.to(u.arcsec) **2) * np.pi
-outer_area = 27036703.3248 #from functions in plot_radial_distribution
+outer_area = 27036703.3248 
 
 
 #Error propagation
@@ -63,9 +63,9 @@ our_density = len(ra_us)/DECAM_AREA
 cdfs_uncertainty = np.sqrt(len(ra_cdfs))/CDFS_AREA
 our_uncertainty = np.sqrt(len(ra_us))/DECAM_AREA
 inner_density = (inner/inner_area.value)
-outer_density  = (outer/23212237.94301176)
+outer_density  = (outer/outer_area)
 inner_uncertainty = np.sqrt(inner)/inner_area.value
-outer_uncertainty = np.sqrt(outer)/23212237.94301176
+outer_uncertainty = np.sqrt(outer)/outer_area
 inner_ratio = propagate_ratio(inner_density, cdfs_density, inner_uncertainty, cdfs_uncertainty)
 outer_ratio = propagate_ratio(outer_density, cdfs_density, outer_uncertainty, cdfs_uncertainty)
 ratio, uncertainty = propagate_ratio(our_density, cdfs_density, our_uncertainty, cdfs_uncertainty)
