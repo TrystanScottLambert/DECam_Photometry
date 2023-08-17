@@ -12,6 +12,7 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 import pylab as plt
 import plotting
+from scipy.stats import linregress
 
 RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
 DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
@@ -81,8 +82,9 @@ def calculate_distances_of_candidates(center: tuple, candidate_list: str) -> Ang
     separations = center_position.separation(candidates)
     return separations
 
-def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndarray, separations: np.ndarray, outfile: str):
+def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndarray, separations: np.ndarray, outfile: str) -> None:
     """plots the radial profile"""
+    fit_y, fit_y_err = prepare_fitting(counts, areas_vals)
     areas = np.array([area.value for area in areas_vals])
     null_count_values = np.where(counts==0)[0]
     non_null_count_values = np.where(counts!=0)[0]
@@ -90,11 +92,20 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     y = counts/areas
     y_err = np.sqrt(counts)/areas
 
+    fit_x = np.linspace(distances[0].value, distances[-1].value, 1000)
+    slope, intercept, slope_uncertainty, intercept_uncertainty = linear_regression_with_errors(distances.value, fit_y, fit_y_err)
+    print('FIT:')
+    print('slope', slope, '+-', slope_uncertainty)
+    print('intercept', intercept, '+-', intercept_uncertainty)
+    plt.errorbar(distances.value, fit_y, yerr=fit_y_err, fmt='o')
+    plt.plot(fit_x, slope*fit_x + intercept)
+    plt.show()
 
     fig = plt.figure(figsize = (3.54, 3.54/2), dpi = 600)
     ax = fig.add_subplot(111)
     ax.errorbar(distances[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2)
     ax.errorbar(distances[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2, uplims=True)
+    #ax.plot(fit_x, slope*fit_x + intercept)
     ax.set_xlabel('Distance from center [pMpc]')
     ax.set_ylabel(r'Surface Density [deg$^{-2}$]')
     ax.minorticks_on()
@@ -109,7 +120,28 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     ax1.tick_params(which='both', width=1.2,direction='in')
     ax1.tick_params(which='major', length=3, direction='in')
     plotting.end_plot(outfile)
-    
+    plt.show()
+
+def prepare_fitting(counts: np.ndarray, areas_vals: list):
+    """Sets the detections and non detections with the correct errors for fitting"""
+    areas = np.array([area.value for area in areas_vals])
+    null_count_values = np.where(counts==0)[0]
+    y = counts/areas
+    print('y_vals', y)
+    y_err = np.sqrt(counts)/areas
+    y_err[null_count_values] = 1.8
+    return y, y_err
+
+def linear_regression_with_errors(x_data: np.ndarray, y_data: np.ndarray, y_errors: np.ndarray):
+    """Perform linear regression"""
+    slope, intercept, r_value, p_value, std_err = linregress(x_data, y_data)
+
+    # Calculate uncertainties for gradient and intercept
+    slope_uncertainty = std_err * np.sqrt(np.sum(1 / y_errors**2) / np.sum((x_data - np.mean(x_data))**2))
+    intercept_uncertainty = std_err * np.sqrt(np.sum(1 / y_errors**2) * np.mean(x_data)**2 / np.sum((x_data - np.mean(x_data))**2))
+
+    return slope, intercept, slope_uncertainty, intercept_uncertainty
+
 
 if __name__ == '__main__':
     CDFS_MASK_FILE = 'CDFS_MASK.fits'
@@ -150,3 +182,4 @@ if __name__ == '__main__':
 
     plot_radial_profile(counts_cdfs, areas_cdfs, average_radii_mpc, average_radii_deg, 'plots/surface_density_cdfs.png')
     plot_radial_profile(counts_decam, areas_decam, average_radii_mpc, average_radii_deg, 'plots/surface_density.png')
+
