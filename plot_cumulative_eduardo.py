@@ -7,12 +7,11 @@ import pylab as plt
 from astropy.coordinates import SkyCoord
 from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
-from pandas import DataFrame
 from astropy.io import fits
 
-from plot_cumulative import cross_match_to_sexcat, add_ab_mags
+from plot_cumulative import cross_match_to_sexcat
 from sex_catalog import SExtractorCat
-from zero_points import zero_points, ZeroPoints
+from zero_points import zero_points
 from zero_points_cdfs import zero_points_cdfs
 from plotting import start_plot, end_plot
 
@@ -47,12 +46,13 @@ inner_region_distance = DEG_PER_MPC * 75 * u.Mpc
 results = distances_to_quasar < inner_region_distance
 inner = len(np.where(results == True)[0])
 outer = len(np.where(results == False)[0])
-inner_area = (inner_region_distance.to(u.arcsec) **2) * np.pi
-outer_area = 27036703.3248 
+inner_area = 10176726.0573 # from plot_radial_distribution
+OUTER_AREA = 27036703.3248 # square arcseconds.
 
 
 #Error propagation
-def propagate_ratio(numerator: float, denominator: float, u_numerator: float, u_denominator: float) -> float:
+def propagate_ratio(
+        numerator: float, denominator: float, u_numerator: float, u_denominator: float) -> float:
     """Propagates the uncertainty based on the numerator and denominator uncertainties"""
     ratio = numerator/denominator
     uncertainty = ratio * np.hypot(u_numerator/numerator, u_denominator/denominator)
@@ -62,14 +62,15 @@ cdfs_density =  len(ra_cdfs)/CDFS_AREA
 our_density = len(ra_us)/DECAM_AREA
 cdfs_uncertainty = np.sqrt(len(ra_cdfs))/CDFS_AREA
 our_uncertainty = np.sqrt(len(ra_us))/DECAM_AREA
-inner_density = (inner/inner_area.value)
-outer_density  = (outer/outer_area)
-inner_uncertainty = np.sqrt(inner)/inner_area.value
-outer_uncertainty = np.sqrt(outer)/outer_area
+inner_density = inner/inner_area
+outer_density  = outer/OUTER_AREA
+inner_uncertainty = np.sqrt(inner)/inner_area
+outer_uncertainty = np.sqrt(outer)/OUTER_AREA
 inner_ratio = propagate_ratio(inner_density, cdfs_density, inner_uncertainty, cdfs_uncertainty)
 outer_ratio = propagate_ratio(outer_density, cdfs_density, outer_uncertainty, cdfs_uncertainty)
 ratio, uncertainty = propagate_ratio(our_density, cdfs_density, our_uncertainty, cdfs_uncertainty)
-main_result_ratio = propagate_ratio(outer_density, inner_density, outer_uncertainty, inner_uncertainty)
+main_result_ratio = propagate_ratio(
+    outer_density, inner_density, outer_uncertainty, inner_uncertainty)
 
 #Printing values
 print('CDFS density [arcseconds ^{-2}]: ', cdfs_density, '+-', cdfs_uncertainty)

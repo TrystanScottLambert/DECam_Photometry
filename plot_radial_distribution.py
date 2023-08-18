@@ -4,6 +4,7 @@ Plotting the radial distribution of the counts.
 
 from rich.progress import track
 import numpy as np
+from scipy.stats import linregress
 from astropy.io import fits
 from astropy.wcs import WCS
 import astropy.units as u
@@ -12,7 +13,7 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 import pylab as plt
 import plotting
-from scipy.stats import linregress
+
 
 RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
 DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
@@ -134,7 +135,7 @@ def prepare_fitting(counts: np.ndarray, areas_vals: list):
 
 def linear_regression_with_errors(x_data: np.ndarray, y_data: np.ndarray, y_errors: np.ndarray):
     """Perform linear regression"""
-    slope, intercept, r_value, p_value, std_err = linregress(x_data, y_data)
+    slope, intercept, _, _, std_err = linregress(x_data, y_data)
 
     # Calculate uncertainties for gradient and intercept
     slope_uncertainty = std_err * np.sqrt(np.sum(1 / y_errors**2) / np.sum((x_data - np.mean(x_data))**2))
@@ -182,4 +183,3 @@ if __name__ == '__main__':
 
     plot_radial_profile(counts_cdfs, areas_cdfs, average_radii_mpc, average_radii_deg, 'plots/surface_density_cdfs.png')
     plot_radial_profile(counts_decam, areas_decam, average_radii_mpc, average_radii_deg, 'plots/surface_density.png')
-

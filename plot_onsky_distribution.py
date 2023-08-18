@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     #On sky distribution plot.
     #region_1 = set_region(ra_qso_plot, dec_qso_plot, 1)
-    region_10 = set_region(ra_qso_plot, dec_qso_plot, 75)
+    region_10 = set_region(ra_qso_plot, dec_qso_plot, 55.2)
     #region_20 = set_region(ra_qso_plot, dec_qso_plot, 20)
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
