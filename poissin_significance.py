@@ -47,7 +47,7 @@ if __name__ == '__main__':
     decam = Mask('DECAM_MASK.fits')
     ra, dec = np.loadtxt('candidates_e.txt', unpack=True)
 
-    distances = np.arange(70, 76, 1) *u.Mpc
+    distances = np.arange(40, 80, 5) *u.Mpc
 
     sigmas = []
     for distance in track(distances):

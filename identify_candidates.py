@@ -444,9 +444,9 @@ if __name__ == '__main__':
         infile_z='../CDFS_LAGER/z_cdfs.cat',
         zero_point_function=zero_points_cdfs,
         images=(
-            '../CDFS_LAGER/CDFS_i.fits.fz',
-            '../CDFS_LAGER/CDFS_z.fits.fz',
-            '../CDFS_LAGER/CDFS_NB.fits.fz'),
+            '../CDFS_LAGER/CDFS_i.fits',
+            '../CDFS_LAGER/CDFS_z.fits',
+            '../CDFS_LAGER/CDFS_NB.fits'),
         aperture_radii=1.
     )
 
