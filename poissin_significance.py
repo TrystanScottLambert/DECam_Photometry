@@ -40,22 +40,22 @@ def calculate_area_ratio(mask: Mask, radius: float) -> float:
     center = mask.wcs.world_to_pixel_values(RA_QSO.value, DEC_QSO.value)
     outer_area = mask.calculate_area(center, radius_pixels, 100000)
     inner_area = mask.calculate_area(center, 0, radius_pixels)
-    ratio = outer_area/inner_area
+    ratio = inner_area/outer_area
     return ratio.value
 
 if __name__ == '__main__':
     decam = Mask('DECAM_MASK.fits')
     ra, dec = np.loadtxt('candidates_e.txt', unpack=True)
 
-    distances = np.arange(55, 60, 0.1) *u.Mpc
+    distances = np.arange(70, 76, 1) *u.Mpc
 
     sigmas = []
     for distance in track(distances):
         inner_region_distance_deg = DEG_PER_MPC * distance
         inner, outer = count_inner_outer(ra, dec, inner_region_distance_deg)
         ratio = calculate_area_ratio(decam, inner_region_distance_deg)
-        expected_inner = inner * ratio
-        
+        expected_inner = outer * ratio
+
         probability = poisson.cdf(inner, expected_inner)
         sigmas.append(norm.ppf(probability))
 

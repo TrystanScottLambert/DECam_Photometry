@@ -9,7 +9,6 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.visualization import ZScaleInterval
 
-from plot_cumulative import CDFS_AREA
 from regionfy_catalog import load_region
 import plotting
 
@@ -49,16 +48,6 @@ region_decam_mask[region_decam_mask == 0] = np.nan
 image_data[0].data = image_data[0].data * region_decam_mask
 
 if __name__ == '__main__':
-    #Determine Area of CDFS
-    CDFS_REGION = '../CDFS_LAGER/DECAM_CDFS.reg'
-    CDFS_CANDIDATES = 'candidates_cdfs_e.txt'
-    
-    number_candidates_cdfs = len(np.loadtxt(CDFS_CANDIDATES))
-    area_cdfs_arcsec = CDFS_AREA * u.arcsec
-    area_cdfs_deg = area_cdfs_arcsec.to(u.deg)
-    area_cdfs_degrees = area_cdfs_deg.value
-
-
     INFILE = 'candidates_e.txt'
     ra, dec = np.loadtxt(INFILE, unpack=True)
 
@@ -66,7 +55,7 @@ if __name__ == '__main__':
     ra_qso_plot, dec_qso_plot = decam_wcs.world_to_pixel_values(RA_QSO, DEC_QSO)
 
     #On sky distribution plot.
-    #region_1 = set_region(ra_qso_plot, dec_qso_plot, 1)
+    region_1 = set_region(ra_qso_plot, dec_qso_plot, 35)
     region_10 = set_region(ra_qso_plot, dec_qso_plot, 55.2)
     #region_20 = set_region(ra_qso_plot, dec_qso_plot, 20)
 
@@ -78,7 +67,7 @@ if __name__ == '__main__':
     ax.set_xlabel('RA')
     ax.set_ylabel('DEC')
     ax.imshow(decam_hdu[0].data, alpha=0)
-    #region_1.plot(ax=ax, color='red', lw=2.0, ls=':')
+    region_1.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_10.plot(ax=ax, color='red', lw=2.0, ls=':')
     #region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)

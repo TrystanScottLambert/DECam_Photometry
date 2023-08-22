@@ -39,7 +39,7 @@ def angular_function(data_data, data_random, random_random, theta_min, theta_max
     r_r_norm = r_r/len(random_random)
 
     acf = (d_d_norm - (2 * d_r_norm) + r_r_norm)/r_r_norm
-    u_acf = (1 + acf)/np.sqrt(d_d)
+    u_acf = (1 + acf)/np.sqrt(d_d)  # see equation five of ota 2018
     return acf, u_acf
 
 def full_angular_separation_function(data_data, data_random, random_random, theta_bins):
@@ -57,20 +57,20 @@ def full_angular_separation_function(data_data, data_random, random_random, thet
 
 
 if __name__ == '__main__':
-    INFILE = 'candidates_cdfs_e.txt'
-    DECAM_REGION_FILE = '../CDFS_LAGER/DECAM_CDFS.reg'#'DECAM.reg'
-    FITS_FILE  = '../CDFS_LAGER/n964.fits'#'../correct_stacks/N964/n964.fits'
+    INFILE = 'candidates_e.txt'
+    DECAM_REGION_FILE = 'DECAM.reg'
+    FITS_FILE  = '../correct_stacks/N964/n964.fits'
 
     hdul = fits.open(FITS_FILE)
     wcs = WCS(hdul[0].header)
     ra_candidates, dec_candidates = np.loadtxt(INFILE, unpack=True)
     decam_region = load_region(DECAM_REGION_FILE)
 
-    #ra_min, ra_max = 355.95*u.deg.to(u.rad), 358.3*u.deg.to(u.rad)
-    #dec_min, dec_max = -31.82*u.deg.to(u.rad), -29.84*u.deg.to(u.rad)
+    ra_min, ra_max = 355.95*u.deg.to(u.rad), 358.3*u.deg.to(u.rad)
+    dec_min, dec_max = -31.82*u.deg.to(u.rad), -29.84*u.deg.to(u.rad)
 
-    ra_min, ra_max = 53.8853418 * u.deg.to(u.rad), 51.4000866 * u.deg.to(u.rad)
-    dec_min, dec_max = -29 * u.deg.to(u.rad), -27*u.deg.to(u.rad)
+    #ra_min, ra_max = 53.8853418 * u.deg.to(u.rad), 51.4000866 * u.deg.to(u.rad)
+    #dec_min, dec_max = -29 * u.deg.to(u.rad), -27*u.deg.to(u.rad)
 
 
     """

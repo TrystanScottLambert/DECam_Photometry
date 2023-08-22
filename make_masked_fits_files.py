@@ -87,24 +87,24 @@ def read_region_file(file_name: str) -> list[PolygonPixelRegion]:
 
 if __name__ == '__main__':
     INFILE = '../CDFS_LAGER/cdfs_masks.reg'
-    n964_file = '../CDFS_LAGER/n964_weight.fits'
-    i_file = '../CDFS_LAGER/i_weight.fits'
-    z_file = '../CDFS_LAGER/z_weight.fits'
-    hdu = fits.open(n964_file)
-    n964 = get_weights_mask(n964_file, 0.25)
-    i = get_weights_mask(i_file, 0.4)
-    z = get_weights_mask(z_file, 0.17)
+    N964_FILE = '../CDFS_LAGER/CDFS_NB.fits.weight.fits'
+    I_FILE = '../CDFS_LAGER/CDFS_i.fits.weight.fits'
+    Z_FILE = '../CDFS_LAGER/CDFS_z.fits.weight.fits'
+    hdu = fits.open(N964_FILE)
+    n964 = get_weights_mask(N964_FILE, 0.25)
+    i = get_weights_mask(I_FILE, 0.4)
+    z = get_weights_mask(Z_FILE, 0.17)
 
     thing = np.ones(hdu[0].data.shape)
     thing[n964] = 0
     thing[i] = 0
     thing[z] = 0
 
-    wcs = WCS(fits.open(n964_file)[0].header)
+    wcs = WCS(fits.open(N964_FILE)[0].header)
     regions  = read_region_file(INFILE)
-    decam_region = read_region_file('../CDFS_LAGER/DECAM_CDFS.reg')[0]
+    decam_region = read_region_file('../CDFS_LAGER/DECAM_CDFS_FULL.reg')[0]
     masks = [region.to_mask() for region in track(regions, 'making masks')]
-    real_masks = [mask.to_image(hdu[0].data.shape) for mask in track(masks, 'to data shape')]
+    real_masks = [mask.to_image(hdu[0].data.shape) for mask in track(masks, 'to datad shape')]
     region_mask = np.zeros(hdu[0].data.shape)
     for mask in real_masks:
         region_mask += mask
