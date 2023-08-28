@@ -40,6 +40,8 @@ def calculate_area_ratio(mask: Mask, radius: float) -> float:
     center = mask.wcs.world_to_pixel_values(RA_QSO.value, DEC_QSO.value)
     outer_area = mask.calculate_area(center, radius_pixels, 100000)
     inner_area = mask.calculate_area(center, 0, radius_pixels)
+    print(outer_area)
+    print(inner_area)
     ratio = inner_area/outer_area
     return ratio.value
 
