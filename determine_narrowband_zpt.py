@@ -12,7 +12,7 @@ from sex_catalog import SExtractorCat
 
 import plotting
 from k_constant import calculate_k_constant_mag
-from identify_candidates_v2 import write_region_file
+from identify_candidates import write_region_file
 
 def straight_line(parameters, x_val):
     """Straight line for fitting to data"""

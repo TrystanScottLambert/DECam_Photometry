@@ -20,12 +20,12 @@ RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24) * u.deg
 DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1 *u.deg
 qso_position = SkyCoord(ra = RA_QSO, dec = DEC_QSO)
 cdfs_hdu = fits.open('CDFS_MASK.fits')
-decam_hdu = fits.open('DECAm_MASK.fits')
-pix_scale = cdfs_hdu[0].header['PC2_2'] * 3600 #arcseconds
-pix_decam = decam_hdu[0].header['PC2_2'] * 3600
+decam_hdu = fits.open('DECAM_MASK.fits')
+pix_scale = cdfs_hdu[0].header['CD2_2'] * 3600 #arcseconds
+pix_decam = decam_hdu[0].header['CD2_2'] * 3600
 
-CDFS_AREA = len(np.where(cdfs_hdu[0].data == 1)[0]) * (pix_scale**2) # Arcseconds
-DECAM_AREA = len(np.where(decam_hdu[0].data == 1)[0]) * (pix_decam**2)
+CDFS_AREA = np.sum(cdfs_hdu[0].data) * (pix_scale**2) # Arcseconds
+DECAM_AREA = np.sum(decam_hdu[0].data) * (pix_decam**2)
 IMACS_AREA = 5.01046e6 # Arcseconds
 
 INFILE_US = 'candidates_e.txt'

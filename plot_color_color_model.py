@@ -9,7 +9,7 @@ from astropy import units as u
 from synphot import Observation, SpectralElement, SourceSpectrum, Empirical1D, etau_madau
 import synphot.units as su
 
-from plotting import start_plot, end_plot
+from plotting import start_plot, end_plot, prettify_axis
 from synthetic_lae_spectrum import LaeSpectrum
 
 
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     point_i_color, point_z_color = work_out_colors_for_redshift(point_redshift_range)
     qso_i_color, qso_z_color = work_out_colors_for_redshift([6.9])
 
-    start_plot('I - Z', 'Z - NB964')
+    start_plot('i - z', 'z - NB964')
     plt.plot(plot_i_color, plot_z_color, lw=2)
     plt.scatter(point_i_color, point_z_color, marker='s', color='r')
     for i_color, z_color, redshift in zip(point_i_color, point_z_color, point_redshift_range):
@@ -71,6 +71,28 @@ if __name__ == '__main__':
     end_plot('plots/tracks.png')
     plt.show()
 
+    i_band_spectrum = i_band.band.to_spectrum1d()
+    z_band_spectrum = z_band.band.to_spectrum1d()
+    n_band_spectrum = n_band.band.to_spectrum1d()
+
+    spectrum = LaeSpectrum(6.9).spectrum
+    spectrum_1d = spectrum.to_spectrum1d()
+    fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
+    ax = fig.add_subplot(111)
+    ax.plot(i_band_spectrum.spectral_axis.value/10, i_band_spectrum.flux.value, color='b', ls='--')
+    ax.plot(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':')
+    ax.fill_between(x=i_band_spectrum.spectral_axis.value/10 , y1=i_band_spectrum.flux.value,color= "b",alpha= 0.1)
+    ax.fill_between(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':',alpha=0.1)
+    ax.plot(n_band_spectrum.spectral_axis.value/10, n_band_spectrum.flux.value, color='g')
+    ax.set_xlim(670, 1050)
+    prettify_axis(ax, 'Wavelength [nm]', 'Transmission')
+    ax_real = ax.twinx()
+    ax_real.plot(spectrum_1d.spectral_axis.value/10,spectrum_1d.flux.value, color='k')
+    ax_real.set_yticks([])
+    ax_real.set_yticklabels([])
+    end_plot('plots/Filters.png')
+    plt.show()
+    
 
     #GIF Chiara
     '''i_band_spectrum = i_band.band.to_spectrum1d()
