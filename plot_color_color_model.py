@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     spectrum = LaeSpectrum(6.9).spectrum
     spectrum_1d = spectrum.to_spectrum1d()
-    fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
+    fig = plt.figure(figsize = (2.5 * 3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(111)
     ax.plot(i_band_spectrum.spectral_axis.value/10, i_band_spectrum.flux.value, color='b', ls='--')
     ax.plot(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':')
@@ -85,6 +85,7 @@ if __name__ == '__main__':
     ax.fill_between(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':',alpha=0.1)
     ax.plot(n_band_spectrum.spectral_axis.value/10, n_band_spectrum.flux.value, color='g')
     ax.set_xlim(670, 1050)
+    ax.axvline( 91.1267*(7.9), color='k', ls=':')
     prettify_axis(ax, 'Wavelength [nm]', 'Transmission')
     ax_real = ax.twinx()
     ax_real.plot(spectrum_1d.spectral_axis.value/10,spectrum_1d.flux.value, color='k')

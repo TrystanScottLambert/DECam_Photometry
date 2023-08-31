@@ -28,7 +28,7 @@ class Mask:
         self.hdu = fits.open(file_name)
         self.data = self.hdu[0].data
         self.wcs = WCS(self.hdu[0].header)
-        self.deg_per_pix = self.hdu[0].header['PC2_2']*u.deg
+        self.deg_per_pix = self.hdu[0].header['CD2_2']*u.deg
         self.pix_area_deg = (self.deg_per_pix) ** 2
 
     def calculate_area(self, center: tuple, inner_radius: float, outer_radius: float) -> float:

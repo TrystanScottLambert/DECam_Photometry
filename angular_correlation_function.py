@@ -61,6 +61,10 @@ if __name__ == '__main__':
     DECAM_REGION_FILE = 'DECAM.reg'
     FITS_FILE  = '../correct_stacks/N964/n964.fits'
 
+    #INFILE = 'candidates_cdfs_e.txt'
+    #DECAM_REGION_FILE = '../CDFS_LAGER/DECAM_CDFS_FULL.reg'
+    #FITS_FILE = 'CDFS_MASK.fits'
+
     hdul = fits.open(FITS_FILE)
     wcs = WCS(hdul[0].header)
     ra_candidates, dec_candidates = np.loadtxt(INFILE, unpack=True)
@@ -103,4 +107,4 @@ if __name__ == '__main__':
     plt.errorbar(x, y, yerr=yerr, fmt='o')
     plt.scatter(x, y)
     plt.axhline(0, ls ='--', color='k', alpha=0.5)
-    plotting.end_plot('plots/angular_tpcf_cdfs.png')
+    plotting.end_plot('plots/angular_tpcf.png')
