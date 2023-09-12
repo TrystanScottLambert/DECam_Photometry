@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #On sky distribution plot.
     #region_1 = set_region(ra_qso_plot, dec_qso_plot, 35)
     #region_10 = set_region(ra_qso_plot, dec_qso_plot, 55.2)
-    region_20 = set_region(ra_qso_plot, dec_qso_plot, 75)
+    region_20 = set_region(ra_qso_plot, dec_qso_plot, 40.6)
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(projection = decam_wcs)

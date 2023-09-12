@@ -347,7 +347,7 @@ class EduaradoSelection(ClassicSNR):
     def select_i_band(self):
         """Implementing an I-band cut."""
         i_mag, _ = self.i_data
-        cut = np.where(i_mag >= self.i_lim)[0]
+        cut = np.where(i_mag > self.i_lim)[0]
         return cut
 
     def apply_selection_criteria(self) -> np.ndarray:
