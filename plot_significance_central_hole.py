@@ -13,6 +13,14 @@ from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
 import pylab as plt
 from plotting import start_plot, end_plot
+from scipy.optimize import curve_fit
+from scipy.special import factorial
+from scipy.stats import poisson
+
+
+def fit_function(k, lamb):
+    '''poisson function, parameter lamb is the fit parameter'''
+    return poisson.pmf(k, lamb)
 
 
 def count_sources(
@@ -87,7 +95,7 @@ if __name__ == '__main__':
         center_ras, center_decs = wcs.pixel_to_world_values(center_xs, center_ys)
 
         mask = mask_central_region(center_ras, center_decs, radius)
-        #center_xs, center_ys, center_ras, center_decs = center_xs[mask], center_ys[mask], center_ras[mask], center_decs[mask]
+        center_xs, center_ys, center_ras, center_decs = center_xs[mask], center_ys[mask], center_ras[mask], center_decs[mask]
         valid = np.array([is_valid(mask_infile, x, y, radius_pixel) for x, y in track(zip(center_xs, center_ys))])
         mask = np.where(valid == True)
         numbers = np.array([count_sources(ra, dec, x, y, radius) for x, y in zip(center_ras, center_decs)])
@@ -114,16 +122,20 @@ if __name__ == '__main__':
 
         percents = np.round(counts/len(final_numbers), 2)
         sigmas =  [norm.ppf(prob) for prob in percents]
+
+        parameters, cov_matrix = curve_fit(fit_function, x_plotting, percents)
         # adding second y-axis
         def prob_to_sigma(prob):
             return norm.ppf(prob)
-        
+
         def sigma_to_prob(sigma):
             return norm.cdf(sigma)
 
         #plt.hist(final_numbers, histtype='step', label=f'radius = {np.round(radius,2)}', bins = np.arange(0, 11, 1))
-        ax.step(x_plotting, percents, label = np.round(radius_mpc, 2))
-        ax1 = ax.secondary_yaxis('right', functions=(prob_to_sigma, sigma_to_prob))
+        ax.scatter(x_plotting, percents, label = np.round(radius_mpc, 2), color='k')
+        ax.plot(x_plotting, percents, color='r')
+        ax.plot(bins, fit_function(bins, *parameters))
+        #ax1 = ax.secondary_yaxis('right', functions=(prob_to_sigma, sigma_to_prob))
         ax.axvline(counts_around_qso, ls=':', color='k')
         ax.legend()
         end_plot(f'center_sig_{radius}.png')
