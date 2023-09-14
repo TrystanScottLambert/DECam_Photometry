@@ -118,5 +118,9 @@ if __name__ == '__main__':
     lya_flux = calculate_lyman_alpha_flux(n_flux_nu, z_flux_nu, NB964, Z_BAND)
     lya_lum = convert_flux_to_luminosity(lya_flux)
     log_10_lya = np.log10(lya_lum.value)
+
+    ha_lum = lya_lum / 8.7 # See muzzucchelli 2017
+    log_10_sfr = np.log10(ha_lum.value) - 41.27 #See muzzucchelli 2017
     plt.hist(log_10_lya, bins=np.arange(42.0, 43.8,0.1))
     plt.show()
+
