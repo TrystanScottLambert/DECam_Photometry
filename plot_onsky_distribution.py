@@ -36,7 +36,7 @@ RA_QSO = (23 + (48/60) + (33.34/3600)) * (360/24)
 DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
 REDSHIFT_QSO = 6.9
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
-ARCSEC_PER_KPC = COSMO.arcsec_per_kpc_comoving(REDSHIFT_QSO)
+ARCSEC_PER_KPC = COSMO.arcsec_per_kpc_proper(REDSHIFT_QSO)
 DEG_PER_MPC = ARCSEC_PER_KPC.to(u.deg / u.Mpc)
 DEG_PER_PIX = np.abs(decam_hdu[0].header['PC2_2'])
 REGION_FILE = 'decam.reg'
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #On sky distribution plot.
     #region_1 = set_region(ra_qso_plot, dec_qso_plot, 35)
     #region_10 = set_region(ra_qso_plot, dec_qso_plot, 55.2)
-    region_20 = set_region(ra_qso_plot, dec_qso_plot, 40.6)
+    region_20 = set_region(ra_qso_plot, dec_qso_plot, 5)
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(projection = decam_wcs)

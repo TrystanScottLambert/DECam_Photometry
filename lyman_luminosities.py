@@ -84,13 +84,14 @@ def convert_flux_to_luminosity(flux: float):
 if __name__ == '__main__':
     NARROW_BANDPASS_FILE = '../QSO_Spectra/NB964_DECam_F29.txt'
     Z_BANDPASS_FILE = '../QSO_Spectra/decam_z_bandpass.txt'
-    #NARROW_CATALOG = '../correct_stacks/N964/n964.cat'
-    #Z_CATALOG = '../correct_stacks/N964/z.cat'
-    #CANDIDATES_CATALOG = 'candidates.txt'
+    
+    NARROW_CATALOG = '../correct_stacks/N964/n964.cat'
+    Z_CATALOG = '../correct_stacks/N964/z.cat'
+    CANDIDATES_CATALOG = 'candidates_e.txt'
 
-    NARROW_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
-    Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
-    CANDIDATES_CATALOG = 'candidates_cdfs.txt'
+    #NARROW_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
+    #Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
+    #CANDIDATES_CATALOG = 'candidates_cdfs_e.txt'
 
 
     ra_n, dec_n, n_mag = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(0, 1, 4))
