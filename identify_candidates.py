@@ -16,7 +16,7 @@ from postage_stamps import cut_out_mulitple_stamps
 from gui import start_gui
 from zero_points import zero_points, ZeroPoints
 from zero_points_cdfs import zero_points_cdfs
-from snr_fit import a_fit, b_fit, exponential_func
+#from snr_fit import a_fit, b_fit, exponential_func
 
 
 def calculate_snr(mag_err: float) -> float:
@@ -107,199 +107,16 @@ class Inputs:
         return [fits.open(image) for image in self.images]
 
 
-class SelectionCriteria(Protocol):
-    """Abstract base class for selection criteria."""
-
-    inputs: Inputs
-    n964_2_lim: float
-    n964_135_lim: float
-    i_lim: float
-    z_lim: float
-
-    @abstractmethod
-    def select_n964(self) -> np.ndarray:
-        """The selection criteria for the n964 filter."""
-
-    @abstractmethod
-    def select_i(self) -> np.ndarray:
-        """The selection criteria for the i band filter."""
-
-    @abstractmethod
-    def select_z(self) -> np.ndarray:
-        """The selection criteria for the z band filter."""
-
-    def apply_selection_criteria(self) -> np.ndarray:
-        """Applies all the selction criteria to the input."""
-        msk_n964 = self.select_n964()
-        msk_i = self.select_i()
-        msk_z = self.select_z()
-        first = np.intersect1d(msk_n964, msk_i)
-        return np.intersect1d(first, msk_z)
-
-    @property
-    @abstractmethod
-    def n964_data(self) -> tuple:
-        """Read in the n964 data."""
-
-    @property
-    @abstractmethod
-    def i_data(self) -> tuple:
-        """Read in the n964 data."""
-
-    @property
-    @abstractmethod
-    def z_data(self) -> tuple:
-        """Read in the n964 data."""
-
-
-
-class MagCutSelection(SelectionCriteria):
-    """Selection using mag cuts."""
-
-    def __init__(
-            self, inputs: Inputs, n964_2_lim: float, n964_135_lim: float, i_lim: float, z_lim: float
-            ) -> None:
-        self.inputs = inputs
-        self.n964_2_lim = n964_2_lim
-        self.n964_135_lim =  n964_135_lim
-        self.i_lim = i_lim
-        self.z_lim = z_lim
-
-    @property
-    def n964_data(self) -> tuple:
-        inst_mag_n964, _, _ = read_all(self.inputs.infile_n964)
-        inst_mag_135, _, _ = read_all(self.inputs.infile_n964_135)
-        mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(
-            self.inputs.aperture_radii)
-        mag_n964_135 = inst_mag_135 + self.inputs.zero_point_function.n964_band.mag_correct(
-            1.35/2)
-        return mag_n964, mag_n964_135
-
-    def select_n964(self) -> np.ndarray:
-        #1. mag < 24.2 for the N964 filter in 2" and mag < 24 in 1.35" apertures.
-        two_arcsecond_cut = np.where(self.n964_data[0] < self.n964_2_lim)[0]
-        one_arcsecond_cut = np.where(self.n964_data[1] < self.n964_135_lim)[0]
-        n964_cut = np.intersect1d(two_arcsecond_cut, one_arcsecond_cut)
-        return n964_cut
-
-    @property
-    def i_data(self) -> tuple:
-        inst_mag_i, _, _ = read_all(self.inputs.infile_i)
-        mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(
-            self.inputs.aperture_radii)
-        return (mag_i,)
-
-    def select_i(self) -> np.ndarray:
-        #2. mag > 25.8 for the i band filter.
-        return np.where(self.i_data[0] > self.i_lim)[0]
-
-    @property
-    def z_data(self) -> tuple:
-        inst_mag_z, _, _ = read_all(self.inputs.infile_z)
-        mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(
-            self.inputs.aperture_radii)
-        return (mag_z,)
-
-    def select_z(self) -> np.ndarray:
-        #3a.  z-N964 > 1.9 and mag < 25.6 for the z filter
-        #3.b  S/N_2" > 25.6 for the z filter.
-        color_selection = 1.9
-        inst_kron_mag_n964 = np.loadtxt(self.inputs.infile_n964, usecols=(6), unpack=True)
-        inst_kron_mag_z =  np.loadtxt(self.inputs.infile_z, usecols=(6), unpack=True)
-        # 0.945" is the minimum kron radius.
-        kron_mag_n964 = inst_kron_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(0.945)
-        kron_mag_z = inst_kron_mag_z + self.inputs.zero_point_function.z_band.mag_correct(0.945)
-        color = kron_mag_z - kron_mag_n964
-
-        z_cut_a_1 = np.where(color > color_selection)
-        z_cut_a_2 = np.where(self.z_data[0] < self.z_lim)[0]
-        z_cut_a = np.intersect1d(z_cut_a_1, z_cut_a_2)
-
-        z_cut_b = np.where(self.z_data[0] > self.z_lim)[0]
-        return np.union1d(z_cut_a, z_cut_b)
-
-
-class ClassicSNR(SelectionCriteria):
-    """Selection using mag cuts."""
-
-    def __init__(
-            self, inputs: Inputs, n964_2_lim: float, n964_135_lim: float, i_lim: float, z_lim: float
-            ) -> None:
-        self.inputs = inputs
-        self.n964_2_lim = n964_2_lim
-        self.n964_135_lim =  n964_135_lim
-        self.i_lim = i_lim
-        self.z_lim = z_lim
-
-    @property
-    def n964_data(self) -> tuple:
-        inst_mag_n964, _, snr_n964 = read_all(self.inputs.infile_n964)
-        inst_mag_135, _, snr_135 = read_all(self.inputs.infile_n964_135)
-        mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(
-            self.inputs.aperture_radii)
-        mag_n964_135 = inst_mag_135 + self.inputs.zero_point_function.n964_band.mag_correct(
-            1.35/2)
-        return mag_n964, mag_n964_135, snr_n964, snr_135
-
-    def select_n964(self) -> np.ndarray:
-        #1. S/N_2" > 5 and S/N_1.35" > 5 for the N964 filter.
-        two_arcsecond_cut = np.where(self.n964_data[2] > self.n964_2_lim)[0]
-        one_arcsecond_cut = np.where(self.n964_data[3] > self.n964_135_lim)[0]
-        n964_cut = np.intersect1d(two_arcsecond_cut, one_arcsecond_cut)
-        return n964_cut
-
-    @property
-    def i_data(self) -> tuple:
-        inst_mag_i, _, snr_i = read_all(self.inputs.infile_i)
-        mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(
-            self.inputs.aperture_radii)
-        return mag_i, snr_i
-
-    def select_i(self) -> np.ndarray:
-         #2. S/N_2" < 3 for the i band filter.
-        return np.where(self.i_data[1] < self.i_lim)[0]
-
-    @property
-    def z_data(self) -> tuple:
-        inst_mag_z, mag_z, z_snr = read_all(self.inputs.infile_z)
-        mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(
-            self.inputs.aperture_radii)
-        return mag_z, z_snr
-
-    def select_z(self) -> np.ndarray:
-        #3a.  z-N964 > 1.9 and S/N_2" > 3 for the z filter
-        #3.b  S/N_2" < 3 for the z filter.
-        color_selection = 1.9
-        inst_kron_mag_n964 = np.loadtxt(self.inputs.infile_n964, usecols=(6), unpack=True)
-        inst_kron_mag_z =  np.loadtxt(self.inputs.infile_z, usecols=(6), unpack=True)
-        kron_mag_n964 = inst_kron_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(0.945)
-        kron_mag_z = inst_kron_mag_z + self.inputs.zero_point_function.z_band.mag_correct(0.945)
-        color = kron_mag_z - kron_mag_n964
-
-        z_cut_a_1 = np.where(color > color_selection)
-        z_cut_a_2 = np.where(self.z_data[1] > self.z_lim)[0]
-        z_cut_a = np.intersect1d(z_cut_a_1, z_cut_a_2)
-
-        z_cut_b = np.where(self.z_data[1] < self.z_lim)[0]
-        return np.union1d(z_cut_a, z_cut_b)
-
-class ImacsSelection(MagCutSelection):
-    """
-    Selection for when we use the imacs combined i-band values and area.
-    RUN combine_i_bands.py before running this. The current data files 
-    need to be generated.
-    """
-
-    @property
-    def i_data(self) -> tuple:
-        return (np.loadtxt(self.inputs.infile_i),)
-
-class EduaradoSelection(ClassicSNR):
+class Selection:
     """Selection using the criteria by banados 2013 & Mazzucchelli 2017."""
+    def __init__(self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float):
+        self.inputs = inputs
+        self.i_lim = i_2sigma_lim
+        self.z_lim = z_2sigma_lim
+
     @property
     def n964_data(self) -> tuple:
         inst_mag_n964, inst_mag_n964_err, _ = read_all(self.inputs.infile_n964)
-        #inst_mag_n964 = np.array([np.random.normal(mag, exponential_func(mag, a_fit, b_fit)) for mag in inst_mag_n964])
         mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(self.inputs.aperture_radii)
         return mag_n964, inst_mag_n964_err
 
@@ -307,20 +124,18 @@ class EduaradoSelection(ClassicSNR):
     def z_data(self) -> tuple:
         inst_mag_z, inst_mag_z_err, z_snr = read_all(self.inputs.infile_z)
         mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
-        #cut = np.where(inst_mag_z == 99)[0]
         cut = np.where(z_snr < 2)[0]
-        #mag_z[cut] = self.z_lim
+        mag_z[cut] = self.z_lim
         return mag_z, inst_mag_z_err
 
     @property
     def i_data(self) -> tuple:
         inst_mag_i, inst_mag_i_err, i_snr = read_all(self.inputs.infile_i)
         mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
-        #cut = np.where(inst_mag_i == 99)[0]
         cut = np.where(i_snr < 2)[0]
         mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err
-    
+
     def narrow_color_select(self):
         """
         Looking for excess in narrow band and that that excess is significatnt.
@@ -348,18 +163,19 @@ class EduaradoSelection(ClassicSNR):
 
     def select_i_band(self):
         """Implementing an I-band cut."""
-        i_mag, _ = self.i_data
-        cut = np.where(i_mag > self.i_lim)[0]
+        _, _, i_snr = read_all(self.inputs.infile_i)
+        cut = np.where(i_snr < 2)[0]
         return cut
 
     def apply_selection_criteria(self) -> np.ndarray:
+        """Does the selection"""
         narrow_band_excess = self.narrow_color_select()
         continuum_break = self.continuum_color_select()
         i_non_detect = self.select_i_band()
         return np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect)
 
 
-def perform_selection(selection: SelectionCriteria):
+def perform_selection(selection: Selection):
     """Opens the gui for the user to reject candidates and write to file."""
     cut = selection.apply_selection_criteria()
     print(f'Final candidate count is: {len(cut)}')
@@ -379,7 +195,7 @@ def perform_selection(selection: SelectionCriteria):
 if __name__ == '__main__':
     our_inputs = Inputs(
         red_list_name='candidates_red_list.txt',
-        output_name='candidates',
+        output_name='candidates_e',
         infile_n964='../correct_stacks/N964/n964.cat',
         infile_n964_135='../correct_stacks/N964/n964_135.cat',
         infile_i = '../correct_stacks/N964/i.cat',
@@ -394,51 +210,6 @@ if __name__ == '__main__':
 
     cdfs_inputs = Inputs(
         red_list_name='candidates_red_list_cdfs.txt',
-        output_name='candidates_cdfs',
-        infile_n964='../CDFS_LAGER/n964_cdfs.cat',
-        infile_n964_135='../CDFS_LAGER/n964_135_cdfs.cat',
-        infile_i = '../CDFS_LAGER/i_cdfs.cat',
-        infile_z='../CDFS_LAGER/z_cdfs.cat',
-        zero_point_function=zero_points_cdfs,
-        images=(
-            '../CDFS_LAGER/CDFS_i.fits.fz',
-            '../CDFS_LAGER/CDFS_z.fits.fz',
-            '../CDFS_LAGER/CDFS_NB.fits.fz'),
-        aperture_radii=1.
-    )
-
-    imacs_inputs = Inputs(
-        red_list_name = 'candidates_red_list_imacs.txt',
-        output_name = 'candidates_imacs',
-        infile_n964 = 'imacs_n964.cat',
-        infile_n964_135 = 'imacs_n964_135.cat',
-        infile_i='imacs_i.dat',
-        infile_z='imacs_z.cat',
-        zero_point_function=zero_points,
-        images = (
-            '../../IMACS_photometry/imacs_data/night_2_theli.fits',
-            '../correct_stacks/N964/z.fits',
-            '../correct_stacks/N964/n964.fits'),
-        aperture_radii=1
-    )
-
-    our_inputs_eduardo = Inputs(
-        red_list_name='candidates_red_list.txt',
-        output_name='candidates_e',
-        infile_n964='../correct_stacks/N964/n964.cat',
-        infile_n964_135='../correct_stacks/N964/n964_135.cat',
-        infile_i = '../correct_stacks/N964/i.cat',
-        infile_z='../correct_stacks/N964/z.cat',
-        zero_point_function=zero_points,
-        images=(
-        '../correct_stacks/N964/i.fits',
-        '../correct_stacks/N964/z.fits',
-        '../correct_stacks/N964/n964.fits'),
-        aperture_radii=1.
-    )
-
-    cdfs_inputs_eduardo = Inputs(
-        red_list_name='candidates_red_list_cdfs.txt',
         output_name='candidates_cdfs_e',
         infile_n964='../CDFS_LAGER/n964_cdfs.cat',
         infile_n964_135='../CDFS_LAGER/n964_135_cdfs.cat',
@@ -452,22 +223,11 @@ if __name__ == '__main__':
         aperture_radii=1.
     )
 
-    i_depth = 26.23
-    i_depth_2_sigma = 26.68
-    z_depth_2_sigma = 26.61
-    z_depth = 26.16
-    n_depth = 24.66#24.66#
-    n_135_depth = 25.10#25.10#
+    i_depth_2_sigma = 26.64
+    z_depth_2_sigma = 26.58
 
-    #imacs_selection = ImacsSelection(imacs_inputs, n_depth, n_135_depth, 26.21, z_depth)
-    #our_selection = MagCutSelection(our_inputs, n_depth, n_135_depth, i_depth, z_depth)
-    #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
-    #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
-    #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
-    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth_2_sigma, z_depth_2_sigma)
-    #cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
-    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, i_depth_2_sigma, z_depth_2_sigma)
+    our_selection = Selection(our_inputs, i_depth_2_sigma, z_depth_2_sigma)
+    cdfs_selection = Selection(cdfs_inputs, i_depth_2_sigma, z_depth_2_sigma)
 
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
-    #perform_selection(imacs_selection)
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection)
