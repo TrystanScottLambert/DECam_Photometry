@@ -59,7 +59,10 @@ def read_in_catalogs(
 
 
 if __name__ == '__main__':
-    OUR_DEPTHS = [25.66, 25.58, 24.66]
+    OUR_DEPTHS = [26.23, 25.58, 24.66]
+    I_BAND_3_SIGMA = 26.23
+    I_BAND_2_SIGMA = 26.68
+    Z_BAND_3_SIGMA = 26.16
     OUR_CATALOGS = [
         '../correct_stacks/N964/i.cat',
         '../correct_stacks/N964/z.cat',
@@ -68,28 +71,51 @@ if __name__ == '__main__':
     ra, dec = np.loadtxt(CANDIDATES_FILE, unpack=True)
 
     our_i_cat, our_z_cat, our_n964_cat = read_in_catalogs(OUR_CATALOGS, zero_points, OUR_DEPTHS)
+    z_mag, z_err = our_z_cat['MAG_CORR'], our_z_cat['MAGERR_APER']
+    z_mag[our_z_cat['MAG_APER'] == 99] = Z_BAND_3_SIGMA
+    z_err[our_z_cat['MAG_APER'] == 99] = 0.1
+
+    i_mag, i_err = our_i_cat['MAG_CORR'], our_i_cat['MAGERR_APER']
+    i_mag[our_i_cat['MAG_APER'] == 99] = I_BAND_3_SIGMA
+    i_err[our_i_cat['MAG_APER'] == 99] = 0.1
+
+    z_cut = np.where(our_z_cat['MAG_APER'] == 99)[0]
+    i_cut = np.where(our_i_cat['MAG_APER'] == 99)[0]
+
+    artifacts = np.intersect1d(z_cut, i_cut) # these tend to be bright stars at the saturation limit on narrow band
+
+    n_mag, n_err = our_n964_cat['MAG_CORR'], our_n964_cat['MAGERR_APER']
     cats = [our_i_cat, our_z_cat, our_n964_cat]
+
+    color_zn = z_mag - n_mag
+    color_iz = i_mag - z_mag
+
+    cut1 = np.where(color_iz > 4)[0]
+    cut2 = np.where(color_zn < 0.35)[0]
+    more_artifacts = np.intersect1d(cut1, cut2) # tend to be stars saturating in i-band
+    artifacts = np.union1d(artifacts, more_artifacts)
+    good = np.setdiff1d(np.arange(len(i_mag)), artifacts)
+
     candidate_cats = [cross_match_to_sexcat(ra, dec, cat) for cat in cats]
-    candidate_z_nb = candidate_cats[1]['MAG_CORR'] - candidate_cats[2]['MAG_CORR']
-    candidate_i_z = candidate_cats[0]['MAG_CORR'] - candidate_cats[1]['MAG_CORR']
+    can_z = candidate_cats[1]['MAG_CORR']
+    can_z_err = candidate_cats[1]['MAGERR_APER']
+    can_i = candidate_cats[0]['MAG_CORR']
+    can_i_err = candidate_cats[0]['MAGERR_APER']
+    can_n = candidate_cats[2]['MAG_CORR']
+    can_n_err = candidate_cats[2]['MAGERR_APER']
 
+    can_i[can_i>26.68] = 26.68
 
-    z_nb = our_z_cat['MAG_CORR'] - our_n964_cat['MAG_CORR']
-    i_z  = our_i_cat['MAG_CORR'] - our_z_cat['MAG_CORR']
-    limited_z = np.where(our_z_cat['MAG_APER'] == 99)[0]
-    limited_i = np.where(our_i_cat['MAG_APER'] == 99)[0]
-    limited_n964 = np.where(our_n964_cat['MAG_APER'] == 99)[0]
-    only_z = np.setdiff1d(limited_z, limited_i)
-    double_uncertainty = np.intersect1d(limited_i,limited_z)
-    only_i = np.setdiff1d(limited_i, limited_z)
-    plt.axhline(0.75, color='r', ls='--')
+    candidate_z_nb = can_z - can_n
+    candidate_i_z = can_i - can_z
+
+    candidate_z_nb_err = np.hypot(can_z_err, can_n_err)
+    candidate_i_z_err = np.hypot(can_z_err, can_i_err)
+
+    plt.axhline(0.78, color='r', ls='--')
     plt.axvline(1, color='r', ls='--')
-    plt.scatter(i_z, z_nb, color='k', s=1)
-    arrow_err = (2.5/np.log(10)) / 5
-    #plt.errorbar(z_nb[only_z], i_z[only_z], color='b', yerr=arrow_err, fmt='o', ms=2,elinewidth=1, lolims=True)
-    #plt.errorbar(z_nb[only_i], i_z[only_i], color='g', xerr=arrow_err, fmt='o', ms=2, elinewidth=1, xlolims=True)
-    #plt.errorbar(z_nb[double_uncertainty], i_z[double_uncertainty], color='r', xerr=arrow_err, yerr=arrow_err, fmt='o', ms=2, elinewidth=1, xlolims=True, lolims=True)
-    plt.scatter(candidate_i_z, candidate_z_nb, marker = 'd', s=80, color='r')
+    plt.scatter(color_iz[good], color_zn[good], s=1, alpha=0.3, color='k')
+    plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, fmt='o')
+    plt.xlim(-0.7, 4.1)
+    plt.ylim(-0.7, 3.6)
     plt.show()
-
-    write_region_file(list(our_n964_cat['ALPHAPEAK_J2000'][only_z]), list(our_n964_cat['DELTAPEAK_J2000'][only_z]), 'delete_z.reg')

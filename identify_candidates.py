@@ -305,24 +305,26 @@ class EduaradoSelection(ClassicSNR):
 
     @property
     def z_data(self) -> tuple:
-        inst_mag_z, inst_mag_z_err, _ = read_all(self.inputs.infile_z)
+        inst_mag_z, inst_mag_z_err, z_snr = read_all(self.inputs.infile_z)
         mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
-        cut = np.where(inst_mag_z == 99)[0]
-        mag_z[cut] = self.z_lim
+        #cut = np.where(inst_mag_z == 99)[0]
+        cut = np.where(z_snr < 2)[0]
+        #mag_z[cut] = self.z_lim
         return mag_z, inst_mag_z_err
 
     @property
     def i_data(self) -> tuple:
-        inst_mag_i, inst_mag_i_err, _ = read_all(self.inputs.infile_i)
+        inst_mag_i, inst_mag_i_err, i_snr = read_all(self.inputs.infile_i)
         mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
-        cut = np.where(inst_mag_i == 99)[0]
+        #cut = np.where(inst_mag_i == 99)[0]
+        cut = np.where(i_snr < 2)[0]
         mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err
     
     def narrow_color_select(self):
         """
         Looking for excess in narrow band and that that excess is significatnt.
-        z-NB> 0.75 and |z-nb| > 2.5 sqrt(u(z)^2 + u(nb)^2)
+        z-NB> 0.78 and |z-nb| > 2.5 sqrt(u(z)^2 + u(nb)^2)
         """
 
         z_mag, z_err = self.z_data
@@ -452,6 +454,7 @@ if __name__ == '__main__':
 
     i_depth = 26.23
     i_depth_2_sigma = 26.68
+    z_depth_2_sigma = 26.61
     z_depth = 26.16
     n_depth = 24.66#24.66#
     n_135_depth = 25.10#25.10#
@@ -461,8 +464,9 @@ if __name__ == '__main__':
     #our_selection_classic = ClassicSNR(our_inputs, 5, 5, 3, 3)
     #cdfs_selection = MagCutSelection(cdfs_inputs, n_depth, n_135_depth, i_depth, z_depth)
     #cdfs_selection_classic = ClassicSNR(cdfs_inputs, 5, 5, 3, 3)
-    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth_2_sigma, z_depth)
+    our_selection = EduaradoSelection(our_inputs_eduardo, None, None, i_depth_2_sigma, z_depth_2_sigma)
     #cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, 27.35, 26.94)
+    cdfs_selection = EduaradoSelection(cdfs_inputs_eduardo, None, None, i_depth_2_sigma, z_depth_2_sigma)
 
     perform_selection(our_selection)
     #perform_selection(cdfs_selection)
