@@ -3,8 +3,6 @@ Basically the same as identify_candidates.py but using custom selection criteria
 """
 
 from dataclasses import dataclass
-from abc import abstractmethod
-from typing import Protocol
 import warnings
 import numpy as np
 from astropy.coordinates import SkyCoord
@@ -14,14 +12,25 @@ from astropy.io import fits
 import convert_sexcat_into_region as con
 from postage_stamps import cut_out_mulitple_stamps
 from gui import start_gui
-from zero_points import zero_points, ZeroPoints
+from zero_points import zero_points, ZeroPoints, ZeroPoint
 from zero_points_cdfs import zero_points_cdfs
-#from snr_fit import a_fit, b_fit, exponential_func
+from snr_fit import exponential_func
 
+
+# Exponential fit values from snr_fit.py
+EXPONENTIAL_FIT_VALS = {
+    'i': [90096515422.69316, -0.9205260436876037],
+    'z': [84922890028.87346, -0.9206443374807416],
+    'n964': [39261983356.719025, -0.9225050055176908],
+    'i_cdfs': [218670450252.50992, -0.9078648179670485],
+    'z_cdfs': [228699895422.94614, -0.9181554190676867],
+    'n964_cdfs': [29312290374.71675, -0.9063544384857863]
+}
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
     return (2.5/np.log(10))/mag_err
+
 
 def read_all(catalog_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Reads in the magnitudes, errors, and works out the snr."""
@@ -117,9 +126,9 @@ class Selection:
     @property
     def n964_data(self) -> tuple:
         """Reads in the narrowband data and converts instrumental mags into AB mags."""
-        inst_mag_n964, inst_mag_n964_err, _ = read_all(self.inputs.infile_n964)
+        inst_mag_n964, inst_mag_n964_err, snr = read_all(self.inputs.infile_n964)
         mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(self.inputs.aperture_radii)
-        return mag_n964, inst_mag_n964_err
+        return mag_n964, inst_mag_n964_err, snr
 
     @property
     def z_data(self) -> tuple:
@@ -128,7 +137,7 @@ class Selection:
         mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
         cut = np.where(z_snr < 2)[0]
         mag_z[cut] = self.z_lim
-        return mag_z, inst_mag_z_err
+        return mag_z, inst_mag_z_err, z_snr
 
     @property
     def i_data(self) -> tuple:
@@ -137,7 +146,7 @@ class Selection:
         mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
         cut = np.where(i_snr < 2)[0]
         mag_i[cut] = self.i_lim
-        return mag_i, inst_mag_i_err
+        return mag_i, inst_mag_i_err, i_snr
 
     def narrow_color_select(self):
         """
@@ -145,8 +154,8 @@ class Selection:
         z-NB> 0.78 and |z-nb| > 2.5 sqrt(u(z)^2 + u(nb)^2)
         """
 
-        z_mag, z_err = self.z_data
-        n964_mag, n964_err = self.n964_data
+        z_mag, z_err, _ = self.z_data
+        n964_mag, n964_err, _ = self.n964_data
         color = z_mag - n964_mag
         significance = 2.5 * np.hypot(z_err, n964_err)
         first_cut = np.where(color > 0.78)[0]
@@ -158,15 +167,15 @@ class Selection:
 
     def continuum_color_select(self):
         """Looking for the continuum break via I-Z > 1.0"""
-        z_mag, _ = self.z_data
-        i_mag, _ = self.i_data
+        z_mag, _, _ = self.z_data
+        i_mag, _, _ = self.i_data
         color = i_mag - z_mag
         cut = np.where(color > 1.)[0]
         return cut
 
     def select_i_band(self):
         """Implementing an I-band cut."""
-        _, _, i_snr = read_all(self.inputs.infile_i)
+        _, _, i_snr = self.i_data
         cut = np.where(i_snr < 2)[0]
         return cut
 
@@ -193,6 +202,55 @@ class LagerSelection(Selection):
     def select_i_band(self):
         cut = np.where(self.i_data[0] >= self.i_lim_us)[0]
         return cut
+
+class DegradedLagerSelection(Selection):
+    """
+    Degrading the CDFS data so that it is equivelent to our depths;
+    using the snr fits from snr_fit.py
+    """
+
+    def __init__(self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float,
+                 n_2sigma_lim: float, i_1sigma_lim: float, z_1sigma_lim: float, n_1sigma_lim: float):
+        super().__init__(inputs, i_2sigma_lim, z_2sigma_lim)
+        self.n_lim = n_2sigma_lim
+        self.i_depth_1_sigma = i_1sigma_lim
+        self.n_depth_1_sigma = n_1sigma_lim
+        self.z_depth_1_sigma = z_1sigma_lim
+    
+    def _prepare_band(self, input_file: str, zeropoint: ZeroPoint, sigma_2_depth: float, sigma_1_depth: float, band: str) -> tuple:
+        """Works out the degraded band data."""
+        inst_mag, mag_err, _ = read_all(input_file)
+        mag = inst_mag + zeropoint.mag_correct(1)
+        non_detections = np.where(mag >= sigma_1_depth)[0]
+        detections = np.where(mag < sigma_1_depth)[0]
+        mag[non_detections] = sigma_2_depth
+        mag_err[non_detections] = 99.
+        mag_err[detections] = calculate_snr(exponential_func(mag_err[detections], *EXPONENTIAL_FIT_VALS[band]))
+        mag[detections] = np.random.normal(mag[detections], mag_err[detections])
+        snr = calculate_snr(mag_err)
+        return mag, mag_err, snr
+
+    @property
+    def i_data(self) -> tuple[float, float, float]:
+        mag_i, mag_i_err, i_snr = self._prepare_band(
+            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, self.i_depth_1_sigma, 'i')
+        cut = np.where(i_snr < 2)[0]
+        mag_i[cut] = self.i_lim
+        return mag_i, mag_i_err, i_snr
+
+    @property
+    def z_data(self) -> tuple[float, float, float]:
+        mag_z, mag_z_err, z_snr = self._prepare_band(
+            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, self.z_depth_1_sigma, 'z')
+        cut = np.where(z_snr < 2)[0]
+        mag_z[cut] = self.z_lim
+        return mag_z, mag_z_err, z_snr
+
+    @property
+    def n964_data(self) -> tuple[float, float, float]:
+        mag_n, mag_n_err, n_snr = self._prepare_band(
+            self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, self.n_depth_1_sigma, 'n964')
+        return mag_n, mag_n_err, n_snr
 
 
 
@@ -246,16 +304,23 @@ if __name__ == '__main__':
 
     i_depth_2_sigma = 26.64
     z_depth_2_sigma = 26.58
+    n_depth_2_sigma = 25.69
+    i_depth_1_sigma = 27.40
+    z_depth_1_sigma = 27.33
+    n_depth_1_sigma = 26.44
 
     i_depth_2_sigma_cdfs = 28.10
     z_depth_2_sigma_cdfs = 27.73
 
     our_selection = Selection(our_inputs, i_depth_2_sigma, z_depth_2_sigma)
-    cdfs_selection = LagerSelection(
-        cdfs_inputs, i_depth_2_sigma_cdfs, z_depth_2_sigma_cdfs, i_depth_2_sigma)
-
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
+    #cdfs_selection = LagerSelection(
+    #    cdfs_inputs, i_depth_2_sigma_cdfs, z_depth_2_sigma_cdfs, i_depth_2_sigma)
+    cdfs_selection = DegradedLagerSelection(
+        cdfs_inputs, i_depth_2_sigma, z_depth_2_sigma, n_depth_2_sigma,
+        i_depth_1_sigma, z_depth_1_sigma, n_depth_1_sigma)
+    
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection)
     
     #true_cdfs_inputs = cdfs_inputs
     #true_cdfs_inputs.output_name = 'candidates_true_cdfs'
