@@ -116,12 +116,14 @@ class Selection:
 
     @property
     def n964_data(self) -> tuple:
+        """Reads in the narrowband data and converts instrumental mags into AB mags."""
         inst_mag_n964, inst_mag_n964_err, _ = read_all(self.inputs.infile_n964)
         mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(self.inputs.aperture_radii)
         return mag_n964, inst_mag_n964_err
 
     @property
     def z_data(self) -> tuple:
+        """Reads in the z band data and converts instrumental mags into AB mags."""
         inst_mag_z, inst_mag_z_err, z_snr = read_all(self.inputs.infile_z)
         mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
         cut = np.where(z_snr < 2)[0]
@@ -130,6 +132,7 @@ class Selection:
 
     @property
     def i_data(self) -> tuple:
+        """Reads in the i band data and converts instrumental mags into AB mags."""
         inst_mag_i, inst_mag_i_err, i_snr = read_all(self.inputs.infile_i)
         mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
         cut = np.where(i_snr < 2)[0]
@@ -173,6 +176,24 @@ class Selection:
         continuum_break = self.continuum_color_select()
         i_non_detect = self.select_i_band()
         return np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect)
+
+
+class LagerSelection(Selection):
+    """
+    Class for the Lager selection using the cdfs depth.
+    Only important when we make the SNR cut for the i band.
+    """
+
+    def __init__(
+            self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float,
+            i_2sigma_us: float) -> None:
+        super().__init__(inputs, i_2sigma_lim, z_2sigma_lim)
+        self.i_lim_us = i_2sigma_us
+
+    def select_i_band(self):
+        cut = np.where(self.i_data[0] >= self.i_lim_us)[0]
+        return cut
+
 
 
 def perform_selection(selection: Selection):
@@ -226,8 +247,17 @@ if __name__ == '__main__':
     i_depth_2_sigma = 26.64
     z_depth_2_sigma = 26.58
 
-    our_selection = Selection(our_inputs, i_depth_2_sigma, z_depth_2_sigma)
-    cdfs_selection = Selection(cdfs_inputs, i_depth_2_sigma, z_depth_2_sigma)
+    i_depth_2_sigma_cdfs = 28.10
+    z_depth_2_sigma_cdfs = 27.73
 
-    #perform_selection(our_selection)
-    perform_selection(cdfs_selection)
+    our_selection = Selection(our_inputs, i_depth_2_sigma, z_depth_2_sigma)
+    cdfs_selection = LagerSelection(
+        cdfs_inputs, i_depth_2_sigma_cdfs, z_depth_2_sigma_cdfs, i_depth_2_sigma)
+
+    perform_selection(our_selection)
+    #perform_selection(cdfs_selection)
+    
+    #true_cdfs_inputs = cdfs_inputs
+    #true_cdfs_inputs.output_name = 'candidates_true_cdfs'
+    #true_cdfs_selection = Selection(true_cdfs_inputs, i_depth_2_sigma_cdfs, z_depth_2_sigma_cdfs)
+    #perform_selection(true_cdfs_selection)

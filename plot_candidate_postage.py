@@ -29,8 +29,11 @@ i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
 
-SIGMA_I_3 = '>26.16'
-SIGMA_Z_3 = '>26.23'
+SIGMA_I_2_string = '>26.64'
+SIGMA_Z_2_string = '>26.58'
+SIGMA_I_2 = 26.64
+SIGMA_Z_2 = 26.58
+
 
 os.system('rm postage_stamps/*.png')
 def fancy_round(mag) -> str:
@@ -51,8 +54,8 @@ def replace_non_detections(catalog: DataFrame, replacement_value: str) -> DataFr
     magnitude. catalog must have the MAG_CORR value calculated.
     """
     catalog.astype({'MAG_CORR': 'str'})
-    catalog.loc[catalog['MAG_APER'] == 99, 'MAG_CORR'] = replacement_value
     catalog['SNR'] = (2.5/np.log(10))/catalog['MAGERR_APER']
+    catalog.loc[catalog['SNR'] < 2, 'MAG_CORR'] = replacement_value
     return catalog
 
 ra, dec = np.loadtxt(INFILE_US, unpack=True)
@@ -65,8 +68,8 @@ i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points.i_band.mag_correct(1)
 z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points.z_band.mag_correct(1)
 n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points.n964_band.mag_correct(1)
 
-i_cat = replace_non_detections(i_cat, SIGMA_I_3)
-z_cat = replace_non_detections(z_cat, SIGMA_Z_3)
+i_cat = replace_non_detections(i_cat, SIGMA_I_2_string)
+z_cat = replace_non_detections(z_cat, SIGMA_Z_2_string)
 n_cat = replace_non_detections(n_cat, 'NAS')
 
 i_snr, i_mag = np.array(i_cat['SNR']), np.array(i_cat['MAG_CORR'])
