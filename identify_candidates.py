@@ -18,7 +18,7 @@ from zero_points_cdfs import zero_points_cdfs
 from snr_fit import exponential_func
 
 
-RANDOM_STATE = 200
+RANDOM_STATE = 100
 np.random.seed(RANDOM_STATE)
 
 # Exponential fit values from snr_fit.py
@@ -44,16 +44,17 @@ def read_all(catalog_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 def write_region_file(
         ra_array:np.ndarray, dec_array:np.ndarray, outfile:str, size:float = 2.) -> None:
-    """Writes a region file with decimal ra and dec arrays."""
+    """Writes a region file with decimal r_a and dec arrays."""
     positions = [con.convert_decimal_degrees_into_celestial(ra_array[i], dec_array[i]) \
                   for i in range(len(ra_array))]
-    file = open(outfile, 'w', encoding='utf8')
-    for pos in positions:
-        file.write(f'circle {pos} {size}" # width=4\n')
-    file.close()
+
+    with open(outfile, 'w', encoding='utf8') as file:
+        for pos in positions:
+            file.write(f'circle {pos} {size}" # width=4\n')
+        file.close()
 
 def write_txt_file(ra_array: np.ndarray, dec_array: np.ndarray, outfile:str) -> None:
-    """Writes a text file of decimal ra dn dec arrays."""
+    """Writes a text file of decimal r_a dn dec arrays."""
     with open(outfile, 'w', encoding='utf8') as file:
         file.write('# RA DEC \n')
         for i, _ in enumerate(ra_array):
@@ -72,7 +73,7 @@ def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray, red_l
             file.write(f'{ra_array[i]} {dec_array[i]} \n')
 
 def get_red_values(red_list:str) -> tuple[np.ndarray, np.ndarray]:
-    """Reads in the ra and dec of the red sources. (Not allowed to be used)"""
+    """Reads in the r_a and dec of the red sources. (Not allowed to be used)"""
     try:
         ra_rejected, dec_rejected = np.loadtxt(red_list, unpack=True)
     except (OSError, ValueError):
@@ -83,7 +84,7 @@ def get_red_values(red_list:str) -> tuple[np.ndarray, np.ndarray]:
 def remove_bad_values(
         ra_array: np.ndarray, dec_array: np.ndarray, red_list:str
         ) -> tuple[np.ndarray, np.ndarray]:
-    """Removes the previously rejected ra and dec values from the current candidates."""
+    """Removes the previously rejected r_a and dec values from the current candidates."""
     ra_bad, dec_bad = get_red_values(red_list)
     if ra_bad is not None:
         c_bad = SkyCoord(ra = ra_bad *u.deg, dec = dec_bad * u.deg)
@@ -131,14 +132,16 @@ class Selection:
     def n964_data(self) -> tuple:
         """Reads in the narrowband data and converts instrumental mags into AB mags."""
         inst_mag_n964, inst_mag_n964_err, snr = read_all(self.inputs.infile_n964)
-        mag_n964 = inst_mag_n964 + self.inputs.zero_point_function.n964_band.mag_correct(self.inputs.aperture_radii)
+        mag_n964 = inst_mag_n964 +\
+              self.inputs.zero_point_function.n964_band.mag_correct(self.inputs.aperture_radii)
         return mag_n964, inst_mag_n964_err, snr
 
     @property
     def z_data(self) -> tuple:
         """Reads in the z band data and converts instrumental mags into AB mags."""
         inst_mag_z, inst_mag_z_err, z_snr = read_all(self.inputs.infile_z)
-        mag_z = inst_mag_z + self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
+        mag_z = inst_mag_z +\
+              self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
         cut = np.where(z_snr < 2)[0]
         mag_z[cut] = self.z_lim
         return mag_z, inst_mag_z_err, z_snr
@@ -147,7 +150,8 @@ class Selection:
     def i_data(self) -> tuple:
         """Reads in the i band data and converts instrumental mags into AB mags."""
         inst_mag_i, inst_mag_i_err, i_snr = read_all(self.inputs.infile_i)
-        mag_i = inst_mag_i + self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
+        mag_i = inst_mag_i +\
+              self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
         cut = np.where(i_snr < 2)[0]
         mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err, i_snr
@@ -213,15 +217,13 @@ class DegradedLagerSelection(Selection):
     using the snr fits from snr_fit.py
     """
 
-    def __init__(self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float,
-                 n_2sigma_lim: float, i_1sigma_lim: float, z_1sigma_lim: float, n_1sigma_lim: float):
+    def __init__(
+            self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float, n_2sigma_lim: float):
         super().__init__(inputs, i_2sigma_lim, z_2sigma_lim)
         self.n_lim = n_2sigma_lim
-        self.i_depth_1_sigma = i_1sigma_lim
-        self.n_depth_1_sigma = n_1sigma_lim
-        self.z_depth_1_sigma = z_1sigma_lim
-    
-    def _prepare_band(self, input_file: str, zeropoint: ZeroPoint, sigma_2_depth: float, sigma_1_depth: float, band: str) -> tuple:
+
+    def _prepare_band(
+            self, input_file: str, zeropoint: ZeroPoint, sigma_2_depth: float, band: str) -> tuple:
         """Works out the degraded band data."""
         inst_mag, mag_err, snr = read_all(input_file)
         mag = inst_mag + zeropoint.mag_correct(1)
@@ -231,15 +233,17 @@ class DegradedLagerSelection(Selection):
         mag[non_detections] = sigma_2_depth
         mag_err[non_detections] = 99.
         old_mag_err_detections = mag_err[detections]
-        #mag_err[detections] = calculate_snr(exponential_func(mag[detections], *EXPONENTIAL_FIT_VALS[band]))
-        #mag[detections] = np.random.normal(mag[detections], np.sqrt(mag_err[detections]**2 - old_mag_err_detections**2))
+        mag_err[detections] = calculate_snr(
+            exponential_func(mag[detections], *EXPONENTIAL_FIT_VALS[band]))
+        mag[detections] = np.random.normal(
+            mag[detections], np.sqrt(mag_err[detections]**2 - old_mag_err_detections**2))
         snr = calculate_snr(mag_err)
         return mag, mag_err, snr
 
     @property
     def i_data(self) -> tuple[float, float, float]:
         mag_i, mag_i_err, i_snr = self._prepare_band(
-            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, self.i_depth_1_sigma, 'i')
+            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, 'i')
         cut = np.where(i_snr < 2)[0]
         mag_i[cut] = self.i_lim
         return mag_i, mag_i_err, i_snr
@@ -247,7 +251,7 @@ class DegradedLagerSelection(Selection):
     @property
     def z_data(self) -> tuple[float, float, float]:
         mag_z, mag_z_err, z_snr = self._prepare_band(
-            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, self.z_depth_1_sigma, 'z')
+            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, 'z')
         cut = np.where(z_snr < 2)[0]
         mag_z[cut] = self.z_lim
         return mag_z, mag_z_err, z_snr
@@ -255,27 +259,32 @@ class DegradedLagerSelection(Selection):
     @property
     def n964_data(self) -> tuple[float, float, float]:
         mag_n, mag_n_err, n_snr = self._prepare_band(
-            self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, self.n_depth_1_sigma, 'n964')
+            self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, 'n964')
         return mag_n, mag_n_err, n_snr
 
 
     def plot_color_color(self) -> None:
-        iz = self.i_data[0] - self.z_data[0]
-        zn = self.z_data[0] - self.n964_data[0]
-        plt.scatter(iz, zn, s=1)
+        """Plotting the color color plot after degradation and non detecion at our depths"""
+        i_z = self.i_data[0] - self.z_data[0]
+        z_n = self.z_data[0] - self.n964_data[0]
+        plt.scatter(i_z, z_n, s=1)
         plt.axhline(0.78, color='r', ls='--')
         plt.axvline(1, color='r', ls='--')
         plt.xlim(-1, 2.5)
         plt.ylim(-2, 4)
         plt.show()
-    
+
     def plot_first_color_color(self) -> None:
-        mag_i, mag_i_err, i_snr = self._prepare_band(self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, self.i_depth_1_sigma, 'i')
-        mag_z, mag_z_err, z_snr = self._prepare_band(self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, self.z_depth_1_sigma, 'z')
-        mag_n, mag_n_err, n_snr = self._prepare_band(self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, self.i_depth_1_sigma, 'n964')
-        iz = mag_i - mag_z
-        zn = mag_z - mag_n
-        plt.scatter(iz, zn, s=1)
+        """Plotting the color color plot of the pure degradation."""
+        mag_i, _, _ = self._prepare_band(
+            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, 'i')
+        mag_z, _, _ = self._prepare_band(
+            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, 'z')
+        mag_n, _, _ = self._prepare_band(
+            self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, 'n964')
+        i_z = mag_i - mag_z
+        z_n = mag_z - mag_n
+        plt.scatter(i_z, z_n, s=1)
         plt.axhline(0.78, color='r', ls='--')
         plt.axvline(1, color='r', ls='--')
         plt.xlim(-1, 2.5)
@@ -287,17 +296,18 @@ def perform_selection(selection: Selection):
     cut = selection.apply_selection_criteria()
     print(f'Final candidate count is: {len(cut)}')
 
-    ra, dec = np.loadtxt(selection.inputs.infile_n964, usecols=(0,1), unpack=True)
-    ra, dec = ra[cut], dec[cut]
-    ra, dec = remove_bad_values(ra, dec, selection.inputs.red_list_name)
-    print(f'After removing previous rejects, count is: {len(ra)}')
+    r_a, dec = np.loadtxt(selection.inputs.infile_n964, usecols=(0,1), unpack=True)
+    r_a, dec = r_a[cut], dec[cut]
+    r_a, dec = remove_bad_values(r_a, dec, selection.inputs.red_list_name)
+    print(f'After removing previous rejects, count is: {len(r_a)}')
 
-    i_bands, z_bands, n_bands = cut_out_mulitple_stamps(ra, dec, selection.inputs.fits_objects, pad=60)
+    i_bands, z_bands, n_bands = cut_out_mulitple_stamps(
+        r_a, dec, selection.inputs.fits_objects, pad=60)
     artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
-    ra_rejects = ra[artifacts]
+    ra_rejects = r_a[artifacts]
     dec_rejects = dec[artifacts]
     update_candidate_red_list(ra_rejects, dec_rejects, selection.inputs.red_list_name)
-    write_output(ra[candidates], dec[candidates], selection.inputs.output_name, size=8)
+    write_output(r_a[candidates], dec[candidates], selection.inputs.output_name, size=8)
 
 if __name__ == '__main__':
     our_inputs = Inputs(
@@ -330,30 +340,26 @@ if __name__ == '__main__':
         aperture_radii=1.
     )
 
-    i_depth_2_sigma = 26.64
-    z_depth_2_sigma = 26.58
-    n_depth_2_sigma = 25.69
-    i_depth_1_sigma = 27.40
-    z_depth_1_sigma = 27.33
-    n_depth_1_sigma = 26.44
+    I_DEPTH_2_SIGMA = 26.64
+    Z_DEPTH_2_SIGMA = 26.58
+    N_DEPTH_2_SIGMA = 25.69
 
-    i_depth_2_sigma_cdfs = 28.10
-    z_depth_2_sigma_cdfs = 27.73
+    I_DEPTH_2_SIGMA_CDFS = 28.10
+    Z_DEPTH_2_SIGMA_CDFS = 27.73
 
-    our_selection = Selection(our_inputs, i_depth_2_sigma, z_depth_2_sigma)
+    our_selection = Selection(our_inputs, I_DEPTH_2_SIGMA, Z_DEPTH_2_SIGMA)
     #cdfs_selection = LagerSelection(
-    #    cdfs_inputs, i_depth_2_sigma_cdfs, z_depth_2_sigma_cdfs, i_depth_2_sigma)
+    #    cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS, I_DEPTH_2_SIGMA)
     cdfs_selection = DegradedLagerSelection(
-        cdfs_inputs, i_depth_2_sigma, z_depth_2_sigma, n_depth_2_sigma,
-        i_depth_1_sigma, z_depth_1_sigma, n_depth_1_sigma)
+        cdfs_inputs, I_DEPTH_2_SIGMA, Z_DEPTH_2_SIGMA, N_DEPTH_2_SIGMA)
 
-    cdfs_selection.plot_first_color_color()
+    #cdfs_selection.plot_first_color_color()
     #cdfs_selection.plot_color_color()
-    
+
     #perform_selection(our_selection)
     perform_selection(cdfs_selection)
-    
+
     #true_cdfs_inputs = cdfs_inputs
     #true_cdfs_inputs.output_name = 'candidates_true_cdfs'
-    #true_cdfs_selection = Selection(true_cdfs_inputs, i_depth_2_sigma_cdfs, z_depth_2_sigma_cdfs)
+    #true_cdfs_selection = Selection(true_cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS)
     #perform_selection(true_cdfs_selection)
