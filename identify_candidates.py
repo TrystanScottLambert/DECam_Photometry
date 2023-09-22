@@ -18,7 +18,7 @@ from zero_points_cdfs import zero_points_cdfs
 from snr_fit import exponential_func
 
 
-RANDOM_STATE = 100
+RANDOM_STATE = 200
 np.random.seed(RANDOM_STATE)
 
 # Exponential fit values from snr_fit.py
@@ -57,8 +57,8 @@ def write_txt_file(ra_array: np.ndarray, dec_array: np.ndarray, outfile:str) -> 
     """Writes a text file of decimal r_a dn dec arrays."""
     with open(outfile, 'w', encoding='utf8') as file:
         file.write('# RA DEC \n')
-        for i, _ in enumerate(ra_array):
-            file.write(f'{ra_array[i]} {dec_array[i]} \n')
+        for r_a, dec in zip(ra_array, dec_array):
+            file.write(f'{r_a} {dec} \n')
 
 def write_output(
         ra_candidates: np.ndarray, dec_candidates: np.ndarray, out_suffix: str, **kwargs) -> None:
@@ -69,8 +69,8 @@ def write_output(
 def update_candidate_red_list(ra_array: np.ndarray, dec_array: np.ndarray, red_list: str) -> None:
     """Updates the red list of candidates which are banned from processing. (obvious artificats)"""
     with open(red_list,'a+', encoding='utf8') as file:
-        for i, _ in enumerate(ra_array):
-            file.write(f'{ra_array[i]} {dec_array[i]} \n')
+        for r_a, dec in zip(ra_array, dec_array):
+            file.write(f'{r_a} {dec} \n')
 
 def get_red_values(red_list:str) -> tuple[np.ndarray, np.ndarray]:
     """Reads in the r_a and dec of the red sources. (Not allowed to be used)"""
@@ -194,23 +194,6 @@ class Selection:
         i_non_detect = self.select_i_band()
         return np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect)
 
-
-class LagerSelection(Selection):
-    """
-    Class for the Lager selection using the cdfs depth.
-    Only important when we make the SNR cut for the i band.
-    """
-
-    def __init__(
-            self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float,
-            i_2sigma_us: float) -> None:
-        super().__init__(inputs, i_2sigma_lim, z_2sigma_lim)
-        self.i_lim_us = i_2sigma_us
-
-    def select_i_band(self):
-        cut = np.where(self.i_data[0] >= self.i_lim_us)[0]
-        return cut
-
 class DegradedLagerSelection(Selection):
     """
     Degrading the CDFS data so that it is equivelent to our depths;
@@ -218,18 +201,20 @@ class DegradedLagerSelection(Selection):
     """
 
     def __init__(
-            self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float, n_2sigma_lim: float):
+            self, inputs: Inputs, i_2sigma_lim: float, z_2sigma_lim: float, n_2sigma_lim: float,
+            i_sigma_cdfs, z_sigma_cdfs):
         super().__init__(inputs, i_2sigma_lim, z_2sigma_lim)
         self.n_lim = n_2sigma_lim
+        self.i_depth_cdfs = i_sigma_cdfs
+        self.z_depth_cdfs = z_sigma_cdfs
 
     def _prepare_band(
             self, input_file: str, zeropoint: ZeroPoint, sigma_2_depth: float, band: str) -> tuple:
         """Works out the degraded band data."""
         inst_mag, mag_err, snr = read_all(input_file)
         mag = inst_mag + zeropoint.mag_correct(1)
-        non_detections = np.where(snr <= 1)[0]
-        detections = np.where(snr > 1)[0]
-        print('percentage detections', len(non_detections)/len(snr))
+        non_detections = np.where(snr <= 2)[0]
+        detections = np.where(snr > 2)[0]
         mag[non_detections] = sigma_2_depth
         mag_err[non_detections] = 99.
         old_mag_err_detections = mag_err[detections]
@@ -243,7 +228,7 @@ class DegradedLagerSelection(Selection):
     @property
     def i_data(self) -> tuple[float, float, float]:
         mag_i, mag_i_err, i_snr = self._prepare_band(
-            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, 'i')
+            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_depth_cdfs, 'i')
         cut = np.where(i_snr < 2)[0]
         mag_i[cut] = self.i_lim
         return mag_i, mag_i_err, i_snr
@@ -251,7 +236,7 @@ class DegradedLagerSelection(Selection):
     @property
     def z_data(self) -> tuple[float, float, float]:
         mag_z, mag_z_err, z_snr = self._prepare_band(
-            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, 'z')
+            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_depth_cdfs, 'z')
         cut = np.where(z_snr < 2)[0]
         mag_z[cut] = self.z_lim
         return mag_z, mag_z_err, z_snr
@@ -277,9 +262,9 @@ class DegradedLagerSelection(Selection):
     def plot_first_color_color(self) -> None:
         """Plotting the color color plot of the pure degradation."""
         mag_i, _, _ = self._prepare_band(
-            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, 'i')
+            self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_depth_cdfs, 'i')
         mag_z, _, _ = self._prepare_band(
-            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, 'z')
+            self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_depth_cdfs, 'z')
         mag_n, _, _ = self._prepare_band(
             self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, 'n964')
         i_z = mag_i - mag_z
@@ -347,19 +332,19 @@ if __name__ == '__main__':
     I_DEPTH_2_SIGMA_CDFS = 28.10
     Z_DEPTH_2_SIGMA_CDFS = 27.73
 
-    our_selection = Selection(our_inputs, I_DEPTH_2_SIGMA, Z_DEPTH_2_SIGMA)
+    our_selection = Selection(our_inputs, 27.40, Z_DEPTH_2_SIGMA)
     #cdfs_selection = LagerSelection(
     #    cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS, I_DEPTH_2_SIGMA)
     cdfs_selection = DegradedLagerSelection(
-        cdfs_inputs, I_DEPTH_2_SIGMA, Z_DEPTH_2_SIGMA, N_DEPTH_2_SIGMA)
+        cdfs_inputs, 27.40, Z_DEPTH_2_SIGMA, N_DEPTH_2_SIGMA, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS)
 
     #cdfs_selection.plot_first_color_color()
     #cdfs_selection.plot_color_color()
 
     #perform_selection(our_selection)
-    perform_selection(cdfs_selection)
+    #perform_selection(cdfs_selection)
 
     #true_cdfs_inputs = cdfs_inputs
     #true_cdfs_inputs.output_name = 'candidates_true_cdfs'
-    #true_cdfs_selection = Selection(true_cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS)
+    #true_cdfs_selection = Selection(true_cdfs_inputs, 28.76, Z_DEPTH_2_SIGMA_CDFS)
     #perform_selection(true_cdfs_selection)

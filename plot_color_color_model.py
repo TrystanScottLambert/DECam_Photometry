@@ -42,21 +42,23 @@ if __name__ == '__main__':
     plot_redshift_range = np.arange(5, 8, 0.01)
     point_redshift_range = np.arange(5, 9, 1)
 
-    def work_out_colors_for_redshift(redshift_range: np.ndarray):
+    def work_out_colors_for_redshift(redshift_range: np.ndarray, offset_velocity: float = 0):
         """Determines the color terms i - z and z-nb for the given redshift range."""
         izs = []
         znbs = []
         for redshift in track(redshift_range):
-            spectrum  = LaeSpectrum(redshift).spectrum
+            offset_redshift = redshift - offset_velocity/3e5
+            spectrum  = LaeSpectrum(offset_redshift).spectrum
             i_z = calculate_color(i_band, z_band, spectrum)
             z_nb = calculate_color(z_band, n_band, spectrum)
             izs.append(i_z.value)
             znbs.append(z_nb.value)
         return izs, znbs
 
-    plot_i_color, plot_z_color = work_out_colors_for_redshift(plot_redshift_range)
-    point_i_color, point_z_color = work_out_colors_for_redshift(point_redshift_range)
-    qso_i_color, qso_z_color = work_out_colors_for_redshift([6.9])
+    VEL_OFFSET = -1000 #km/s
+    plot_i_color, plot_z_color = work_out_colors_for_redshift(plot_redshift_range, VEL_OFFSET)
+    point_i_color, point_z_color = work_out_colors_for_redshift(point_redshift_range, VEL_OFFSET)
+    qso_i_color, qso_z_color = work_out_colors_for_redshift([6.9], VEL_OFFSET)
 
     start_plot('i - z', 'z - NB964')
     plt.plot(plot_i_color, plot_z_color, lw=2)
@@ -75,7 +77,8 @@ if __name__ == '__main__':
     z_band_spectrum = z_band.band.to_spectrum1d()
     n_band_spectrum = n_band.band.to_spectrum1d()
 
-    spectrum = LaeSpectrum(6.9).spectrum
+    offset_red = 6.9 + VEL_OFFSET/3e5
+    spectrum = LaeSpectrum(offset_red).spectrum
     spectrum_1d = spectrum.to_spectrum1d()
     fig = plt.figure(figsize = (2.5 * 3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(111)

@@ -73,6 +73,6 @@ if __name__ == '__main__':
     #region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
     ax.scatter(ra_plot, dec_plot, s=10, label = r'i$_{snr}$ > 2')
-    ax.scatter(ra_snr_plot, dec_snr_plot, s=10, color='r', marker='s', label=r'i$_{snr}$ < 2')
+    #ax.scatter(ra_snr_plot, dec_snr_plot, s=10, color='r', marker='s', label=r'i$_{snr}$ < 2')
     ax.legend(frameon=False, loc=1)
     plotting.end_plot('plots/on_sky_distribution_cdfs.png')
