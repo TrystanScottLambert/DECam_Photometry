@@ -19,6 +19,7 @@ from plotting import end_plot
 
 # Our candidates
 INFILE_US = 'candidates_cdfs_e.txt'
+#INFILE_US = 'candidates_true_cdfs.txt'
 I_CATALOG = '../CDFS_LAGER/i_cdfs.cat'
 Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
 N_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
@@ -137,5 +138,5 @@ for i, ra_val in enumerate(ra):
      verticalalignment='center',
      transform = ax_n.transAxes, fontsize=20, color='w')
 
-    end_plot(f'postage_stamps_cdfs/candidate_cdfs_{i+1}.png')
+    end_plot(f'postage_stamps_cdfs/candidate_cdfs{i+1}.png')
     plt.close()

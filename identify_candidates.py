@@ -8,6 +8,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.io import fits
+import pylab as plt
 
 import convert_sexcat_into_region as con
 from postage_stamps import cut_out_mulitple_stamps
@@ -16,6 +17,9 @@ from zero_points import zero_points, ZeroPoints, ZeroPoint
 from zero_points_cdfs import zero_points_cdfs
 from snr_fit import exponential_func
 
+
+RANDOM_STATE = 200
+np.random.seed(RANDOM_STATE)
 
 # Exponential fit values from snr_fit.py
 EXPONENTIAL_FIT_VALS = {
@@ -219,14 +223,16 @@ class DegradedLagerSelection(Selection):
     
     def _prepare_band(self, input_file: str, zeropoint: ZeroPoint, sigma_2_depth: float, sigma_1_depth: float, band: str) -> tuple:
         """Works out the degraded band data."""
-        inst_mag, mag_err, _ = read_all(input_file)
+        inst_mag, mag_err, snr = read_all(input_file)
         mag = inst_mag + zeropoint.mag_correct(1)
-        non_detections = np.where(mag >= sigma_1_depth)[0]
-        detections = np.where(mag < sigma_1_depth)[0]
+        non_detections = np.where(snr <= 1)[0]
+        detections = np.where(snr > 1)[0]
+        print('percentage detections', len(non_detections)/len(snr))
         mag[non_detections] = sigma_2_depth
         mag_err[non_detections] = 99.
-        mag_err[detections] = calculate_snr(exponential_func(mag_err[detections], *EXPONENTIAL_FIT_VALS[band]))
-        mag[detections] = np.random.normal(mag[detections], mag_err[detections])
+        old_mag_err_detections = mag_err[detections]
+        #mag_err[detections] = calculate_snr(exponential_func(mag[detections], *EXPONENTIAL_FIT_VALS[band]))
+        #mag[detections] = np.random.normal(mag[detections], np.sqrt(mag_err[detections]**2 - old_mag_err_detections**2))
         snr = calculate_snr(mag_err)
         return mag, mag_err, snr
 
@@ -253,6 +259,28 @@ class DegradedLagerSelection(Selection):
         return mag_n, mag_n_err, n_snr
 
 
+    def plot_color_color(self) -> None:
+        iz = self.i_data[0] - self.z_data[0]
+        zn = self.z_data[0] - self.n964_data[0]
+        plt.scatter(iz, zn, s=1)
+        plt.axhline(0.78, color='r', ls='--')
+        plt.axvline(1, color='r', ls='--')
+        plt.xlim(-1, 2.5)
+        plt.ylim(-2, 4)
+        plt.show()
+    
+    def plot_first_color_color(self) -> None:
+        mag_i, mag_i_err, i_snr = self._prepare_band(self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_lim, self.i_depth_1_sigma, 'i')
+        mag_z, mag_z_err, z_snr = self._prepare_band(self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_lim, self.z_depth_1_sigma, 'z')
+        mag_n, mag_n_err, n_snr = self._prepare_band(self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, self.i_depth_1_sigma, 'n964')
+        iz = mag_i - mag_z
+        zn = mag_z - mag_n
+        plt.scatter(iz, zn, s=1)
+        plt.axhline(0.78, color='r', ls='--')
+        plt.axvline(1, color='r', ls='--')
+        plt.xlim(-1, 2.5)
+        plt.ylim(-2, 4)
+        plt.show()
 
 def perform_selection(selection: Selection):
     """Opens the gui for the user to reject candidates and write to file."""
@@ -318,6 +346,9 @@ if __name__ == '__main__':
     cdfs_selection = DegradedLagerSelection(
         cdfs_inputs, i_depth_2_sigma, z_depth_2_sigma, n_depth_2_sigma,
         i_depth_1_sigma, z_depth_1_sigma, n_depth_1_sigma)
+
+    cdfs_selection.plot_first_color_color()
+    #cdfs_selection.plot_color_color()
     
     #perform_selection(our_selection)
     perform_selection(cdfs_selection)

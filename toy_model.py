@@ -12,7 +12,7 @@ from scipy.linalg import norm
 number = 1000
 elevation = 90 # degrees
 azim = -20 # degrees
-r = np.random.random(number)
+r = np.random.random(number) * 150
 theta = np.random.random(number) * np.pi * 2
 
 y = np.random.random(number) * 10
@@ -48,3 +48,4 @@ points_2D = points @ proj_mat.T       # apply projection
 ax_proj.scatter(*points_2D.T)
 #plt.gca().set_aspect('equal', adjustable='box')
 plt.show()
+

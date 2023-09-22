@@ -10,6 +10,7 @@ import astropy.units as u
 
 from sex_catalog import SExtractorCat
 from zero_points import zero_points, ZeroPoint, ZeroPoints
+from zero_points_cdfs import zero_points_cdfs
 from identify_candidates import write_region_file
 from snr_fit import calculate_snr
 
@@ -46,17 +47,29 @@ def read_in_catalogs(
 
 
 if __name__ == '__main__':
-    I_BAND_2_SIGMA = 26.64
-    Z_BAND_2_SIGMA = 26.58
-    N_BAND_2_SIGMA = 25.69
+    #I_BAND_2_SIGMA = 26.64
+    #Z_BAND_2_SIGMA = 26.58
+    #N_BAND_2_SIGMA = 25.69
+    #OUR_CATALOGS = [
+    #    '../correct_stacks/N964/i.cat',
+    #    '../correct_stacks/N964/z.cat',
+    #    '../correct_stacks/N964/n964.cat']
+    #CANDIDATES_FILE = 'candidates_e.txt'
+
+    I_BAND_2_SIGMA = 28.10
+    Z_BAND_2_SIGMA = 27.73
+    N_BAND_2_SIGMA = 25.82
     OUR_CATALOGS = [
-        '../correct_stacks/N964/i.cat',
-        '../correct_stacks/N964/z.cat',
-        '../correct_stacks/N964/n964.cat']
+        '../CDFS_LAGER/i_cdfs.cat',
+        '../CDFS_LAGER/z_cdfs.cat',
+        '../CDFS_LAGER/n964_cdfs.cat']
     CANDIDATES_FILE = 'candidates_e.txt'
+
+
+
     ra, dec = np.loadtxt(CANDIDATES_FILE, unpack=True)
 
-    our_i_cat, our_z_cat, our_n964_cat = read_in_catalogs(OUR_CATALOGS, zero_points)
+    our_i_cat, our_z_cat, our_n964_cat = read_in_catalogs(OUR_CATALOGS, zero_points_cdfs)
     z_mag, z_err = our_z_cat['MAG_CORR'], our_z_cat['MAGERR_APER']
     i_mag, i_err = our_i_cat['MAG_CORR'], our_i_cat['MAGERR_APER']
     z_snr, i_snr = calculate_snr(z_err), calculate_snr(i_err)
@@ -87,6 +100,7 @@ if __name__ == '__main__':
 
     z_mag[z_snr < 2] = Z_BAND_2_SIGMA
     i_mag[i_snr < 2] = I_BAND_2_SIGMA
+    print('non detections: ', len(np.where(z_snr<2)[0])/len(z_snr))
     color_zn = z_mag - n_mag
     color_iz = i_mag - z_mag
 
@@ -95,9 +109,11 @@ if __name__ == '__main__':
 
     pass_color_cut = np.intersect1d(cut1, cut2)
     plt.scatter(color_iz, color_zn, s=1)
-    plt.scatter(np.array(color_iz)[pass_color_cut], np.array(color_zn)[pass_color_cut])
+    #plt.scatter(np.array(color_iz)[pass_color_cut], np.array(color_zn)[pass_color_cut])
     plt.axhline(0.78, color='r', ls='--')
     plt.axvline(1, color='r', ls='--')
+    plt.xlim(-1, 2.5)
+    plt.ylim(-2, 4)
     plt.show()
 
     z_mag_passes_cut = np.array(z_mag)[pass_color_cut]
