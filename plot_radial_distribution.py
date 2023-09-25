@@ -20,6 +20,7 @@ DEC_QSO = (30 + (54/60) + (10.0/3600)) * -1
 REDSHIFT_QSO = 6.9
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
 ARCSEC_PER_KPC = COSMO.arcsec_per_kpc_proper(REDSHIFT_QSO)
+ARCSEC_PER_KPC_CO = COSMO.arcsec_per_kpc_comoving(REDSHIFT_QSO)
 DEG_PER_MPC = ARCSEC_PER_KPC.to(u.deg / u.Mpc)
 
 class Mask:
@@ -93,14 +94,14 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     y = counts/areas
     y_err = np.sqrt(counts)/areas
 
-    fit_x = np.linspace(distances[0].value, distances[-1].value, 1000)
-    slope, intercept, slope_uncertainty, intercept_uncertainty = linear_regression_with_errors(distances.value, fit_y, fit_y_err)
-    print('FIT:')
-    print('slope', slope, '+-', slope_uncertainty)
-    print('intercept', intercept, '+-', intercept_uncertainty)
-    plt.errorbar(distances.value, fit_y, yerr=fit_y_err, fmt='o')
-    plt.plot(fit_x, slope*fit_x + intercept)
-    plt.show()
+    #fit_x = np.linspace(distances[0].value, distances[-1].value, 1000)
+    #slope, intercept, slope_uncertainty, intercept_uncertainty = linear_regression_with_errors(distances.value, fit_y, fit_y_err)
+    #print('FIT:')
+    #print('slope', slope, '+-', slope_uncertainty)
+    #print('intercept', intercept, '+-', intercept_uncertainty)
+    #plt.errorbar(distances.value, fit_y, yerr=fit_y_err, fmt='o')
+    #plt.plot(fit_x, slope*fit_x + intercept)
+    #plt.show()
 
     fig = plt.figure(figsize = (3.54, 3.54/2), dpi = 600)
     ax = fig.add_subplot(111)
@@ -118,6 +119,8 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     ax1.errorbar(separations, y, yerr=y_err, fmt='ok', alpha=0)
     ax1.set_xlabel('Distance from center [deg]')
     ax1.minorticks_on()
+    max_radius = ARCSEC_PER_KPC_CO * 75 *u.Mpc
+    ax1.axvline( max_radius.to(u.deg).value, ls=':', lw=1.5, color='k', alpha=0.7)
     ax1.tick_params(which='both', width=1.2,direction='in')
     ax1.tick_params(which='major', length=3, direction='in')
     plotting.end_plot(outfile)
@@ -169,6 +172,8 @@ if __name__ == '__main__':
 
     distances_cdfs = calculate_distances_of_candidates(cdfs.center, CDFS_CANDIDATES)
     distances_decam = calculate_distances_of_candidates((RA_QSO, DEC_QSO), DECAM_CANDIDATES)
+    cut = np.where(distances_decam > 0)[0]
+    distances_decam = distances_decam[cut]
 
     counts_cdfs = np.array(
         [len(np.where((distances_cdfs.value > radii_deg[i].value) & (distances_cdfs.value < radii_deg[i+1].value))[0]) \

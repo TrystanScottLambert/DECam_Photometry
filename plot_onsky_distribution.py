@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #On sky distribution plot.
     #region_1 = set_region(ra_qso_plot, dec_qso_plot, 35)
     #region_10 = set_region(ra_qso_plot, dec_qso_plot, 55.2)
-    region_20 = set_region(ra_qso_plot, dec_qso_plot, 5)
+    region_20 = set_region(ra_qso_plot, dec_qso_plot, 75)
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(projection = decam_wcs)
@@ -71,6 +71,10 @@ if __name__ == '__main__':
     #region_10.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
-    ax.scatter(ra_plot, dec_plot, s=10)
+    #colors = np.loadtxt('color_test_delete.txt')
+    #idx = np.loadtxt('test_idx_delete.txt')
+    #colors = colors[idx.astype(int)]
+    poes = ax.scatter(ra_plot, dec_plot, s=10)
     ax.scatter(ra_qso_plot, dec_qso_plot, marker='*', s=100, color='k')
+    #plt.colorbar(poes)
     plotting.end_plot('plots/on_sky_distribution.png')

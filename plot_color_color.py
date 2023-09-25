@@ -47,29 +47,29 @@ def read_in_catalogs(
 
 
 if __name__ == '__main__':
-    #I_BAND_2_SIGMA = 26.64
-    #Z_BAND_2_SIGMA = 26.58
-    #N_BAND_2_SIGMA = 25.69
-    #OUR_CATALOGS = [
-    #    '../correct_stacks/N964/i.cat',
-    #    '../correct_stacks/N964/z.cat',
-    #    '../correct_stacks/N964/n964.cat']
-    #CANDIDATES_FILE = 'candidates_e.txt'
-
-    I_BAND_2_SIGMA = 28.10
-    Z_BAND_2_SIGMA = 27.73
-    N_BAND_2_SIGMA = 25.82
+    I_BAND_2_SIGMA = 26.64
+    Z_BAND_2_SIGMA = 26.58
+    N_BAND_2_SIGMA = 25.69
     OUR_CATALOGS = [
-        '../CDFS_LAGER/i_cdfs.cat',
-        '../CDFS_LAGER/z_cdfs.cat',
-        '../CDFS_LAGER/n964_cdfs.cat']
+        '../correct_stacks/N964/i.cat',
+        '../correct_stacks/N964/z.cat',
+        '../correct_stacks/N964/n964.cat']
     CANDIDATES_FILE = 'candidates_e.txt'
+
+    #I_BAND_2_SIGMA = 28.10
+    #Z_BAND_2_SIGMA = 27.73
+    #N_BAND_2_SIGMA = 25.82
+    #OUR_CATALOGS = [
+    #    '../CDFS_LAGER/i_cdfs.cat',
+    #    '../CDFS_LAGER/z_cdfs.cat',
+    #    '../CDFS_LAGER/n964_cdfs.cat']
+    #CANDIDATES_FILE = 'candidates_e.txt'
 
 
 
     ra, dec = np.loadtxt(CANDIDATES_FILE, unpack=True)
 
-    our_i_cat, our_z_cat, our_n964_cat = read_in_catalogs(OUR_CATALOGS, zero_points_cdfs)
+    our_i_cat, our_z_cat, our_n964_cat = read_in_catalogs(OUR_CATALOGS, zero_points)
     z_mag, z_err = our_z_cat['MAG_CORR'], our_z_cat['MAGERR_APER']
     i_mag, i_err = our_i_cat['MAG_CORR'], our_i_cat['MAGERR_APER']
     z_snr, i_snr = calculate_snr(z_err), calculate_snr(i_err)
@@ -81,6 +81,11 @@ if __name__ == '__main__':
 
     n_mag, n_err = our_n964_cat['MAG_CORR'], our_n964_cat['MAGERR_APER']
     n_snr = calculate_snr(n_err)
+    ra_all, dec_all = np.array(our_n964_cat['ALPHAPEAK_J2000']), np.array(our_n964_cat['DELTAPEAK_J2000'])
+    
+    plt.scatter(ra_all, dec_all, c = np.array(z_mag))
+    plt.show()
+
     ra, dec = np.array(our_n964_cat['ALPHAPEAK_J2000']), np.array(our_n964_cat['DELTAPEAK_J2000'])
     cats = [our_i_cat, our_z_cat, our_n964_cat]
 

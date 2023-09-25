@@ -98,8 +98,6 @@ def remove_bad_values(
         idx_good = np.setdiff1d(np.arange(len(ra_array)), idx_bad)
     else:
         idx_good = np.arange(len(ra_array))
-
-
     return ra_array[idx_good], dec_array[idx_good]
 
 @dataclass
@@ -142,7 +140,7 @@ class Selection:
         inst_mag_z, inst_mag_z_err, z_snr = read_all(self.inputs.infile_z)
         mag_z = inst_mag_z +\
               self.inputs.zero_point_function.z_band.mag_correct(self.inputs.aperture_radii)
-        cut = np.where(z_snr < 2)[0]
+        cut = np.where(z_snr < 1)[0]
         mag_z[cut] = self.z_lim
         return mag_z, inst_mag_z_err, z_snr
 
@@ -152,7 +150,7 @@ class Selection:
         inst_mag_i, inst_mag_i_err, i_snr = read_all(self.inputs.infile_i)
         mag_i = inst_mag_i +\
               self.inputs.zero_point_function.i_band.mag_correct(self.inputs.aperture_radii)
-        cut = np.where(i_snr < 2)[0]
+        cut = np.where(i_snr < 1)[0]
         mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err, i_snr
 
@@ -229,7 +227,7 @@ class DegradedLagerSelection(Selection):
     def i_data(self) -> tuple[float, float, float]:
         mag_i, mag_i_err, i_snr = self._prepare_band(
             self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_depth_cdfs, 'i')
-        cut = np.where(i_snr < 2)[0]
+        cut = np.where(i_snr < 1)[0]
         mag_i[cut] = self.i_lim
         return mag_i, mag_i_err, i_snr
 
@@ -237,7 +235,7 @@ class DegradedLagerSelection(Selection):
     def z_data(self) -> tuple[float, float, float]:
         mag_z, mag_z_err, z_snr = self._prepare_band(
             self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_depth_cdfs, 'z')
-        cut = np.where(z_snr < 2)[0]
+        cut = np.where(z_snr < 1)[0]
         mag_z[cut] = self.z_lim
         return mag_z, mag_z_err, z_snr
 
@@ -291,6 +289,11 @@ def perform_selection(selection: Selection):
     artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
     ra_rejects = r_a[artifacts]
     dec_rejects = dec[artifacts]
+    #temp#
+    #temp
+    with open('test_idx_delete.txt', 'w') as file:
+        for i in candidates:
+            file.write(f'{i} \n')
     update_candidate_red_list(ra_rejects, dec_rejects, selection.inputs.red_list_name)
     write_output(r_a[candidates], dec[candidates], selection.inputs.output_name, size=8)
 
@@ -329,14 +332,19 @@ if __name__ == '__main__':
     Z_DEPTH_2_SIGMA = 26.58
     N_DEPTH_2_SIGMA = 25.69
 
+    I_DEPTH_1_SIGMA = 27.40
+    Z_DEPTH_1_SIGMA = 27.33
+
     I_DEPTH_2_SIGMA_CDFS = 28.10
     Z_DEPTH_2_SIGMA_CDFS = 27.73
+    I_DEPTH_1_SIGMA_CDFS = 28.76
+    Z_DEPTH_1_SIGMA_CDFS = 28.49
 
-    our_selection = Selection(our_inputs, 27.40, Z_DEPTH_2_SIGMA)
+    our_selection = Selection(our_inputs, I_DEPTH_1_SIGMA, Z_DEPTH_1_SIGMA)
     #cdfs_selection = LagerSelection(
     #    cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS, I_DEPTH_2_SIGMA)
     cdfs_selection = DegradedLagerSelection(
-        cdfs_inputs, 27.40, Z_DEPTH_2_SIGMA, N_DEPTH_2_SIGMA, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS)
+        cdfs_inputs, I_DEPTH_1_SIGMA, Z_DEPTH_1_SIGMA, N_DEPTH_2_SIGMA, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS)
 
     #cdfs_selection.plot_first_color_color()
     #cdfs_selection.plot_color_color()
@@ -344,7 +352,7 @@ if __name__ == '__main__':
     #perform_selection(our_selection)
     #perform_selection(cdfs_selection)
 
-    #true_cdfs_inputs = cdfs_inputs
-    #true_cdfs_inputs.output_name = 'candidates_true_cdfs'
-    #true_cdfs_selection = Selection(true_cdfs_inputs, 28.76, Z_DEPTH_2_SIGMA_CDFS)
-    #perform_selection(true_cdfs_selection)
+    true_cdfs_inputs = cdfs_inputs
+    true_cdfs_inputs.output_name = 'candidates_true_cdfs'
+    true_cdfs_selection = Selection(true_cdfs_inputs,I_DEPTH_1_SIGMA_CDFS , Z_DEPTH_1_SIGMA_CDFS)
+    perform_selection(true_cdfs_selection)

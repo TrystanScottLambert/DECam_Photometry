@@ -18,8 +18,8 @@ from plotting import end_plot
 
 
 # Our candidates
-#INFILE_US = 'candidates_cdfs_e.txt'
-INFILE_US = 'candidates_true_cdfs.txt'
+INFILE_US = 'candidates_cdfs_e.txt'
+#INFILE_US = 'candidates_true_cdfs.txt'
 I_CATALOG = '../CDFS_LAGER/i_cdfs.cat'
 Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
 N_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
@@ -36,7 +36,11 @@ N964_INFINITY = -999
 SIGMA_I_2 = 28.10
 SIGMA_Z_2 = 27.73
 
-os.system('rm postage_stamps_cdfs/*.png')
+if INFILE_US == 'candidates_true_cdfs.txt':
+    os.system('rm postage_stamps_cdfs/true/*.png')
+else:
+    os.system('rm postage_stamps_cdfs/degraded/*.png')
+
 def fancy_round(mag) -> str:
     """
     Rounds a given mag value which can be either a flot or a string.
@@ -138,5 +142,8 @@ for i, ra_val in enumerate(ra):
      verticalalignment='center',
      transform = ax_n.transAxes, fontsize=20, color='w')
 
-    end_plot(f'postage_stamps_cdfs/candidate_cdfs_true{i+1}.png')
+    if INFILE_US == 'candidates_true_cdfs.txt':
+        end_plot(f'postage_stamps_cdfs/true/candidate_cdfs_true{i+1}.png')
+    else:
+        end_plot(f'postage_stamps_cdfs/degraded/candidate_cdfs{i+1}.png')
     plt.close()

@@ -7,8 +7,9 @@ import astropy.units as u
 from astropy.cosmology import FlatLambdaCDM
 from astropy.io import fits
 from astropy.wcs import WCS
-from regionfy_catalog import load_region
 from astropy.visualization import ZScaleInterval
+
+from regionfy_catalog import load_region
 import plotting
 
 
@@ -73,6 +74,6 @@ if __name__ == '__main__':
     #region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
     ax.scatter(ra_plot, dec_plot, s=10, label = r'i$_{snr}$ > 2')
-    #ax.scatter(ra_snr_plot, dec_snr_plot, s=10, color='r', marker='s', label=r'i$_{snr}$ < 2')
+    ax.scatter(ra_snr_plot, dec_snr_plot, s=15, color='r', marker='s', label=r'i$_{snr}$ < 2', facecolor='none')
     ax.legend(frameon=False, loc=1)
     plotting.end_plot('plots/on_sky_distribution_cdfs.png')
