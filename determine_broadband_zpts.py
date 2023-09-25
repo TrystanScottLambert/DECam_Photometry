@@ -21,7 +21,8 @@ def remove_outliers(array, sigma):
     good_idx = np.where((array >= median-sigma*std) & (array <= median + sigma*std))[0]
     return good_idx
 
-def read_in_wide_band(sextractor_file_name: str, panstars_cat_name: str):
+def read_in_wide_band(
+        sextractor_file_name: str, panstars_cat_name: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Reading in the catalogs."""
     decam_catalog = SExtractorCat(sextractor_file_name)
     decam_catalog, pan_cat = decam_catalog.cross_match_with_panstars(panstars_cat_name)
@@ -78,7 +79,7 @@ CONVERT = {
     'z': convert_panstars_z_dec_mags,
 }
 
-def prepare_plotting_data(sextractor_file_name, panstars_file_name, band):
+def prepare_plotting_data(sextractor_file_name: str, panstars_file_name: str, band: str):
     """Gets all the necessary variables for plotting ready and removes outliers."""
     decam_catalog, panstars_catalog = read_in_wide_band(sextractor_file_name, panstars_file_name)
     mags = get_broad_band_mags(decam_catalog, panstars_catalog, band=band)
@@ -106,10 +107,12 @@ class BroadBand:
         diff_cut = np.where((diffs>30) & (diffs <32))[0]  # specifically for this research.
         good_values = np.where(mags[2] < 100)[0] # Obviously not physical if this isn't met.
         other_good_values = np.where(mags[0] < -6)[0] # specific for decam
-        more_good_values = np.where(mags[3] < 100)[0] # not physical to have errors more than 100 mags
+        more_good_values = np.where(mags[3] < 1.)[0] # not physical to have errors more than 100 mags
+        even_more = np.where(mags[1] < 1.)[0]
         good_values = np.intersect1d(good_values, other_good_values)
         good_values = np.intersect1d(good_values, more_good_values)
         good_values = np.intersect1d(good_values, diff_cut)
+        good_values = np.intersect1d(good_values, even_more)
         self.measured_mags = mags[0][good_values]
         self.measured_mags_err = mags[1][good_values]
         self.expected_mags = mags[2][good_values]
@@ -119,9 +122,10 @@ class BroadBand:
         """Plots the measured mags vs the expected mags."""
         plotting.start_plot('DECam magnitudes [mag]', 'Expected magnitudes - DECam magnitudes [mags]')
         y_err = np.hypot(self.measured_mags_err, self.expected_mags_err)
+        good = np.where(y_err < 1e5)[0]
         plt.errorbar(
-            self.measured_mags, self.expected_mags - self.measured_mags,
-            xerr=self.measured_mags_err, yerr=y_err,
+            self.measured_mags[good], self.expected_mags[good] - self.measured_mags[good],
+            xerr=self.measured_mags_err[good], yerr=y_err[good],
             fmt='ko', alpha=0.3, ms=2.5, elinewidth=1.5)
         x_fit, fit, fit_up, fit_down = self.fit_horizontal_line()
         plt.plot(x_fit, fit, ls='--', color='r', lw=3, zorder=1)
@@ -178,9 +182,9 @@ class BroadBand:
 
 
 if __name__ == '__main__':
-    INFILE_SEX_I = '../correct_stacks/N964/i.cat'
+    INFILE_SEX_I = '../correct_stacks/N964/i_depth.cat'
     INFILE_PAN_I = '../PANSTARS/PANSTARS_i.csv'
-    INFILE_SEX_Z = '../correct_stacks/N964/z.cat'
+    INFILE_SEX_Z = '../correct_stacks/N964/z_depth.cat'
     INFILE_PAN_Z = '../PANSTARS/PANSTARS_z.csv'
 
     INFILE_SEX_I_CDFS = '../CDFS_LAGER/i_cdfs_depth.cat'

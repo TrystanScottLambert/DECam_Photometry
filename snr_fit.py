@@ -8,6 +8,7 @@ Sextractor uncertainties.
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.stats import gaussian_kde
 
 from sex_catalog import SExtractorCat
 from zero_points import zero_points, ZeroPoint
@@ -58,11 +59,11 @@ if __name__ == '__main__':
     #zero_point = zero_points.n964_band
     #OUTFILE = 'plots/n964_band_depth.png'
     
-    #INFILE = '../CDFS_LAGER/i_cdfs_depth.cat'
+    #INFILE = '../CDFS_LAGER/i_cdfs.cat'
     #zero_point = zero_points_cdfs.i_band
     #OUTFILE = 'plots/i_band_depth_cdfs.png'
 
-    #INFILE = '../CDFS_LAGER/z_cdfs_depth.cat'
+    #INFILE = '../CDFS_LAGER/z_cdfs.cat'
     #zero_point = zero_points_cdfs.z_band
     #OUTFILE = 'plots/z_band_depth_cdfs.png'
 
@@ -95,11 +96,17 @@ if __name__ == '__main__':
     # Plotting the original data and the fitted exponential curve
 
     start_plot('Magnitude', 'SNR')
+    NBINS = 100
+    #kernal = gaussian_kde((mag, snr))
+    #x_i, y_i = np.mgrid[
+    #    mag.min():mag.max():NBINS*1j, snr.min():snr.max():NBINS*1j]
+    #z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
+    #plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto', cmap='Greens')
     plt.scatter(mag, snr, s=1)
-    plt.plot(x_finer, y_fitted, label='Exponential Fit', color='red')
+    plt.plot(x_finer, y_fitted, label='Exponential Fit', color='red', lw=0.5)
     plt.fill_between(x_finer, y_lower, y_upper, color='red', alpha=0.2, label='Uncertainty')
     plt.xlim(left=np.min(mag))
-    plt.ylim(bottom=0)
+    plt.ylim(0., np.max(snr))
     end_plot(OUTFILE)
 
     #printing out the depths

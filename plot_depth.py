@@ -68,14 +68,14 @@ if __name__ == '__main__':
     N_ZPT_135 = zero_points.n964_band.mag_correct(1.35/2)
 
 
-    INFILE_SEX_I_CDFS = '../CDFS_LAGER/i_cdfs_depth.cat'
-    INFILE_SEX_Z_CDFS = '../CDFS_LAGER/z_cdfs_depth.cat'
-    INFILE_SEX_N_CDFS = '../CDFS_LAGER/n964_cdfs.cat'
-    INFILE_SEX_N135_CDFS = '../CDFS_LAGER/n964_135_cdfs.cat'
-    I_ZPT_CDFS = zero_points_cdfs.i_band.mag_correct(1)
-    Z_ZPT_CDFS = zero_points_cdfs.z_band.mag_correct(1)
-    N_ZPT_CDFS = zero_points_cdfs.n964_band.mag_correct(1)
-    N_ZPT_135_CDFS = zero_points_cdfs.n964_band.mag_correct(1.35/2)
+    #INFILE_SEX_I_CDFS = '../CDFS_LAGER/i_cdfs_depth.cat'
+    #INFILE_SEX_Z_CDFS = '../CDFS_LAGER/z_cdfs_depth.cat'
+    #INFILE_SEX_N_CDFS = '../CDFS_LAGER/n964_cdfs.cat'
+    #INFILE_SEX_N135_CDFS = '../CDFS_LAGER/n964_135_cdfs.cat'
+    #I_ZPT_CDFS = zero_points_cdfs.i_band.mag_correct(1)
+    #Z_ZPT_CDFS = zero_points_cdfs.z_band.mag_correct(1)
+    #N_ZPT_CDFS = zero_points_cdfs.n964_band.mag_correct(1)
+    #N_ZPT_135_CDFS = zero_points_cdfs.n964_band.mag_correct(1.35/2)
 
     plot_depth(INFILE_SEX_I, I_ZPT, 'i')
     plot_depth(INFILE_SEX_Z, Z_ZPT, 'z')
