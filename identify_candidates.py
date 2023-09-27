@@ -16,6 +16,7 @@ from gui import start_gui
 from zero_points import zero_points, ZeroPoints, ZeroPoint
 from zero_points_cdfs import zero_points_cdfs
 from snr_fit import exponential_func
+from depth_values import CDFS_DEPTH, OUR_DEPTH
 
 
 RANDOM_STATE = 200
@@ -23,13 +24,11 @@ np.random.seed(RANDOM_STATE)
 
 # Exponential fit values from snr_fit.py
 EXPONENTIAL_FIT_VALS = {
-    'i': [88281907990.06517, -0.9185447605157171],
-    'z': [82477653152.29979, -0.9182832168018962],
-    'n964': [36188917203.825226, -0.9189540909331518],
-    'i_cdfs': [237514331787.77518 -0.9099008389196689],
-    'z_cdfs': [214336511651.19882 -0.9156357851791119],
-    'n964_cdfs': [29312290374.71675, -0.9063544384857863]
+    'i': OUR_DEPTH.i_band.exponential_fit_params,
+    'z': OUR_DEPTH.z_band.exponential_fit_params,
+    'n964': OUR_DEPTH.n_band.exponential_fit_params,
 }
+
 
 def calculate_snr(mag_err: float) -> float:
     """Converts the magnitude error into a snr value."""
@@ -38,7 +37,7 @@ def calculate_snr(mag_err: float) -> float:
 
 def read_all(catalog_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Reads in the magnitudes, errors, and works out the snr."""
-    mag, err = np.loadtxt(catalog_name, usecols=(4, 5), unpack=True)
+    mag, err = np.loadtxt(catalog_name, usecols=(6, 7), unpack=True)
     snr = calculate_snr(err)
     return mag, err, snr
 
@@ -154,7 +153,7 @@ class Selection:
         mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err, i_snr
 
-    def narrow_color_select(self):
+    def narrow_color_select(self) -> np.ndarray:
         """
         Looking for excess in narrow band and that that excess is significatnt.
         z-NB> 0.78 and |z-nb| > 2.5 sqrt(u(z)^2 + u(nb)^2)
@@ -171,26 +170,41 @@ class Selection:
                 final_cut.append(idx)
         return np.array(final_cut)
 
-    def continuum_color_select(self):
+    def continuum_color_select(self) -> np.ndarray:
         """Looking for the continuum break via I-Z > 1.0"""
         z_mag, _, _ = self.z_data
         i_mag, _, _ = self.i_data
+        print(len(self.z_data[0]))
+        print(len(self.i_data[0]))
         color = i_mag - z_mag
         cut = np.where(color > 1.)[0]
         return cut
 
-    def select_i_band(self):
+    def select_i_band(self) -> np.ndarray:
         """Implementing an I-band cut."""
         _, _, i_snr = self.i_data
         cut = np.where(i_snr < 2)[0]
         return cut
+
+    def select_not_brighter_than_qso(self) -> np.ndarray:
+        """Make sure nothing brighter than the QSO is allowed. Unphysical."""
+        inst_z, _, _ = read_all(self.inputs.infile_z)
+        inst_n, _, _ = read_all(self.inputs.infile_n964)
+        QSO_Z_INT = -8.1518
+        QSO_N_INST = -8.2531
+        cut_z = np.where(inst_z >= QSO_Z_INT)[0]
+        cut_n = np.where(inst_n >= QSO_Z_INT)[0]
+        return np.intersect1d(cut_z, cut_n)
 
     def apply_selection_criteria(self) -> np.ndarray:
         """Does the selection"""
         narrow_band_excess = self.narrow_color_select()
         continuum_break = self.continuum_color_select()
         i_non_detect = self.select_i_band()
-        return np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect)
+        dimmer_than_qso = self.select_not_brighter_than_qso()
+
+        return np.intersect1d(
+            np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect), dimmer_than_qso)
 
 class DegradedLagerSelection(Selection):
     """
@@ -289,11 +303,6 @@ def perform_selection(selection: Selection):
     artifacts, candidates = start_gui(i_bands, z_bands, n_bands)
     ra_rejects = r_a[artifacts]
     dec_rejects = dec[artifacts]
-    #temp#
-    #temp
-    with open('test_idx_delete.txt', 'w') as file:
-        for i in candidates:
-            file.write(f'{i} \n')
     update_candidate_red_list(ra_rejects, dec_rejects, selection.inputs.red_list_name)
     write_output(r_a[candidates], dec[candidates], selection.inputs.output_name, size=8)
 
@@ -310,7 +319,7 @@ if __name__ == '__main__':
         '../correct_stacks/N964/i.fits',
         '../correct_stacks/N964/z.fits',
         '../correct_stacks/N964/n964.fits'),
-        aperture_radii=1.
+        aperture_radii=0.1
     )
 
     cdfs_inputs = Inputs(
@@ -325,26 +334,14 @@ if __name__ == '__main__':
             '../CDFS_LAGER/CDFS_i.fits',
             '../CDFS_LAGER/CDFS_z.fits',
             '../CDFS_LAGER/CDFS_NB.fits'),
-        aperture_radii=1.
+        aperture_radii=0.1
     )
 
-    I_DEPTH_2_SIGMA = 26.64
-    Z_DEPTH_2_SIGMA = 26.58
-    N_DEPTH_2_SIGMA = 25.69
-
-    I_DEPTH_1_SIGMA = 27.40
-    Z_DEPTH_1_SIGMA = 27.33
-
-    I_DEPTH_2_SIGMA_CDFS = 28.10
-    Z_DEPTH_2_SIGMA_CDFS = 27.73
-    I_DEPTH_1_SIGMA_CDFS = 28.76
-    Z_DEPTH_1_SIGMA_CDFS = 28.49
-
-    our_selection = Selection(our_inputs, I_DEPTH_1_SIGMA, Z_DEPTH_1_SIGMA)
+    our_selection = Selection(our_inputs, OUR_DEPTH.i_band.sigma_1, OUR_DEPTH.z_band.sigma_1)
     #cdfs_selection = LagerSelection(
     #    cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS, I_DEPTH_2_SIGMA)
     cdfs_selection = DegradedLagerSelection(
-        cdfs_inputs, I_DEPTH_1_SIGMA, Z_DEPTH_1_SIGMA, N_DEPTH_2_SIGMA, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS)
+        cdfs_inputs, OUR_DEPTH.i_band.sigma_1, OUR_DEPTH.z_band.sigma_1, OUR_DEPTH.n_band.sigma_1, CDFS_DEPTH.i_band.sigma_2, CDFS_DEPTH.z_band.sigma_2)
 
     #cdfs_selection.plot_first_color_color()
     #cdfs_selection.plot_color_color()
@@ -354,5 +351,5 @@ if __name__ == '__main__':
 
     true_cdfs_inputs = cdfs_inputs
     true_cdfs_inputs.output_name = 'candidates_true_cdfs'
-    true_cdfs_selection = Selection(true_cdfs_inputs,I_DEPTH_1_SIGMA_CDFS , Z_DEPTH_1_SIGMA_CDFS)
+    true_cdfs_selection = Selection(true_cdfs_inputs,CDFS_DEPTH.i_band.sigma_1, CDFS_DEPTH.z_band.sigma_1)
     perform_selection(true_cdfs_selection)

@@ -18,14 +18,19 @@ from plotting import end_plot
 
 
 # Our candidates
-INFILE_US = 'candidates_cdfs_e.txt'
-#INFILE_US = 'candidates_true_cdfs.txt'
+#INFILE_US = 'candidates_cdfs_e.txt'
+INFILE_US = 'candidates_true_cdfs.txt'
 I_CATALOG = '../CDFS_LAGER/i_cdfs.cat'
 Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
 N_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
-I_FITS = '../CDFS_LAGER/CDFS_i.fits.fz'
-Z_FITS = '../CDFS_LAGER/CDFS_z.fits.fz'
-N_FITS = '../CDFS_LAGER/CDFS_NB.fits.fz'
+I_FITS = '../CDFS_LAGER/CDFS_i.fits'
+Z_FITS = '../CDFS_LAGER/CDFS_z.fits'
+N_FITS = '../CDFS_LAGER/CDFS_NB.fits'
+
+I_FITS = '../CDFS_LAGER/i_test.fits'
+Z_FITS = '../CDFS_LAGER/z_test.fits'
+N_FITS = '../CDFS_LAGER/n964_test.fits'
+
 i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
@@ -69,9 +74,9 @@ i_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(I_CATALOG))
 z_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(Z_CATALOG))
 n_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(N_CATALOG))
 
-i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points_cdfs.i_band.mag_correct(1)
-z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points_cdfs.z_band.mag_correct(1)
-n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points_cdfs.n964_band.mag_correct(1)
+i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points_cdfs.i_band.mag_correct(0.9)
+z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points_cdfs.z_band.mag_correct(0.9)
+n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points_cdfs.n964_band.mag_correct(0.9)
 
 i_cat = replace_non_detections(i_cat, SIGMA_I_2_string, 2)
 z_cat = replace_non_detections(z_cat, SIGMA_Z_2_string, 2)
@@ -82,9 +87,10 @@ z_snr, z_mag = np.array(z_cat['SNR']), np.array(z_cat['MAG_CORR'])
 n_snr, n_mag = np.array(n_cat['SNR']), np.array(n_cat['MAG_CORR'])
 
 for i, ra_val in enumerate(ra):
-    z_data = cut_postage_stamp(ra_val, dec[i], z_fits, hdu_number=1)
-    i_data = cut_postage_stamp(ra_val, dec[i], i_fits, hdu_number=1)
-    n_data = cut_postage_stamp(ra_val, dec[i], n_fits, hdu_number=1)
+    z_data = cut_postage_stamp(ra_val, dec[i], z_fits, hdu_number=0)
+    i_data = cut_postage_stamp(ra_val, dec[i], i_fits, hdu_number=0)
+    n_data = cut_postage_stamp(ra_val, dec[i], n_fits, hdu_number=0)
+
     z_scale = ZScaleInterval()
     z_min, z_max = z_scale.get_limits(z_data)
     i_min, i_max = z_scale.get_limits(i_data)

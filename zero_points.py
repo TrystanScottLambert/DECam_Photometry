@@ -24,7 +24,7 @@ class ZeroPoints:
 
 zero_points = ZeroPoints(
 
-    i_band = ZeroPoint(30.73239902080021, 1.17),
-    z_band = ZeroPoint(30.292981718988404, 1.23),
-    n964_band = ZeroPoint(29.13681558219653, 1.47)
+    i_band = ZeroPoint(30.732931953687146, 1.17),
+    z_band = ZeroPoint(30.293163065122723, 1.23),
+    n964_band = ZeroPoint(29.13594864992244, 1.47)
     )

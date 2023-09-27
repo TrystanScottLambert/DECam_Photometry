@@ -43,7 +43,7 @@ def load_catalog(catalog_name: str, zero_point: ZeroPoint) -> tuple[np.ndarray, 
 
     cut = np.where(snr<30)[0]
     mag, err, snr = mag[cut], err[cut], snr[cut]
-    return mag + zero_point.mag_correct(1), err, snr
+    return mag + zero_point.mag_correct(0.91), err, snr
 
 
 if __name__ == '__main__':
@@ -54,16 +54,16 @@ if __name__ == '__main__':
     #INFILE = '../correct_stacks/N964/z_depth.cat'
     #zero_point = zero_points.z_band
     #OUTFILE = 'plots/z_band_depth.png'
-    
+
     #INFILE = '../correct_stacks/N964/n964.cat'
     #zero_point = zero_points.n964_band
     #OUTFILE = 'plots/n964_band_depth.png'
-    
-    #INFILE = '../CDFS_LAGER/i_cdfs.cat'
+
+    #INFILE = '../CDFS_LAGER/i_cdfs_depth.cat'
     #zero_point = zero_points_cdfs.i_band
     #OUTFILE = 'plots/i_band_depth_cdfs.png'
 
-    #INFILE = '../CDFS_LAGER/z_cdfs.cat'
+    #INFILE = '../CDFS_LAGER/z_cdfs_depth.cat'
     #zero_point = zero_points_cdfs.z_band
     #OUTFILE = 'plots/z_band_depth_cdfs.png'
 
@@ -96,10 +96,10 @@ if __name__ == '__main__':
     # Plotting the original data and the fitted exponential curve
 
     start_plot('Magnitude', 'SNR')
-    NBINS = 100
+    #NBINS = 100
     #kernal = gaussian_kde((mag, snr))
     #x_i, y_i = np.mgrid[
-    #    mag.min():mag.max():NBINS*1j, snr.min():snr.max():NBINS*1j]
+    #   mag.min():mag.max():NBINS*1j, snr.min():snr.max():NBINS*1j]
     #z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
     #plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto', cmap='Greens')
     plt.scatter(mag, snr, s=1)
@@ -109,6 +109,8 @@ if __name__ == '__main__':
     plt.ylim(0., np.max(snr))
     end_plot(OUTFILE)
 
+
+    
     #printing out the depths
     print('Values for the fit are', *params)
     for snr in range(1, 6):

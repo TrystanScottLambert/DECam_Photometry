@@ -22,9 +22,9 @@ INFILE_US = 'candidates_e.txt'
 I_CATALOG = '../correct_stacks/N964/i.cat'
 Z_CATALOG = '../correct_stacks/N964/z.cat'
 N_CATALOG = '../correct_stacks/N964/n964.cat'
-I_FITS = '../correct_stacks/N964/i.fits'
-Z_FITS = '../correct_stacks/N964/z.fits'
-N_FITS = '../correct_stacks/N964/n964.fits'
+I_FITS = '../correct_stacks/N964/background_check_i.fits'
+Z_FITS = '../correct_stacks/N964/background_check_z.fits'
+N_FITS = '../correct_stacks/N964/background_check_n964.fits'
 i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
@@ -81,13 +81,14 @@ for i, ra_val in enumerate(ra):
     i_data = cut_postage_stamp(ra_val, dec[i], i_fits)
     n_data = cut_postage_stamp(ra_val, dec[i], n_fits)
     z_scale = ZScaleInterval()
+
+    z_data = ndimage.gaussian_filter(z_data, sigma=1.5, order=0)
+    i_data = ndimage.gaussian_filter(i_data, sigma=1.5, order=0)
+    n_data = ndimage.gaussian_filter(n_data, sigma=1.5, order=0)
+
     z_min, z_max = z_scale.get_limits(z_data)
     i_min, i_max = z_scale.get_limits(i_data)
     n_min, n_max = z_scale.get_limits(n_data)
-
-    z_data = ndimage.gaussian_filter(z_data, sigma=(1, 1), order=0)
-    i_data = ndimage.gaussian_filter(i_data, sigma=(1, 1), order=0)
-    n_data = ndimage.gaussian_filter(n_data, sigma=(1, 1), order=0)
 
     fig = plt.figure()
     ax_i = fig.add_subplot(131)
