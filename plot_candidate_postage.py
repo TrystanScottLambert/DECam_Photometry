@@ -22,9 +22,9 @@ INFILE_US = 'candidates_e.txt'
 I_CATALOG = '../correct_stacks/N964/i.cat'
 Z_CATALOG = '../correct_stacks/N964/z.cat'
 N_CATALOG = '../correct_stacks/N964/n964.cat'
-I_FITS = '../correct_stacks/N964/background_check_i.fits'
-Z_FITS = '../correct_stacks/N964/background_check_z.fits'
-N_FITS = '../correct_stacks/N964/background_check_n964.fits'
+I_FITS = '../correct_stacks/N964/i.fits'
+Z_FITS = '../correct_stacks/N964/z.fits'
+N_FITS = '../correct_stacks/N964/n964.fits'
 i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
@@ -68,6 +68,10 @@ i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points.i_band.mag_correct(1)
 z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points.z_band.mag_correct(1)
 n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points.n964_band.mag_correct(1)
 
+i_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/i_cat['MAGERR_AUTO']
+z_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/z_cat['MAGERR_AUTO']
+n_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/n_cat['MAGERR_AUTO']
+
 i_cat = replace_non_detections(i_cat, SIGMA_I_2_string)
 z_cat = replace_non_detections(z_cat, SIGMA_Z_2_string)
 n_cat = replace_non_detections(n_cat, 'NAS')
@@ -82,9 +86,9 @@ for i, ra_val in enumerate(ra):
     n_data = cut_postage_stamp(ra_val, dec[i], n_fits)
     z_scale = ZScaleInterval()
 
-    z_data = ndimage.gaussian_filter(z_data, sigma=1.5, order=0)
-    i_data = ndimage.gaussian_filter(i_data, sigma=1.5, order=0)
-    n_data = ndimage.gaussian_filter(n_data, sigma=1.5, order=0)
+    z_data = ndimage.gaussian_filter(z_data, sigma=1, order=0)
+    i_data = ndimage.gaussian_filter(i_data, sigma=1, order=0)
+    n_data = ndimage.gaussian_filter(n_data, sigma=1, order=0)
 
     z_min, z_max = z_scale.get_limits(z_data)
     i_min, i_max = z_scale.get_limits(i_data)
@@ -112,6 +116,11 @@ for i, ra_val in enumerate(ra):
      horizontalalignment='center',
      verticalalignment='center',
      transform = ax_i.transAxes, fontsize=20, color='w')
+    
+    ax_i.text(0.2, 0.1, f'{round(list(i_cat["MAG_SNR_KRON"])[i], 2)}',
+              horizontalalignment='center',
+              verticalalignment='center',
+              transform=ax_i.transAxes, fontsize=20, color='w')
 
     ax_i.text(0.4, 0.85, fancy_round(i_mag[i]),
      horizontalalignment='center',

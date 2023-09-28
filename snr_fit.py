@@ -47,9 +47,9 @@ def load_catalog(catalog_name: str, zero_point: ZeroPoint) -> tuple[np.ndarray, 
 
 
 if __name__ == '__main__':
-    #INFILE = '../correct_stacks/N964/i_depth.cat'
-    #zero_point = zero_points.i_band
-    #OUTFILE = 'plots/i_band_depth.png'
+    INFILE = '../correct_stacks/N964/i_depth.cat'
+    zero_point = zero_points.i_band
+    OUTFILE = 'plots/i_band_depth.png'
 
     #INFILE = '../correct_stacks/N964/z_depth.cat'
     #zero_point = zero_points.z_band
@@ -67,9 +67,9 @@ if __name__ == '__main__':
     #zero_point = zero_points_cdfs.z_band
     #OUTFILE = 'plots/z_band_depth_cdfs.png'
 
-    INFILE = '../CDFS_LAGER/n964_cdfs.cat'
-    zero_point = zero_points_cdfs.n964_band
-    OUTFILE = 'plots/n964_band_depth_cdfs.png'
+    #INFILE = '../CDFS_LAGER/n964_cdfs.cat'
+    #zero_point = zero_points_cdfs.n964_band
+    #OUTFILE = 'plots/n964_band_depth_cdfs.png'
 
 
     mag, err, snr = load_catalog(INFILE, zero_point)

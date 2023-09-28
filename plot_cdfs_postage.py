@@ -27,10 +27,6 @@ I_FITS = '../CDFS_LAGER/CDFS_i.fits'
 Z_FITS = '../CDFS_LAGER/CDFS_z.fits'
 N_FITS = '../CDFS_LAGER/CDFS_NB.fits'
 
-I_FITS = '../CDFS_LAGER/i_test.fits'
-Z_FITS = '../CDFS_LAGER/z_test.fits'
-N_FITS = '../CDFS_LAGER/n964_test.fits'
-
 i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
@@ -74,9 +70,13 @@ i_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(I_CATALOG))
 z_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(Z_CATALOG))
 n_cat = cross_match_to_sexcat(ra, dec, SExtractorCat(N_CATALOG))
 
-i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points_cdfs.i_band.mag_correct(0.9)
-z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points_cdfs.z_band.mag_correct(0.9)
-n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points_cdfs.n964_band.mag_correct(0.9)
+i_cat['MAG_CORR'] = i_cat['MAG_APER'] + zero_points_cdfs.i_band.mag_correct(1)
+z_cat['MAG_CORR'] = z_cat['MAG_APER'] + zero_points_cdfs.z_band.mag_correct(1)
+n_cat['MAG_CORR'] = n_cat['MAG_APER'] + zero_points_cdfs.n964_band.mag_correct(1)
+
+i_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/i_cat['MAGERR_AUTO']
+z_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/z_cat['MAGERR_AUTO']
+n_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/n_cat['MAGERR_AUTO']
 
 i_cat = replace_non_detections(i_cat, SIGMA_I_2_string, 2)
 z_cat = replace_non_detections(z_cat, SIGMA_Z_2_string, 2)
@@ -122,6 +122,11 @@ for i, ra_val in enumerate(ra):
      horizontalalignment='center',
      verticalalignment='center',
      transform = ax_i.transAxes, fontsize=20, color='w')
+
+    ax_i.text(0.2, 0.1, f'{round(list(i_cat["MAGERR_AUTO"])[i], 2)}',
+              horizontalalignment='center',
+              verticalalignment='center',
+              transform=ax_i.transAxes, fontsize=20, color='w')
 
     ax_i.text(0.4, 0.85, fancy_round(i_mag[i]),
      horizontalalignment='center',

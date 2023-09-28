@@ -37,7 +37,7 @@ def calculate_snr(mag_err: float) -> float:
 
 def read_all(catalog_name: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Reads in the magnitudes, errors, and works out the snr."""
-    mag, err = np.loadtxt(catalog_name, usecols=(6, 7), unpack=True)
+    mag, err = np.loadtxt(catalog_name, usecols=(4, 5), unpack=True)
     snr = calculate_snr(err)
     return mag, err, snr
 
@@ -153,6 +153,13 @@ class Selection:
         mag_i[cut] = self.i_lim
         return mag_i, inst_mag_i_err, i_snr
 
+    @property
+    def i_kron_snr(self) -> np.ndarray:
+        """Works out the SNR as determined by the KRON magnitudes"""
+        kron_err = np.loadtxt(self.inputs.infile_i, usecols=(7), unpack=True)
+        kron_snr = calculate_snr(kron_err)
+        return kron_snr
+
     def narrow_color_select(self) -> np.ndarray:
         """
         Looking for excess in narrow band and that that excess is significatnt.
@@ -186,22 +193,17 @@ class Selection:
         cut = np.where(i_snr < 2)[0]
         return cut
 
-    def select_not_brighter_than_qso(self) -> np.ndarray:
-        """Make sure nothing brighter than the QSO is allowed. Unphysical."""
-        inst_z, _, _ = read_all(self.inputs.infile_z)
-        inst_n, _, _ = read_all(self.inputs.infile_n964)
-        QSO_Z_INT = -8.1518
-        QSO_N_INST = -8.2531
-        cut_z = np.where(inst_z >= QSO_Z_INT)[0]
-        cut_n = np.where(inst_n >= QSO_Z_INT)[0]
-        return np.intersect1d(cut_z, cut_n)
+    def select_kron(self) -> np.ndarray:
+        """Making sure that the kron snr has non detection in i_band"""
+        cut = np.where(self.i_kron_snr < 2)
+        return cut
 
     def apply_selection_criteria(self) -> np.ndarray:
         """Does the selection"""
         narrow_band_excess = self.narrow_color_select()
         continuum_break = self.continuum_color_select()
         i_non_detect = self.select_i_band()
-        dimmer_than_qso = self.select_not_brighter_than_qso()
+        dimmer_than_qso = self.select_kron()
 
         return np.intersect1d(
             np.intersect1d(np.intersect1d(narrow_band_excess, continuum_break), i_non_detect), dimmer_than_qso)
@@ -238,7 +240,7 @@ class DegradedLagerSelection(Selection):
         return mag, mag_err, snr
 
     @property
-    def i_data(self) -> tuple[float, float, float]:
+    def i_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         mag_i, mag_i_err, i_snr = self._prepare_band(
             self.inputs.infile_i, self.inputs.zero_point_function.i_band, self.i_depth_cdfs, 'i')
         cut = np.where(i_snr < 1)[0]
@@ -246,7 +248,7 @@ class DegradedLagerSelection(Selection):
         return mag_i, mag_i_err, i_snr
 
     @property
-    def z_data(self) -> tuple[float, float, float]:
+    def z_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         mag_z, mag_z_err, z_snr = self._prepare_band(
             self.inputs.infile_z, self.inputs.zero_point_function.z_band, self.z_depth_cdfs, 'z')
         cut = np.where(z_snr < 1)[0]
@@ -254,10 +256,12 @@ class DegradedLagerSelection(Selection):
         return mag_z, mag_z_err, z_snr
 
     @property
-    def n964_data(self) -> tuple[float, float, float]:
+    def n964_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         mag_n, mag_n_err, n_snr = self._prepare_band(
             self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, 'n964')
         return mag_n, mag_n_err, n_snr
+
+        
 
 
     def plot_color_color(self) -> None:
@@ -319,7 +323,7 @@ if __name__ == '__main__':
         '../correct_stacks/N964/i.fits',
         '../correct_stacks/N964/z.fits',
         '../correct_stacks/N964/n964.fits'),
-        aperture_radii=0.1
+        aperture_radii=1
     )
 
     cdfs_inputs = Inputs(
@@ -334,22 +338,22 @@ if __name__ == '__main__':
             '../CDFS_LAGER/CDFS_i.fits',
             '../CDFS_LAGER/CDFS_z.fits',
             '../CDFS_LAGER/CDFS_NB.fits'),
-        aperture_radii=0.1
+        aperture_radii=1
     )
 
     our_selection = Selection(our_inputs, OUR_DEPTH.i_band.sigma_1, OUR_DEPTH.z_band.sigma_1)
     #cdfs_selection = LagerSelection(
     #    cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS, I_DEPTH_2_SIGMA)
     cdfs_selection = DegradedLagerSelection(
-        cdfs_inputs, OUR_DEPTH.i_band.sigma_1, OUR_DEPTH.z_band.sigma_1, OUR_DEPTH.n_band.sigma_1, CDFS_DEPTH.i_band.sigma_2, CDFS_DEPTH.z_band.sigma_2)
+        cdfs_inputs, OUR_DEPTH.i_band.sigma_2, OUR_DEPTH.z_band.sigma_2, OUR_DEPTH.n_band.sigma_2, CDFS_DEPTH.i_band.sigma_2, CDFS_DEPTH.z_band.sigma_2)
 
     #cdfs_selection.plot_first_color_color()
     #cdfs_selection.plot_color_color()
 
-    #perform_selection(our_selection)
+    perform_selection(our_selection)
     #perform_selection(cdfs_selection)
 
-    true_cdfs_inputs = cdfs_inputs
-    true_cdfs_inputs.output_name = 'candidates_true_cdfs'
-    true_cdfs_selection = Selection(true_cdfs_inputs,CDFS_DEPTH.i_band.sigma_1, CDFS_DEPTH.z_band.sigma_1)
-    perform_selection(true_cdfs_selection)
+    #true_cdfs_inputs = cdfs_inputs
+    #true_cdfs_inputs.output_name = 'candidates_true_cdfs'
+    #true_cdfs_selection = Selection(true_cdfs_inputs,CDFS_DEPTH.i_band.sigma_1, CDFS_DEPTH.z_band.sigma_1)
+    #perform_selection(true_cdfs_selection)
