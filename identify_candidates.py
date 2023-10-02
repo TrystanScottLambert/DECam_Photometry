@@ -261,8 +261,6 @@ class DegradedLagerSelection(Selection):
             self.inputs.infile_n964, self.inputs.zero_point_function.n964_band, self.n_lim, 'n964')
         return mag_n, mag_n_err, n_snr
 
-        
-
 
     def plot_color_color(self) -> None:
         """Plotting the color color plot after degradation and non detecion at our depths"""
@@ -345,13 +343,13 @@ if __name__ == '__main__':
     #cdfs_selection = LagerSelection(
     #    cdfs_inputs, I_DEPTH_2_SIGMA_CDFS, Z_DEPTH_2_SIGMA_CDFS, I_DEPTH_2_SIGMA)
     cdfs_selection = DegradedLagerSelection(
-        cdfs_inputs, OUR_DEPTH.i_band.sigma_2, OUR_DEPTH.z_band.sigma_2, OUR_DEPTH.n_band.sigma_2, CDFS_DEPTH.i_band.sigma_2, CDFS_DEPTH.z_band.sigma_2)
+        cdfs_inputs, OUR_DEPTH.i_band.sigma_2, OUR_DEPTH.z_band.sigma_2, OUR_DEPTH.n_band.sigma_2, CDFS_DEPTH.i_band.sigma_1, CDFS_DEPTH.z_band.sigma_1)
 
-    #cdfs_selection.plot_first_color_color()
+    #cdfs_selection.plot_first_color_color()s
     #cdfs_selection.plot_color_color()
 
-    perform_selection(our_selection)
-    #perform_selection(cdfs_selection)
+    #perform_selection(our_selection)
+    perform_selection(cdfs_selection)
 
     #true_cdfs_inputs = cdfs_inputs
     #true_cdfs_inputs.output_name = 'candidates_true_cdfs'

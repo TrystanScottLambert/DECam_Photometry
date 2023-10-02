@@ -19,7 +19,7 @@ from plotting import end_plot
 
 # Our candidates
 #INFILE_US = 'candidates_cdfs_e.txt'
-INFILE_US = 'candidates_true_cdfs.txt'
+INFILE_US = 'candidates_cdfs_e.txt'
 I_CATALOG = '../CDFS_LAGER/i_cdfs.cat'
 Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
 N_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'

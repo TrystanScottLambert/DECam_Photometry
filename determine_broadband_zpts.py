@@ -120,7 +120,7 @@ class BroadBand:
 
     def plot_zpt(self):
         """Plots the measured mags vs the expected mags."""
-        plotting.start_plot('DECam magnitudes [mag]', 'Expected magnitudes - DECam magnitudes [mags]')
+        plotting.start_plot('DECam mag', 'Expected mag - DECam mag')
         y_err = np.hypot(self.measured_mags_err, self.expected_mags_err)
         good = np.where(y_err < 1e5)[0]
         plt.errorbar(

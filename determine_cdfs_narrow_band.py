@@ -65,11 +65,8 @@ y_err = pan_cat_z['zMeanPSFMagErr'].values
 n964 = decam_catalog_z['MAG_APER'].values
 n964_err = decam_catalog_z['MAGERR_APER'].values
 cut = np.where(y != -999)[0]
-print(len(cut))
-print(len(decam_all.catalog))
-print(len(pan_cat_z))
 z, y, n964, z_err, y_err, n964_err = z[cut], y[cut], n964[cut], z_err[cut], y_err[cut], n964_err[cut]
-print(len(z))
+
 
 delta_pan = z - y
 delta_decam = z - n964
