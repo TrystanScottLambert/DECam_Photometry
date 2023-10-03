@@ -28,4 +28,4 @@ sed -i 's/7.4/5.2/g' default_n964_false_135.sex
 # Run sextractor on both apertures.
 echo "Running SEXTRACTOR"
 sex n964.injected.fits -c default_n964_false.sex
-sex n964.injected.fits -c default_n964_false_135.sex
+#sex n964.injected.fits -c default_n964_false_135.sex

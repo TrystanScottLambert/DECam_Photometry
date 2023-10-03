@@ -49,14 +49,28 @@ if __name__ == '__main__':
     decam = Mask('DECAM_MASK.fits')
     ra, dec = np.loadtxt('candidates_e.txt', unpack=True)
 
-    distances = np.arange(40, 80, 5) *u.Mpc
+    distances = calculate_distances_to_quasar(ra, dec)
+    smallest_distance = np.sort(distances)[1] # removing the quasar iteself.
+
+    center = decam.wcs.world_to_pixel_values(RA_QSO.value, DEC_QSO.value)
+    outer_area = decam.calculate_area(center, 6666, 100000)
+    inner_area = decam.calculate_area(center, 0, smallest_distance/decam.deg_per_pix)
+
+    outer_radius = 75*u.Mpc #comoving
+    _, outer_count = count_inner_outer(ra, dec, outer_radius*DEG_PER_MPC)
+
+    expected_inner_count = (inner_area/outer_area)*outer_count
+
+
+    distances = np.arange(20, 75, 5) *u.Mpc
 
     sigmas = []
     for distance in track(distances):
         inner_region_distance_deg = DEG_PER_MPC * distance
-        inner, outer = count_inner_outer(ra, dec, inner_region_distance_deg)
-        ratio = calculate_area_ratio(decam, inner_region_distance_deg)
-        expected_inner = outer * ratio
+        inner, _ = count_inner_outer(ra, dec, inner_region_distance_deg)
+        inner -= 1 # remove the quasar
+        inner_area = decam.calculate_area(center, 0, inner_region_distance_deg/decam.deg_per_pix)
+        expected_inner = outer_count * (inner_area/outer_area)
 
         probability = poisson.cdf(inner, expected_inner)
         sigmas.append(norm.ppf(probability))

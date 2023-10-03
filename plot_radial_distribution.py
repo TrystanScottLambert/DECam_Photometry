@@ -113,6 +113,8 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     ax.minorticks_on()
     ax.tick_params(which='both', width=1.2,direction='in')
     ax.tick_params(which='major', length=3, direction='in')
+    ax.axhline(2/1.55)
+    ax.axhspan(2/1.55, 4.638/1.55, alpha=0.3, color='b')
     ax.set_yscale('log')
 
     ax1 = ax.twiny()

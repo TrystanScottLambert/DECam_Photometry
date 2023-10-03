@@ -11,15 +11,23 @@ import numpy as np
 import galsim
 from astropy.io import fits
 from regions import PixCoord
+from astropy.cosmology import FlatLambdaCDM
+import astropy.units as u
 
-from hu_2019_plot import FILTERS
+from zero_points import zero_points
 from regionfy_catalog import load_region
 from plot_onsky_distribution import REGION_FILE
 
 SERSIC_INDEX = 1.5
-HALF_LIGHT_RADIUS = 0.9 # From Hu et. al., (2019)
-PSF = 1.2 # arcseconds
-MIN_MAG = 18
+HALF_LIGHT_RADIUS = 0.9 # From Hu et. al., (2019) KPC
+cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
+arcsec_per_kpc = cosmo.arcsec_per_kpc_proper(6.9)
+
+HALF_LIGHT_RADIUS = HALF_LIGHT_RADIUS*u.kpc * arcsec_per_kpc
+HALF_LIGHT_RADIUS = HALF_LIGHT_RADIUS.value
+
+PSF = 0.7 # arcseconds
+MIN_MAG = 21
 MAX_MAG = 26
 
 
@@ -33,7 +41,7 @@ class DecamImage:
         self.infile = file_name
         self.hdul = fits.open(file_name)
         self.filter = get_filter_from_image_name(file_name)
-        self.zpt = FILTERS[self.filter].zpt
+        self.zpt = zero_points.n964_band.mag_correct(1)
 
     @property
     def pixel_scale(self) -> float:
@@ -48,7 +56,7 @@ class DecamImage:
         """creates a lyman-alpha emitter galaxy image which can be injected into an image."""
         flux = self.calculate_counts_from_mag(mag)
         gal = galsim.Sersic(SERSIC_INDEX, HALF_LIGHT_RADIUS, flux=flux)
-        psf = galsim.Gaussian(flux=1., sigma=PSF)
+        psf = galsim.Gaussian(flux=1., sigma=PSF) # flux should always be 1.
         final = galsim.Convolve([gal, psf])
         return final.drawImage(scale=self.pixel_scale).array
 

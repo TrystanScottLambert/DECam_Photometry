@@ -86,9 +86,9 @@ for i, ra_val in enumerate(ra):
     n_data = cut_postage_stamp(ra_val, dec[i], n_fits)
     z_scale = ZScaleInterval()
 
-    z_data = ndimage.gaussian_filter(z_data, sigma=1, order=0)
-    i_data = ndimage.gaussian_filter(i_data, sigma=1, order=0)
-    n_data = ndimage.gaussian_filter(n_data, sigma=1, order=0)
+    z_data = ndimage.gaussian_filter(z_data, sigma=1.5, order=0)
+    i_data = ndimage.gaussian_filter(i_data, sigma=1.5, order=0)
+    n_data = ndimage.gaussian_filter(n_data, sigma=1.5, order=0)
 
     z_min, z_max = z_scale.get_limits(z_data)
     i_min, i_max = z_scale.get_limits(i_data)
