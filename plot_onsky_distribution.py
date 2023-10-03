@@ -55,7 +55,7 @@ if __name__ == '__main__':
     ra_qso_plot, dec_qso_plot = decam_wcs.world_to_pixel_values(RA_QSO, DEC_QSO)
 
     #On sky distribution plot.
-    region_1 = set_region(ra_qso_plot, dec_qso_plot, 1)
+    region_1 = set_region(ra_qso_plot, dec_qso_plot, 2.64)
     region_10 = set_region(ra_qso_plot, dec_qso_plot, 5)
     region_20 = set_region(ra_qso_plot, dec_qso_plot, 10)
 
@@ -67,14 +67,16 @@ if __name__ == '__main__':
     ax.set_xlabel('RA')
     ax.set_ylabel('DEC')
     ax.imshow(decam_hdu[0].data, alpha=0)
-    #region_1.plot(ax=ax, color='red', lw=2.0, ls=':')
-    region_10.plot(ax=ax, color='red', lw=2.0, ls=':')
-    region_20.plot(ax=ax, color='red', lw=2.0, ls=':')
+    region_1.plot(ax=ax, color='k', fill=True, alpha=0.3)
+    region_10.plot(ax=ax, color='k', ls=':')
+    region_20.plot(ax=ax, color='k')
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
     #colors = np.loadtxt('color_test_delete.txt')
     #idx = np.loadtxt('test_idx_delete.txt')
     #colors = colors[idx.astype(int)]
-    poes = ax.scatter(ra_plot, dec_plot, s=10)
-    ax.scatter(ra_qso_plot, dec_qso_plot, marker='*', s=100, color='k')
-    #plt.colorbar(poes)
+    ax.scatter(ra_plot, dec_plot, s=10, c='r')
+    ax.scatter(ra_qso_plot, dec_qso_plot, marker='*', s=80, color='k')
+    ax.minorticks_on()
+    ax.tick_params(which='both', width=1.2,direction='in')
+    ax.tick_params(which='major', length=3, direction='in')
     plotting.end_plot('plots/on_sky_distribution.png')

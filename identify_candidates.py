@@ -181,8 +181,6 @@ class Selection:
         """Looking for the continuum break via I-Z > 1.0"""
         z_mag, _, _ = self.z_data
         i_mag, _, _ = self.i_data
-        print(len(self.z_data[0]))
-        print(len(self.i_data[0]))
         color = i_mag - z_mag
         cut = np.where(color > 1.)[0]
         return cut
@@ -348,8 +346,8 @@ if __name__ == '__main__':
     #cdfs_selection.plot_first_color_color()s
     #cdfs_selection.plot_color_color()
 
-    #perform_selection(our_selection)
-    perform_selection(cdfs_selection)
+    perform_selection(our_selection)
+    #perform_selection(cdfs_selection)
 
     #true_cdfs_inputs = cdfs_inputs
     #true_cdfs_inputs.output_name = 'candidates_true_cdfs'

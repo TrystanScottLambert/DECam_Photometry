@@ -104,7 +104,6 @@ if __name__ == '__main__':
 
 
     plotting.start_plot(r'$\theta$ [deg]', r'$\omega$ ($\theta$)')
-    plt.errorbar(x, y, yerr=yerr, fmt='o')
-    plt.scatter(x, y)
+    plt.errorbar(x, y, yerr=yerr, ecolor='k', fmt='o', color='r', capsize=0, elinewidth=1.5)
     plt.axhline(0, ls ='--', color='k', alpha=0.5)
     plotting.end_plot('plots/angular_tpcf.png')

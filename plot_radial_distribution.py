@@ -105,8 +105,8 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
 
     fig = plt.figure(figsize = (3.54, 3.54/2), dpi = 600)
     ax = fig.add_subplot(111)
-    ax.errorbar(distances[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2)
-    ax.errorbar(distances[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', ms = 2, capsize=2, uplims=True)
+    ax.errorbar(distances[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', capsize=2, elinewidth=1, ms=2)
+    ax.errorbar(distances[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', capsize=2, uplims=True, elinewidth=1, ms=2)
     #ax.plot(fit_x, slope*fit_x + intercept)
     ax.set_xlabel('Distance from center [pMpc]')
     ax.set_ylabel(r'Surface Density [deg$^{-2}$]')
@@ -185,6 +185,6 @@ if __name__ == '__main__':
           for i in range(len(radii_deg) -1)
         ]
     )
-
+    counts_decam[0] = 0 #removing the QSO
     plot_radial_profile(counts_cdfs, areas_cdfs, average_radii_mpc, average_radii_deg, 'plots/surface_density_cdfs.png')
     plot_radial_profile(counts_decam, areas_decam, average_radii_mpc, average_radii_deg, 'plots/surface_density.png')

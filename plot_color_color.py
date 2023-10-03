@@ -13,7 +13,8 @@ from zero_points import zero_points, ZeroPoint, ZeroPoints
 from zero_points_cdfs import zero_points_cdfs
 from identify_candidates import write_region_file
 from snr_fit import calculate_snr
-
+from depth_values import OUR_DEPTH, CDFS_DEPTH
+from plotting import start_plot, end_plot
 
 def cross_match_to_sexcat(
         ra_array: np.ndarray, dec_array:np.ndarray, sex_catalog: DataFrame
@@ -47,9 +48,9 @@ def read_in_catalogs(
 
 
 if __name__ == '__main__':
-    I_BAND_2_SIGMA = 26.64
-    Z_BAND_2_SIGMA = 26.58
-    N_BAND_2_SIGMA = 25.69
+    I_BAND_1_SIGMA = OUR_DEPTH.i_band.sigma_1
+    Z_BAND_1_SIGMA = OUR_DEPTH.z_band.sigma_1
+    N_BAND_1_SIGMA = OUR_DEPTH.n_band.sigma_1
     OUR_CATALOGS = [
         '../correct_stacks/N964/i.cat',
         '../correct_stacks/N964/z.cat',
@@ -66,8 +67,7 @@ if __name__ == '__main__':
     #CANDIDATES_FILE = 'candidates_e.txt'
 
 
-
-    ra, dec = np.loadtxt(CANDIDATES_FILE, unpack=True)
+    ra_candidates, dec_candidates = np.loadtxt(CANDIDATES_FILE, unpack=True)
 
     our_i_cat, our_z_cat, our_n964_cat = read_in_catalogs(OUR_CATALOGS, zero_points)
     z_mag, z_err = our_z_cat['MAG_CORR'], our_z_cat['MAGERR_APER']
@@ -82,9 +82,6 @@ if __name__ == '__main__':
     n_mag, n_err = our_n964_cat['MAG_CORR'], our_n964_cat['MAGERR_APER']
     n_snr = calculate_snr(n_err)
     ra_all, dec_all = np.array(our_n964_cat['ALPHAPEAK_J2000']), np.array(our_n964_cat['DELTAPEAK_J2000'])
-    
-    plt.scatter(ra_all, dec_all, c = np.array(z_mag))
-    plt.show()
 
     ra, dec = np.array(our_n964_cat['ALPHAPEAK_J2000']), np.array(our_n964_cat['DELTAPEAK_J2000'])
     cats = [our_i_cat, our_z_cat, our_n964_cat]
@@ -103,9 +100,9 @@ if __name__ == '__main__':
     ra, dec = ra[good], dec[good]
 
 
-    z_mag[z_snr < 2] = Z_BAND_2_SIGMA
-    i_mag[i_snr < 2] = I_BAND_2_SIGMA
-    print('non detections: ', len(np.where(z_snr<2)[0])/len(z_snr))
+    z_mag[z_snr < 1] = Z_BAND_1_SIGMA
+    i_mag[i_snr < 1] = I_BAND_1_SIGMA
+
     color_zn = z_mag - n_mag
     color_iz = i_mag - z_mag
 
@@ -145,26 +142,27 @@ if __name__ == '__main__':
     ra, dec = ra[pass_color_cut][no_i_detection][final_cut], dec[pass_color_cut][no_i_detection][final_cut]
     write_region_file(ra, dec, 'vis_delete.reg',size=10)
 
-    #candidate_cats = [cross_match_to_sexcat(ra, dec, cat) for cat in cats]
-    #can_z = candidate_cats[1]['MAG_CORR']
-    #can_z_err = candidate_cats[1]['MAGERR_APER']
-    #can_i = candidate_cats[0]['MAG_CORR']
-    #can_i_err = candidate_cats[0]['MAGERR_APER']
-    #can_n = candidate_cats[2]['MAG_CORR']
-    #can_n_err = candidate_cats[2]['MAGERR_APER']
+    candidate_cats = [cross_match_to_sexcat(ra_candidates, dec_candidates, cat) for cat in cats]
+    can_z = candidate_cats[1]['MAG_CORR']
+    can_z_err = candidate_cats[1]['MAGERR_APER']
+    can_i = candidate_cats[0]['MAG_CORR']
+    can_i_err = candidate_cats[0]['MAGERR_APER']
+    can_n = candidate_cats[2]['MAG_CORR']
+    can_n_err = candidate_cats[2]['MAGERR_APER']
 
-    #can_i[can_i>26.68] = 26.68
+    can_i[can_i> OUR_DEPTH.i_band.sigma_1] = OUR_DEPTH.i_band.sigma_1
 
-    #candidate_z_nb = can_z - can_n
-    #candidate_i_z = can_i - can_z
+    candidate_z_nb = can_z - can_n
+    candidate_i_z = can_i - can_z
 
-    #candidate_z_nb_err = np.hypot(can_z_err, can_n_err)
-    #candidate_i_z_err = np.hypot(can_z_err, can_i_err)
+    candidate_z_nb_err = np.hypot(can_z_err, can_n_err)
+    candidate_i_z_err = np.hypot(can_z_err, can_i_err)
 
-    #plt.axhline(0.78, color='r', ls='--')
-    #plt.axvline(1, color='r', ls='--')
-    #plt.scatter(color_iz[good], color_zn[good], s=1, alpha=0.3, color='k')
-    #plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, fmt='o')
-    #plt.xlim(-0.7, 4.1)
-    #plt.ylim(-0.7, 3.6)
-    #plt.show()
+    start_plot('i - z', 'z - NB964')
+    plt.axhline(0.78, color='r', ls='--')
+    plt.axvline(1, color='r', ls='--')
+    plt.scatter(color_iz[good], color_zn[good], s=1, alpha=0.3, color='k')
+    plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, xerr=can_z_err, fmt='o')
+    plt.xlim(-1, 2.5)
+    plt.ylim(-2, 4)
+    end_plot('plots/color_color.png')
