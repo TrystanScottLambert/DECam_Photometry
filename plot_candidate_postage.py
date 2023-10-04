@@ -15,8 +15,10 @@ from sex_catalog import SExtractorCat
 from plot_postage_stamps import cut_postage_stamp
 from zero_points import zero_points
 from plotting import end_plot
+from depth_values import OUR_DEPTH
+import plotting
 
-
+plotting.apply_global_settings()
 # Our candidates
 INFILE_US = 'candidates_e.txt'
 I_CATALOG = '../correct_stacks/N964/i.cat'
@@ -29,10 +31,10 @@ i_fits = fits.open(I_FITS)
 z_fits = fits.open(Z_FITS)
 n_fits = fits.open(N_FITS)
 
-SIGMA_I_2_string = '>26.64'
-SIGMA_Z_2_string = '>26.58'
-SIGMA_I_2 = 26.64
-SIGMA_Z_2 = 26.58
+SIGMA_I_1_STRING = f'>{round(OUR_DEPTH.i_band.sigma_1, 2)}'
+SIGMA_z_1_STRING = f'>{round(OUR_DEPTH.z_band.sigma_1, 2)}'
+SIGMA_I_1 = OUR_DEPTH.i_band.sigma_1
+SIGMA_I_2 = OUR_DEPTH.z_band.sigma_1
 
 
 os.system('rm postage_stamps/*.png')
@@ -72,14 +74,15 @@ i_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/i_cat['MAGERR_AUTO']
 z_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/z_cat['MAGERR_AUTO']
 n_cat['MAG_SNR_KRON'] = (2.5/np.log(10))/n_cat['MAGERR_AUTO']
 
-i_cat = replace_non_detections(i_cat, SIGMA_I_2_string)
-z_cat = replace_non_detections(z_cat, SIGMA_Z_2_string)
+i_cat = replace_non_detections(i_cat, SIGMA_I_1_STRING)
+z_cat = replace_non_detections(z_cat, SIGMA_z_1_STRING)
 n_cat = replace_non_detections(n_cat, 'NAS')
 
 i_snr, i_mag = np.array(i_cat['SNR']), np.array(i_cat['MAG_CORR'])
 z_snr, z_mag = np.array(z_cat['SNR']), np.array(z_cat['MAG_CORR'])
 n_snr, n_mag = np.array(n_cat['SNR']), np.array(n_cat['MAG_CORR'])
 
+offset=1
 for i, ra_val in enumerate(ra):
     z_data = cut_postage_stamp(ra_val, dec[i], z_fits)
     i_data = cut_postage_stamp(ra_val, dec[i], i_fits)
@@ -98,12 +101,14 @@ for i, ra_val in enumerate(ra):
     ax_i = fig.add_subplot(131)
     ax_n = fig.add_subplot(132)
     ax_z = fig.add_subplot(133)
-    ax_i.get_xaxis().set_visible(False)
-    ax_i.get_yaxis().set_visible(False)
-    ax_z.get_xaxis().set_visible(False)
-    ax_z.get_yaxis().set_visible(False)
-    ax_n.get_xaxis().set_visible(False)
-    ax_n.get_yaxis().set_visible(False)
+    ax_i.set_xticks([])
+    ax_i.set_yticks([])
+    ax_z.set_xticks([])
+    ax_z.set_yticks([])
+    ax_n.set_xticks([])
+    ax_n.set_yticks([])
+
+
 
     ax_i.imshow(i_data, vmin=i_min, vmax=i_max, cmap='gray_r')
     ax_i.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
@@ -127,7 +132,19 @@ for i, ra_val in enumerate(ra):
      verticalalignment='center',
      transform = ax_i.transAxes, fontsize=20, color='w')
     
-    ax_i.set_ylabel(f'ID{i+1}')
+    if i == 14:
+        label = 'QSO'
+        offset=0
+    
+    else:
+        label= f'LAE-{i+offset}'
+
+    ax_i.set_ylabel(label, fontsize=12)
+
+    if i in [13, 15, 30, 31, 38, 37]:
+        ax_n.set_xlabel('NB964', fontsize=12)
+        ax_i.set_xlabel('i', fontsize=12)
+        ax_z.set_xlabel('z', fontsize=12)
 
     ax_z.text(0.75, 0.1, f'{round(z_snr[i], 1)}',
      horizontalalignment='center',
@@ -149,5 +166,6 @@ for i, ra_val in enumerate(ra):
      verticalalignment='center',
      transform = ax_n.transAxes, fontsize=20, color='w')
 
-    end_plot(f'postage_stamps/candidate_{i+1}.png')
+    #plt.savefig()
+    end_plot(f'postage_stamps/candidate_{label}.png')
     plt.close()
