@@ -26,7 +26,7 @@ IMAGES = (
 FITS_OBJECTS = [fits.open(image) for image in IMAGES]
 
 if __name__ == '__main__':
-    INFILE = 'candidates.txt'
+    INFILE = 'candidates_e.txt'
     ra, dec = np.loadtxt(INFILE, unpack=True)
 
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
@@ -43,4 +43,4 @@ if __name__ == '__main__':
     axes[0,1].set_title('z', fontsize=3)
     axes[0,2].set_title('N964',fontsize=3)
 
-    plt.savefig('plots/postage_stamps.png', transparent = False)
+    plt.savefig('plots/postage_stamps.png', transparent = False,bbox_inches='tight' )

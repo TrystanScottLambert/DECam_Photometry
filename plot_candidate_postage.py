@@ -116,16 +116,18 @@ for i, ra_val in enumerate(ra):
      horizontalalignment='center',
      verticalalignment='center',
      transform = ax_i.transAxes, fontsize=20, color='w')
-    
-    ax_i.text(0.2, 0.1, f'{round(list(i_cat["MAG_SNR_KRON"])[i], 2)}',
-              horizontalalignment='center',
-              verticalalignment='center',
-              transform=ax_i.transAxes, fontsize=20, color='w')
+
+    #ax_i.text(0.2, 0.1, f'{round(list(i_cat["MAG_SNR_KRON"])[i], 2)}',
+    #          horizontalalignment='center',
+    #          verticalalignment='center',
+    #          transform=ax_i.transAxes, fontsize=20, color='w')
 
     ax_i.text(0.4, 0.85, fancy_round(i_mag[i]),
      horizontalalignment='center',
      verticalalignment='center',
      transform = ax_i.transAxes, fontsize=20, color='w')
+    
+    ax_i.set_ylabel(f'ID{i+1}')
 
     ax_z.text(0.75, 0.1, f'{round(z_snr[i], 1)}',
      horizontalalignment='center',

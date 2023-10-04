@@ -85,6 +85,7 @@ if __name__ == '__main__':
     popt_up = popt + perr
     popt_down = popt - perr
 
+    print('popt', *popt)
     start_plot('NB964 Magnitude','Completeness')
     plt.errorbar(x_avg, y_completeness, yerr=np.sqrt(y_recovered)/y_mock, fmt='o', elinewidth=1, ms=2, color='k', ecolor='k')
     x_plotting = np.linspace(x_avg[0], x_avg[-1], 10000)

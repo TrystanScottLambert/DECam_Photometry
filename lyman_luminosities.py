@@ -8,10 +8,30 @@ import astropy.constants as cons
 from astropy.cosmology import FlatLambdaCDM
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+from scipy import stats, special
+from scipy.optimize import curve_fit
 
 from zero_points_cdfs import zero_points_cdfs
+from plotting import start_plot, end_plot
+
+
+
+def func(x, a, b, z, f) -> float:
+    """ERF function for fitting the completeness"""
+    return a * special.erf(f*(x - z)) + b
+
+completeness_popt = [-0.43237270715294684,0.4782243532927713,24.045316225218553,2.2224473398288085]
+
+def complete(n_mag: float) -> float:
+    """Determines the completeness for a given n_mag"""
+    return func(n_mag, *completeness_popt)
 
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
+
+full_volume = COSMO.comoving_volume(6.97) - COSMO.comoving_volume(6.89)
+AREA_US = 2.87 *(u.deg**2)
+SQUARE_DEG_IN_SR = 41252.96 *(u.deg**2)
+effective_volume = full_volume * (AREA_US/SQUARE_DEG_IN_SR)
 QSO_REDSHIFT = 6.9018
 LYMAN_ALPHA_OBSERVED_WAVELENGTH = 1216 * (QSO_REDSHIFT + 1) # angstrom
 
@@ -145,6 +165,12 @@ if __name__ == '__main__':
     lya_lum_err = convert_flux_to_luminosity(lya_flux_uncertainty) # assuming no error on luminosity distance
     log_10_lya = np.log10(lya_lum.value)
 
+
+    
+    slope, intercept, r_value, p_value, std_err = stats.linregress(log_10_lya,n_mag)
+    def convert_log10_lya_nmag(log_10_lya):
+        return log_10_lya*slope + intercept
+
     ha_lum = lya_lum / 8.7 # See muzzucchelli 2017
     ha_lum_err = lya_lum_err/8.7
     log_10_sfr = np.log10(ha_lum.value) - 41.27 #See muzzucchelli 2017
@@ -154,5 +180,33 @@ if __name__ == '__main__':
     sfr_err = np.log(10)*sfr*log_10_sfr_err
 
     write_file(OUTFILE, lya_lum, lya_lum_err, sfr, sfr_err, n_mag, n_err)
-    plt.hist(log_10_lya, bins=np.arange(42.0, 43.8,0.1))
+    binwidth = 0.1
+    bins = np.arange(42.0, 43.8, binwidth)
+    plt.hist(log_10_lya, bins = bins)
+    y, x = np.histogram(log_10_lya, bins = bins)
+    y_err = np.sqrt(y)
+    x_avg = np.array([(x[i] + x[i+1])/2 for i in range(len(x) - 1)])
+    factor = (effective_volume * complete(convert_log10_lya_nmag(y)) * binwidth) 
+    y = y/factor
+    y_err = y_err/factor
+    y_err_log = (1./np.log(10)) * (y_err.value/y.value)
+    plt.show()
+
+    def shecter(L, phi, L_star):
+        """shecter function"""
+        return (phi) * ((L/L_star)**(-2.5)) * (np.exp(-L/L_star))
+
+    popt = [10**(-4.19), 10**(43.08)]
+    popt_lower = [10**(-4.5), 10**(42.97)]
+    popt_upper = [10**(-3.93), 10**(43.22)]
+
+
+    start_plot('log' + r'L$_{L_{\alpha}}$' + '[erg s' + r'$^{-1}]$', r'$\log \Phi $[$\Delta \log $ L$_{L_{\alpha}}$ Mpc$^{-3}$]')
+    plt.errorbar(x_avg, np.log10(y.value), yerr=y_err_log, color='k', fmt='o', label='This work', ms=4)
+    plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt)), lw=2, color='r', label='LF (Hu et. al., 2019)')
+    plt.fill_between(x_avg, np.log10(shecter(10**x_avg, *popt_lower)), np.log10(shecter(10**x_avg, *popt_upper)), color='r', alpha=0.2)
+    plt.xlim(42.8, 43.4)
+    plt.ylim(-6.1, -2.6)
+    plt.legend(frameon=False)
+    end_plot('plots/luminosity_function.png')
     plt.show()
