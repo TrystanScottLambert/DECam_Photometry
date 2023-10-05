@@ -104,12 +104,12 @@ for i, ra_val in enumerate(ra):
     ax_i = fig.add_subplot(131)
     ax_n = fig.add_subplot(132)
     ax_z = fig.add_subplot(133)
-    ax_i.get_xaxis().set_visible(False)
-    ax_i.get_yaxis().set_visible(False)
-    ax_z.get_xaxis().set_visible(False)
-    ax_z.get_yaxis().set_visible(False)
-    ax_n.get_xaxis().set_visible(False)
-    ax_n.get_yaxis().set_visible(False)
+    ax_i.set_xticks([])
+    ax_i.set_yticks([])
+    ax_z.set_xticks([])
+    ax_z.set_yticks([])
+    ax_n.set_xticks([])
+    ax_n.set_yticks([])
 
     ax_i.imshow(i_data, vmin=i_min, vmax=i_max, cmap='gray_r')
     ax_i.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
@@ -127,6 +127,13 @@ for i, ra_val in enumerate(ra):
               horizontalalignment='center',
               verticalalignment='center',
               transform=ax_i.transAxes, fontsize=20, color='w')
+
+    if i == len(ra) -1:
+        ax_i.set_xlabel('i', fontsize=12)
+        ax_z.set_xlabel('z', fontsize=12)
+        ax_n.set_xlabel('NB964', fontsize=12)
+
+    ax_i.set_ylabel(f'CDFS-{i+1}', fontsize=12)
 
     ax_i.text(0.4, 0.85, fancy_round(i_mag[i]),
      horizontalalignment='center',
