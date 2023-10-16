@@ -200,11 +200,21 @@ if __name__ == '__main__':
     popt_lower = [10**(-4.5), 10**(42.97)]
     popt_upper = [10**(-3.93), 10**(43.22)]
 
+    def fitted_shecter(L: float, offset):
+        """Scaled version of the Hu et al shecter function. For fitting and determining our overdensity."""
+        return offset * shecter(L, *popt)
+    
+    popt_us, pcov_us = curve_fit(fitted_shecter, 10**x_avg[y.value != 0], y.value[y.value != 0],p0=10, maxfev=5000)
+    popt_us_lower = popt_us - np.sqrt(pcov_us)
+    popt_us_upper = popt_us + np.sqrt(pcov_us)
 
     start_plot('log' + r'L$_{L_{\alpha}}$' + '[erg s' + r'$^{-1}]$', r'$\log \Phi $[$\Delta \log $ L$_{L_{\alpha}}$ Mpc$^{-3}$]')
+    
+    plt.plot(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us)), color='k', label='Scaled LF', alpha=0.5)
     plt.errorbar(x_avg, np.log10(y.value), yerr=y_err_log, color='k', fmt='o', label='This work', ms=4)
-    plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt)), lw=2, color='r', label='LF (Hu et. al., 2019)')
     plt.fill_between(x_avg, np.log10(shecter(10**x_avg, *popt_lower)), np.log10(shecter(10**x_avg, *popt_upper)), color='r', alpha=0.2)
+    plt.fill_between(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us_lower)), np.log10(fitted_shecter(10**x_avg, *popt_us_upper)), color='k', alpha=0.2)
+    plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt)), lw=2, color='r', label='LF (Hu et. al., 2019)')
     plt.xlim(42.8, 43.4)
     plt.ylim(-6.1, -2.6)
     plt.legend(frameon=False)

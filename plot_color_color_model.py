@@ -64,12 +64,16 @@ if __name__ == '__main__':
     plt.plot(plot_i_color, plot_z_color, lw=2)
     plt.scatter(point_i_color, point_z_color, marker='s', color='r')
     for i_color, z_color, redshift in zip(point_i_color, point_z_color, point_redshift_range):
-        plt.text(i_color, z_color, f'{redshift}', fontsize=20)
+        plt.text(i_color, z_color, f'{redshift}', fontsize=20, zorder=100)
 
     plt.axvline(1, ls=':', color='k', alpha=0.5)
     plt.axhline(0.78, ls=':', color='k', alpha=0.5)
     print(qso_i_color, qso_z_color)
-    plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m', zorder=-1)
+    plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m', zorder=99)
+    plt.vlines(x=1, ymin=0.78, ymax=6, color='g', lw=2, zorder=99)
+    plt.hlines(y=0.78, xmin=1, xmax=6, color='g', lw=2, zorder=99)
+    plt.xlim(-4, 6)
+    plt.ylim(-2.5, 6)
     end_plot('plots/tracks.png')
     plt.show()
 
@@ -77,21 +81,23 @@ if __name__ == '__main__':
     z_band_spectrum = z_band.band.to_spectrum1d()
     n_band_spectrum = n_band.band.to_spectrum1d()
 
-    offset_red = 6.9 + VEL_OFFSET/3e5
+    offset_red = 6.9018 + VEL_OFFSET/3e5
     spectrum = LaeSpectrum(offset_red).spectrum
     spectrum_1d = spectrum.to_spectrum1d()
-    fig = plt.figure(figsize = (2.5 * 3.54, 3.54), dpi = 600)
+    fig = plt.figure(figsize = (1.5 * 3.54, 3.54), dpi = 600)
     ax = fig.add_subplot(111)
-    ax.plot(i_band_spectrum.spectral_axis.value/10, i_band_spectrum.flux.value, color='b', ls='--')
-    ax.plot(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':')
-    ax.fill_between(x=i_band_spectrum.spectral_axis.value/10 , y1=i_band_spectrum.flux.value,color= "b",alpha= 0.1)
-    ax.fill_between(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':',alpha=0.1)
-    ax.plot(n_band_spectrum.spectral_axis.value/10, n_band_spectrum.flux.value, color='g')
+    ax.plot(i_band_spectrum.spectral_axis.value/10, i_band_spectrum.flux.value, color='b', ls='--',lw=1)
+    ax.plot(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':',lw=1)
+    #ax.fill_between(x=i_band_spectrum.spectral_axis.value/10 , y1=i_band_spectrum.flux.value,color= "b",alpha= 0.1)
+    #ax.fill_between(z_band_spectrum.spectral_axis.value/10, z_band_spectrum.flux.value, color='r', ls=':',alpha=0.1)
+    
+    ax.fill_between(n_band_spectrum.spectral_axis.value/10, n_band_spectrum.flux.value, color='g',alpha=0.1, lw=1)
     ax.set_xlim(670, 1050)
-    ax.axvline( 91.1267*(7.9), color='k', ls=':')
+    #ax.axvline( 91.1267*(7.9), color='k', ls=':')
     prettify_axis(ax, 'Wavelength [nm]', 'Transmission')
     ax_real = ax.twinx()
-    ax_real.plot(spectrum_1d.spectral_axis.value/10,spectrum_1d.flux.value, color='k')
+    ax_real.plot(spectrum_1d.spectral_axis.value/10,spectrum_1d.flux.value, color='k',alpha=0.8, lw=1)
+    ax.plot(n_band_spectrum.spectral_axis.value/10, n_band_spectrum.flux.value, color='g',lw=1)
     ax_real.set_yticks([])
     ax_real.set_yticklabels([])
     end_plot('plots/Filters.png')

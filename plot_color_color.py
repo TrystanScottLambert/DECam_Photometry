@@ -161,8 +161,11 @@ if __name__ == '__main__':
     start_plot('i - z', 'z - NB964')
     plt.axhline(0.78, color='r', ls='--')
     plt.axvline(1, color='r', ls='--')
+    plt.vlines(x=1, ymin=0.78, ymax=4, color='g', lw=2, zorder=99)
+    plt.hlines(y=0.78, xmin=1, xmax=2.5, color='g', lw=2, zorder=99)
+    
     plt.scatter(color_iz[good], color_zn[good], s=1, alpha=0.3, color='k')
-    plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, xerr=can_z_err, fmt='o')
-    plt.xlim(-1, 2.5)
+    plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, xerr=can_z_err, fmt='o', ms=3, elinewidth=0.7, alpha=0.7)
+    plt.xlim(-1, 2)
     plt.ylim(-2, 4)
     end_plot('plots/color_color.png')

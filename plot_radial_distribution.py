@@ -90,7 +90,7 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     areas = np.array([area.value for area in areas_vals])
     null_count_values = np.where(counts==0)[0]
     non_null_count_values = np.where(counts!=0)[0]
-    counts[null_count_values] = 2 # poisson distribution means a zero count is less than 2 counts.
+    counts[null_count_values] = 1.841 # poisson distribution means a zero count is less than 2 counts. Low number statistcs
     y = counts/areas
     y_err = np.sqrt(counts)/areas
 
@@ -106,7 +106,7 @@ def plot_radial_profile(counts: np.ndarray, areas_vals: list, distances: np.ndar
     fig = plt.figure(figsize = (3.54, 3.54/2), dpi = 600)
     ax = fig.add_subplot(111)
     ax.errorbar(distances[non_null_count_values], y[non_null_count_values], yerr = y_err[non_null_count_values], fmt='ok', ecolor='r', capsize=2, elinewidth=1, ms=2)
-    ax.errorbar(distances[null_count_values], y[null_count_values], yerr = y_err[null_count_values], fmt='ok', ecolor='r', capsize=2, uplims=True, elinewidth=1, ms=2)
+    ax.errorbar(distances[null_count_values], y[null_count_values], yerr = y_err[null_count_values]/5, fmt='ok', ecolor='r', capsize=2, uplims=True, elinewidth=1, ms=2)
     #ax.plot(fit_x, slope*fit_x + intercept)
     ax.set_xlabel('Distance from center [pMpc]')
     ax.set_ylabel(r'Surface Density [deg$^{-2}$]')
