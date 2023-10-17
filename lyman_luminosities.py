@@ -209,9 +209,8 @@ if __name__ == '__main__':
     popt_us_upper = popt_us + np.sqrt(pcov_us)
 
     start_plot('log' + r'L$_{L_{\alpha}}$' + '[erg s' + r'$^{-1}]$', r'$\log \Phi $[$\Delta \log $ L$_{L_{\alpha}}$ Mpc$^{-3}$]')
-    
-    plt.plot(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us)), color='k', label='Scaled LF', alpha=0.5)
     plt.errorbar(x_avg, np.log10(y.value), yerr=y_err_log, color='k', fmt='o', label='This work', ms=4)
+    plt.plot(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us)), color='k', label='Scaled LF', alpha=0.5)
     plt.fill_between(x_avg, np.log10(shecter(10**x_avg, *popt_lower)), np.log10(shecter(10**x_avg, *popt_upper)), color='r', alpha=0.2)
     plt.fill_between(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us_lower)), np.log10(fitted_shecter(10**x_avg, *popt_us_upper)), color='k', alpha=0.2)
     plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt)), lw=2, color='r', label='LF (Hu et. al., 2019)')
