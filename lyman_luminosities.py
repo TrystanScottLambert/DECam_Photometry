@@ -166,7 +166,7 @@ if __name__ == '__main__':
     log_10_lya = np.log10(lya_lum.value)
 
 
-    
+
     slope, intercept, r_value, p_value, std_err = stats.linregress(log_10_lya,n_mag)
     def convert_log10_lya_nmag(log_10_lya):
         return log_10_lya*slope + intercept

@@ -9,6 +9,9 @@ from astropy.coordinates import SkyCoord
 from astropy.units.quantity import Quantity
 import astropy.units as u
 
+from sex_catalog import SExtractorCat
+from zero_points import zero_points
+from depth_values import OUR_DEPTH
 
 REDSHIFT_QSO = 6.9
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3)
@@ -73,17 +76,33 @@ def read_luminosity_file(file_name: str) -> tuple[list[str], list[str], list[str
     sfr_strings = [f'{sfr} $\pm$ {err}' for sfr, err in zip(s, se)]
     return lya_strings, sfr_strings, mag_strings
 
+def get_z_band_mags(candidate_name: str, z_catalog_name: str) -> list[str]:
+    """Reads in the broadband magnitude values from catalog"""
+    ra, dec = np.loadtxt(candidate_name, unpack=True)
+    candidates = SkyCoord(ra = ra*u.deg, dec = dec*u.deg)
+    cat = SExtractorCat(z_catalog_name)
+    catalog = SkyCoord(ra = cat.catalog['ALPHAPEAK_J2000']*u.deg, dec = cat.catalog['DELTAPEAK_J2000']*u.deg)
+    idx, _, _  = candidates.match_to_catalog_sky(catalog)
+    mags = np.array(cat.catalog['MAG_APER'][idx]) + zero_points.z_band.mag_correct(1)
+    mag_err = np.array(cat.catalog['MAGERR_APER'])
+    mags, mag_err = np.around(mags, 2), np.around(mag_err, 2)
+    mag_str = [f"{m:.2f}"for m in mags]
+    mag_err_str = [f"{err:.2f}" for err in mag_err]
+    mag_strings = [f'{m} $\pm$ {err}' for m, err in zip(mag_str, mag_err_str)]
+    return mag_strings
 
-def make_file(infile: str, outfile: str, lum_file:str=None) -> None:
+def make_file(infile: str, outfile: str, lum_file:str=None, z_band_file: str = None) -> None:
     """Writes the file given value array containing"""
     ras, decs, c = load_positions(infile)
     ang_dist, co_dist, prop_dist = calcuate_distance_to_quasar(c)
-    data = [np.arange(1, len(ras) +1),ras, decs, ang_dist, co_dist, prop_dist]
+    z_mags = get_z_band_mags(infile, z_band_file)
+    i_mags = np.array([f'>{round(OUR_DEPTH.i_band.sigma_1,2)}' for _ in range(len(z_mags))])
+    data = [np.arange(1, len(ras) +1),ras, decs, ang_dist, co_dist, prop_dist, i_mags, z_mags]
 
     if lum_file is not None:
         lya_string, sfr_string, mag_strings = read_luminosity_file(lum_file)
         data += [mag_strings, lya_string, sfr_string]
-    
+
     data = np.array(data).T
     lines = []
     for dat in data:
@@ -91,7 +110,7 @@ def make_file(infile: str, outfile: str, lum_file:str=None) -> None:
         for val in dat:
             line+=f'{val},'
         lines.append(line)
-    
+
     with open(outfile, 'w', encoding='utf8') as file:
         for line in lines:
             file.write(line[:-1] +' \n')
@@ -102,6 +121,7 @@ if __name__ == '__main__':
     CDFS_FILE = 'candidates_cdfs_e.txt'
     LUM_FILE_US = 'candidate_luminosities.dat'
     LUM_FILE_CDFS = 'candidate_luminosities_cdfs.dat'
+    Z_BAND_FILE = '../correct_stacks/N964/z.cat'
 
-    make_file(US_FILE, 'candidates.csv', LUM_FILE_US)
-    make_file(CDFS_FILE, 'candidates_cdfs.csv', LUM_FILE_CDFS)
+    make_file(US_FILE, 'candidates.csv', LUM_FILE_US, Z_BAND_FILE)
+    #make_file(CDFS_FILE, 'candidates_cdfs.csv', LUM_FILE_CDFS)
