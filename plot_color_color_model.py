@@ -49,7 +49,7 @@ if __name__ == '__main__':
         for redshift in track(redshift_range):
             offset_redshift = redshift - offset_velocity/3e5
             spectrum  = LaeSpectrum(offset_redshift).spectrum
-            spectrum = SourceSpectrum.from_file('M82_template_norm.sed', keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
+            #spectrum = SourceSpectrum.from_file('M82_template_norm.sed', keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
             i_z = calculate_color(i_band, z_band, spectrum)
             z_nb = calculate_color(z_band, n_band, spectrum)
             izs.append(i_z.value)
