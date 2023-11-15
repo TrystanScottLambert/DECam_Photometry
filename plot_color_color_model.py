@@ -2,6 +2,7 @@
 Modelling color color plot selection.
 """
 
+import glob
 from rich.progress import track
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +11,9 @@ from synphot import Observation, SpectralElement, SourceSpectrum, Empirical1D, e
 import synphot.units as su
 
 from plotting import start_plot, end_plot, prettify_axis
-from synthetic_lae_spectrum import LaeSpectrum
+from synthetic_lae_spectrum import LaeSpectrum, SedSpectrum
 
+seds = np.sort(glob.glob('seds/*.sed'))
 
 class Filter:
     """Represantation of a filter."""
@@ -48,15 +50,19 @@ if __name__ == '__main__':
         znbs = []
         for redshift in track(redshift_range):
             offset_redshift = redshift - offset_velocity/3e5
+            LaeSpectrum.EW_LYA = 10*u.angstrom
             spectrum  = LaeSpectrum(offset_redshift).spectrum
-            #spectrum = SourceSpectrum.from_file('M82_template_norm.sed', keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
+
+            #spectrum = SedSpectrum(seds[2], redshift).spectrum
+
+
             i_z = calculate_color(i_band, z_band, spectrum)
             z_nb = calculate_color(z_band, n_band, spectrum)
             izs.append(i_z.value)
             znbs.append(z_nb.value)
         return izs, znbs
 
-    VEL_OFFSET = -1000 #km/s
+    VEL_OFFSET = 0 #km/s
     plot_i_color, plot_z_color = work_out_colors_for_redshift(plot_redshift_range, VEL_OFFSET)
     point_i_color, point_z_color = work_out_colors_for_redshift(point_redshift_range, VEL_OFFSET)
     qso_i_color, qso_z_color = work_out_colors_for_redshift([6.9], VEL_OFFSET)
@@ -73,8 +79,8 @@ if __name__ == '__main__':
     plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m', zorder=99)
     plt.vlines(x=1, ymin=0.78, ymax=6, color='g', lw=2, zorder=99)
     plt.hlines(y=0.78, xmin=1, xmax=6, color='g', lw=2, zorder=99)
-    plt.xlim(-0.5, 6)
-    plt.ylim(-2.5, 6)
+    #plt.xlim(-0.5, 6)
+    #plt.ylim(-2.5, 6)
     end_plot('plots/tracks.png')
     plt.show()
 

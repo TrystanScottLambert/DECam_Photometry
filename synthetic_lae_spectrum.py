@@ -21,6 +21,29 @@ def gaussian(x_array: np.ndarray, mean: float, sigma: float, amplitude: float) -
     return amplitude * np.exp(-np.power(x_array - mean, 2.) / (2 * np.power(sigma, 2.)))
 
 
+class SedSpectrum:
+    """SED spectrum provided by https://www.iasf-milano.inaf.it/~polletta/templates/swire_templates.html"""
+
+    def __init__(self, file_name: str, redshift: float, include_extinction: bool=True) -> None:
+        self.rest_spectrum = SourceSpectrum.from_file(
+            file_name, keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
+        self._red_shifted_spectrum = SourceSpectrum(self.rest_spectrum.model, z=redshift)
+        self.wave = self.rest_spectrum.to_spectrum1d().spectral_axis
+        self.apply_extinction = include_extinction
+        self.z = redshift
+
+    @property
+    def spectrum(self):
+        """Redshifted, and if appropriate, extinction corrected spectrum."""
+        flux = self._red_shifted_spectrum(self.wave)
+        spectrum = SourceSpectrum(Empirical1D, points=self.wave, lookup_table=flux, keep_neg=True)
+
+        if self.apply_extinction is True:
+            extinction_curve = etau_madau(self.wave, self.z)
+            spectrum = spectrum * extinction_curve
+        return spectrum
+
+
 class LaeSpectrum:
     """Class representation of a lyman alphe emitter spectrum."""
     LLYA_REST = 1215.67 * u.angstrom
