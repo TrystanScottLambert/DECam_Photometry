@@ -39,8 +39,8 @@ if __name__ == '__main__':
     z_band = Filter(Z_BANDPASS_FILE)
     i_band = Filter(I_BANDPASS_FILE)
     n_band = Filter(N_BANDPASS_FILE)
-    plot_redshift_range = np.arange(5, 8, 0.01)
-    point_redshift_range = np.arange(5, 9, 1)
+    plot_redshift_range = np.arange(5, 7.2, 0.01)
+    point_redshift_range = np.arange(5, 8, 1)
 
     def work_out_colors_for_redshift(redshift_range: np.ndarray, offset_velocity: float = 0):
         """Determines the color terms i - z and z-nb for the given redshift range."""
@@ -49,6 +49,7 @@ if __name__ == '__main__':
         for redshift in track(redshift_range):
             offset_redshift = redshift - offset_velocity/3e5
             spectrum  = LaeSpectrum(offset_redshift).spectrum
+            spectrum = SourceSpectrum.from_file('M82_template_norm.sed', keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
             i_z = calculate_color(i_band, z_band, spectrum)
             z_nb = calculate_color(z_band, n_band, spectrum)
             izs.append(i_z.value)
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', color='m', zorder=99)
     plt.vlines(x=1, ymin=0.78, ymax=6, color='g', lw=2, zorder=99)
     plt.hlines(y=0.78, xmin=1, xmax=6, color='g', lw=2, zorder=99)
-    plt.xlim(-4, 6)
+    plt.xlim(-0.5, 6)
     plt.ylim(-2.5, 6)
     end_plot('plots/tracks.png')
     plt.show()

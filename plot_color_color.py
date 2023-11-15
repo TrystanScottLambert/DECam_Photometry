@@ -148,6 +148,7 @@ if __name__ == '__main__':
     can_i = candidate_cats[0]['MAG_CORR']
     can_i_err = candidate_cats[0]['MAGERR_APER']
     can_n = candidate_cats[2]['MAG_CORR']
+    id_qso = np.where(can_n == np.min(can_n))[0]
     can_n_err = candidate_cats[2]['MAGERR_APER']
 
     can_i[can_i> OUR_DEPTH.i_band.sigma_1] = OUR_DEPTH.i_band.sigma_1
@@ -162,10 +163,13 @@ if __name__ == '__main__':
     plt.axhline(0.78, color='r', ls='--')
     plt.axvline(1, color='r', ls='--')
     plt.vlines(x=1, ymin=0.78, ymax=4, color='g', lw=2, zorder=99)
-    plt.hlines(y=0.78, xmin=1, xmax=2.5, color='g', lw=2, zorder=99)
+    plt.hlines(y=0.78, xmin=1, xmax=6, color='g', lw=2, zorder=99)
     
-    plt.scatter(color_iz[good], color_zn[good], s=1, alpha=0.3, color='k')
-    plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, xerr=can_z_err, fmt='o', ms=3, elinewidth=0.7, alpha=0.7)
-    plt.xlim(-1, 2)
+
+    remove_stars = np.where(color_iz !=  0.14557379950342764)[0]
+    plt.scatter(color_iz.array[remove_stars], color_zn.array[remove_stars], s=1, alpha=0.3, color='0.7')
+    plt.errorbar(candidate_i_z, candidate_z_nb, color='r', yerr=candidate_z_nb_err, xerr=0.3, xlolims=True, fmt='o', ms=3, elinewidth=0.7, alpha=0.7)
+    plt.errorbar(candidate_i_z.array[id_qso], candidate_z_nb.array[id_qso], color='m', yerr=candidate_z_nb_err.array[id_qso], xerr=0.3, xlolims=True, fmt='*', ms=8, elinewidth=0.7)
+    plt.xlim(-1, 6)
     plt.ylim(-2, 4)
     end_plot('plots/color_color.png')

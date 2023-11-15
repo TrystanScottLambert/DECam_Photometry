@@ -96,9 +96,9 @@ for i, ra_val in enumerate(ra):
     i_min, i_max = z_scale.get_limits(i_data)
     n_min, n_max = z_scale.get_limits(n_data)
 
-    z_data = ndimage.gaussian_filter(z_data, sigma=(1, 1), order=0)
-    i_data = ndimage.gaussian_filter(i_data, sigma=(1, 1), order=0)
-    n_data = ndimage.gaussian_filter(n_data, sigma=(1, 1), order=0)
+    #z_data = ndimage.gaussian_filter(z_data, sigma=(1, 1), order=0)
+    #i_data = ndimage.gaussian_filter(i_data, sigma=(1, 1), order=0)
+    #n_data = ndimage.gaussian_filter(n_data, sigma=(1, 1), order=0)
 
     fig = plt.figure()
     ax_i = fig.add_subplot(131)
@@ -112,11 +112,26 @@ for i, ra_val in enumerate(ra):
     ax_n.set_yticks([])
 
     ax_i.imshow(i_data, vmin=i_min, vmax=i_max, cmap='gray_r')
-    ax_i.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    #ax_i.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    ax_i.plot([10,15],[20, 20], lw=2, color='r')
+    ax_i.plot([40-10,40-15],[20, 20], lw=2, color='r')
+    ax_i.plot([20,20],[10, 15], lw=2, color='r')
+    ax_i.plot([20,20],[40-10, 40-15], lw=2, color='r')
+
     ax_n.imshow(n_data, vmin=n_min, vmax=n_max, cmap='gray_r')
-    ax_n.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    #ax_n.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    ax_n.plot([10,15],[20, 20], lw=2, color='r')
+    ax_n.plot([40-10,40-15],[20, 20], lw=2, color='r')
+    ax_n.plot([20,20],[10, 15], lw=2, color='r')
+    ax_n.plot([20,20],[40-10, 40-15], lw=2, color='r')
+
     ax_z.imshow(z_data, vmin=z_min, vmax=z_max, cmap='gray_r')
-    ax_z.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    #ax_z.scatter(20.5, 20, marker='o', s=800, lw=1, facecolors='none', edgecolors='r')
+    ax_z.plot([10,15],[20, 20], lw=2, color='r')
+    ax_z.plot([40-10,40-15],[20, 20], lw=2, color='r')
+    ax_z.plot([20,20],[10, 15], lw=2, color='r')
+    ax_z.plot([20,20],[40-10, 40-15], lw=2, color='r')
+
 
     ax_i.text(0.75, 0.1, f'{round(i_snr[i], 1)}',
      horizontalalignment='center',

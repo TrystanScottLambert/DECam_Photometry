@@ -32,6 +32,7 @@ full_volume = COSMO.comoving_volume(6.97) - COSMO.comoving_volume(6.89)
 AREA_US = 2.87 *(u.deg**2)
 SQUARE_DEG_IN_SR = 41252.96 *(u.deg**2)
 effective_volume = full_volume * (AREA_US/SQUARE_DEG_IN_SR)
+print('effective volume is: ', effective_volume)
 QSO_REDSHIFT = 6.9018
 LYMAN_ALPHA_OBSERVED_WAVELENGTH = 1216 * (QSO_REDSHIFT + 1) # angstrom
 
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     Z_CATALOG = '../correct_stacks/N964/z.cat'
     CANDIDATES_CATALOG = 'candidates_e.txt'
     OUTFILE = 'candidate_luminosities.dat'
-    
+
     #NARROW_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
     #Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
     #CANDIDATES_CATALOG = 'candidates_cdfs_e.txt'

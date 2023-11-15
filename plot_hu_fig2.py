@@ -38,7 +38,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize = (3.54, 3.54), dpi = 600)
     ax_main = fig.add_subplot(111)
     for i, ew in enumerate(equivalent_widths):
-        ax_main.plot(redshift_range, y_values[i], label=f'EW = {ew}')
+        ax_main.plot(redshift_range, y_values[i], label=f'EW = {ew}' + r'$\AA$')
         ax_main.legend(fontsize=12, frameon=False)
         ax_main.set_ylim(0, 3)
         ax_main.set_xlim(6.5, 7.05)
@@ -49,5 +49,5 @@ if __name__ == '__main__':
     ax_filter.plot(filter_plot_redshift, filter_plot_y, ls=':', color='k', alpha=0.3)
     ax_filter.plot([ax_main.get_xlim()[0],filter_plot_redshift[0]], [0, 0], ls=':', color='k', alpha=0.3)
     ax_filter.fill_between(x= filter_plot_redshift, y1= filter_plot_y,color= "k",alpha= 0.2)
-    prettify_axis(ax_filter, '', 'Transmission')
+    prettify_axis(ax_filter, '', 'Transmission (%)')
     end_plot('plots/hu_fig2.png')

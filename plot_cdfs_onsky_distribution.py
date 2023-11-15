@@ -75,9 +75,11 @@ if __name__ == '__main__':
     region_decam_fov.plot(ax = ax, color='k', lw=2.0)
     ax.scatter(ra_plot, dec_plot, s=10)
 
+
     ra, dec = np.loadtxt('cdfs_candidates_positions.csv', skiprows=1, unpack=True, delimiter=',')
     ra, dec = decam_wcs.world_to_pixel_values(ra, dec)
     ax.scatter(ra,dec, marker='s', facecolor='none', s=15, color='r')
     #ax.scatter(ra_snr_plot, dec_snr_plot, s=15, color='r', marker='s', label=r'i$_{snr}$ < 2', facecolor='none')
     #ax.legend(frameon=False, loc=1)
+    
     plotting.end_plot('plots/on_sky_distribution_cdfs.png')
