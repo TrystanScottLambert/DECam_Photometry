@@ -9,7 +9,7 @@ import astropy.units as u
 from astropy import constants as c
 from astropy.cosmology import FlatLambdaCDM
 from astropy.stats import gaussian_fwhm_to_sigma
-from synphot import SourceSpectrum, etau_madau
+from synphot import SourceSpectrum, etau_madau, ReddeningLaw
 from synphot.models import Empirical1D
 import synphot.units as su
 
@@ -20,29 +20,30 @@ def gaussian(x_array: np.ndarray, mean: float, sigma: float, amplitude: float) -
     """Definition of the gaussian function"""
     return amplitude * np.exp(-np.power(x_array - mean, 2.) / (2 * np.power(sigma, 2.)))
 
-
+#try 1
 class SedSpectrum:
     """SED spectrum provided by https://www.iasf-milano.inaf.it/~polletta/templates/swire_templates.html"""
 
     def __init__(self, file_name: str, redshift: float, include_extinction: bool=True) -> None:
         self.rest_spectrum = SourceSpectrum.from_file(
             file_name, keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
-        self._red_shifted_spectrum = SourceSpectrum(self.rest_spectrum.model, z=redshift)
+        self.red_shifted_spectrum = SourceSpectrum(
+            self.rest_spectrum.model, z=redshift, z_type='conserve_flux')
         self.wave = self.rest_spectrum.to_spectrum1d().spectral_axis
         self.apply_extinction = include_extinction
         self.z = redshift
+        self.flux = self.rest_spectrum.to_spectrum1d().flux
 
     @property
     def spectrum(self):
         """Redshifted, and if appropriate, extinction corrected spectrum."""
-        flux = self._red_shifted_spectrum(self.wave)
-        spectrum = SourceSpectrum(Empirical1D, points=self.wave, lookup_table=flux, keep_neg=True)
+        flux = self.flux/(1+self.z)
+        spectrum = SourceSpectrum(Empirical1D, points=self.wave*(1+self.z), lookup_table=flux, keep_neg=True)
 
         if self.apply_extinction is True:
-            extinction_curve = etau_madau(self.wave, self.z)
+            extinction_curve = ReddeningLaw.from_extinction_model('xgalsb').extinction_curve(1)
             spectrum = spectrum * extinction_curve
         return spectrum
-
 
 class LaeSpectrum:
     """Class representation of a lyman alphe emitter spectrum."""
