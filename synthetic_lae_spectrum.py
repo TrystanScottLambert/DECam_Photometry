@@ -24,13 +24,13 @@ def gaussian(x_array: np.ndarray, mean: float, sigma: float, amplitude: float) -
 class SedSpectrum:
     """SED spectrum provided by https://www.iasf-milano.inaf.it/~polletta/templates/swire_templates.html"""
 
-    def __init__(self, file_name: str, redshift: float, include_extinction: bool=True) -> None:
+    def __init__(self, file_name: str, redshift: float, extinction: float = 0) -> None:
         self.rest_spectrum = SourceSpectrum.from_file(
             file_name, keep_neg=True, wave_unit='Angstrom', flux_unit='FLAM')
         self.red_shifted_spectrum = SourceSpectrum(
             self.rest_spectrum.model, z=redshift, z_type='conserve_flux')
         self.wave = self.rest_spectrum.to_spectrum1d().spectral_axis
-        self.apply_extinction = include_extinction
+        self.extinction = extinction
         self.z = redshift
         self.flux = self.rest_spectrum.to_spectrum1d().flux
 
@@ -39,10 +39,8 @@ class SedSpectrum:
         """Redshifted, and if appropriate, extinction corrected spectrum."""
         flux = self.flux/(1+self.z)
         spectrum = SourceSpectrum(Empirical1D, points=self.wave*(1+self.z), lookup_table=flux, keep_neg=True)
-
-        if self.apply_extinction is True:
-            extinction_curve = ReddeningLaw.from_extinction_model('xgalsb').extinction_curve(1)
-            spectrum = spectrum * extinction_curve
+        extinction_curve = ReddeningLaw.from_extinction_model('xgalsb').extinction_curve(self.extinction)
+        spectrum = spectrum * extinction_curve
         return spectrum
 
 class LaeSpectrum:

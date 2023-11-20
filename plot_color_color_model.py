@@ -51,22 +51,30 @@ if __name__ == '__main__':
     z_band = Filter(Z_BANDPASS_FILE)
     i_band = Filter(I_BANDPASS_FILE)
     n_band = Filter(N_BANDPASS_FILE)
-    plot_redshift_range = np.arange(0, 1.3, 0.01)
-    point_redshift_range = np.arange(0, 1.3, 0.25)
-    #plot_redshift_range = np.arange(4, 7.2, 0.01)
-    #point_redshift_range = np.arange(4, 8)
+    plot_redshift_range_sed = np.arange(0, 1.3, 0.01)
+    point_redshift_range_sed = np.arange(0, 1.3, 0.25)
+    plot_redshift_range = np.arange(4, 7.2, 0.01)
+    point_redshift_range = np.arange(4, 8)
 
-    def work_out_colors_for_redshift(redshift_range: np.ndarray, offset_velocity: float = 0):
+    def work_out_colors_for_redshift_sed(sed_spectrum_number: int, redshift_range: np.ndarray,
+            extinction: float = 0):
+        """Determines the color terms i - z and z-nb for the given redshift range. for seds"""
+        izs = []
+        znbs = []
+        for redshift in track(redshift_range):
+            spectrum = SedSpectrum(seds[sed_spectrum_number], redshift, extinction).spectrum
+            i_z = calculate_color(i_band, z_band, spectrum)
+            z_nb = calculate_color(z_band, n_band, spectrum)
+            izs.append(i_z.value)
+            znbs.append(z_nb.value)
+        return izs, znbs
+
+    def work_out_colors_for_redshift(redshift_range: np.ndarray):
         """Determines the color terms i - z and z-nb for the given redshift range."""
         izs = []
         znbs = []
         for redshift in track(redshift_range):
-            offset_redshift = redshift - offset_velocity/3e5
-            #spectrum  = LaeSpectrum(offset_redshift).spectrum
-
-            spectrum = SedSpectrum(seds[2], redshift).spectrum
-
-
+            spectrum  = LaeSpectrum(redshift).spectrum
             i_z = calculate_color(i_band, z_band, spectrum)
             z_nb = calculate_color(z_band, n_band, spectrum)
             izs.append(i_z.value)
@@ -75,25 +83,42 @@ if __name__ == '__main__':
 
     VEL_OFFSET = 0 #km/s
     start_plot('i - z', 'z - NB964')
-    for ew in range(10, 20, 10):
-        LaeSpectrum.EW_LYA = ew*u.angstrom
-        plot_i_color, plot_z_color = work_out_colors_for_redshift(plot_redshift_range, VEL_OFFSET)
-        point_i_color, point_z_color = work_out_colors_for_redshift(point_redshift_range, VEL_OFFSET)
-        #qso_i_color, qso_z_color = work_out_colors_for_redshift([6.91], VEL_OFFSET)
+    #for ew in range(10, 20, 10):
+    #    LaeSpectrum.EW_LYA = ew*u.angstrom
+    for ev in [0, 1]:
+        plot_i_color_m82, plot_z_color_m82 = work_out_colors_for_redshift_sed(0, plot_redshift_range_sed, ev)
+        point_i_color_m82, point_z_color_m82 = work_out_colors_for_redshift_sed(0, point_redshift_range_sed, ev)
+        plot_i_color_qso2, plot_z_color_qso2 = work_out_colors_for_redshift_sed(3, plot_redshift_range_sed, ev)
         
-        plt.plot(plot_i_color, plot_z_color, lw=2, label=f'{ew}' + r'\AA')
-        #plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', zorder=99)
+        alpha_value = 0.3
+        if ev ==1:
+            alpha_value = 1.
+        plt.plot(plot_i_color_m82, plot_z_color_m82, lw=1, label=f'M82, E(B-V) = {ev}', color='b', alpha=alpha_value)
+        plt.plot(plot_i_color_qso2, plot_z_color_qso2, lw=1, label = f'QSO, E(B-V) = {ev}', color='g', alpha = alpha_value)
+
         #plt.scatter(point_i_color, point_z_color, marker='s', color='r')
         #for i_color, z_color, redshift in zip(point_i_color, point_z_color, point_redshift_range):
         #    plt.text(i_color, z_color, f'{redshift}', fontsize=20, zorder=100)
 
+    qso_i_color, qso_z_color = work_out_colors_for_redshift([6.91])
+    plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', zorder=99, color='k')
+    LaeSpectrum.EW_LYA = 10*u.angstrom
+    qso_i_color, qso_z_color = work_out_colors_for_redshift([6.91])
+    plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', zorder=99, color='m')
+    lower_i, lower_z = work_out_colors_for_redshift(plot_redshift_range)
+    LaeSpectrum.EW_LYA = 50 * u.angstrom
+    upper_i, upper_z = work_out_colors_for_redshift(plot_redshift_range)
+    plt.plot(lower_i, lower_z, lw=1, label='LAE template, EW = 10' + r'$\AA$', color='m', zorder=99)
+    plt.plot(upper_i, upper_z, lw=2, label='LAE template, EW = 50' + r'$\AA$', color='k')
+
     plt.axvline(1, ls=':', color='k', alpha=0.5)
     plt.axhline(0.78, ls=':', color='k', alpha=0.5)
-        
+
     plt.vlines(x=1, ymin=0.78, ymax=6, color='g', lw=2, zorder=99)
     plt.hlines(y=0.78, xmin=1, xmax=6, color='g', lw=2, zorder=99)
-    #plt.xlim(-0.5, 6)
-    #plt.ylim(-2.5, 6)
+    plt.xlim(-0.5, 6)
+    plt.ylim(-2.5, 6)
+    plt.legend(loc=1, frameon=False, fontsize=6)
     end_plot('plots/tracks.png')
     plt.show()
 
