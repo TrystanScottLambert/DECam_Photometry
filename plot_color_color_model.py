@@ -152,7 +152,7 @@ if __name__ == '__main__':
     
 
     #GIF Chiara
-    '''i_band_spectrum = i_band.band.to_spectrum1d()
+    i_band_spectrum = i_band.band.to_spectrum1d()
     z_band_spectrum = z_band.band.to_spectrum1d()
     n_band_spectrum = n_band.band.to_spectrum1d()
 
@@ -189,7 +189,7 @@ if __name__ == '__main__':
         ax_track.set_ylabel('Z - NB965')
         ax_track.set_xlabel('I - Z')
         plt.savefig(f'test_delete_{i}.png')
-        plt.close()'''
+        plt.close()
 
     #GIF SED
     '''i_band_spectrum = i_band.band.to_spectrum1d()

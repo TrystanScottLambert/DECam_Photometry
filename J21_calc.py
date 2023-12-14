@@ -37,15 +37,24 @@ def j_21(fq: Quantity) -> Quantity:
 	return val*1e21
 
 if __name__ == '__main__':
-	ab = 19.93
-	z = 4.874
-	flux_density = f_q(ab, z, 770*u.kpc)
+	# Checking calulation is consistent
+	#ab = 19.93
+	#z = 4.874
+	#flux_density = f_q(ab, z, 770*u.kpc)
+	#print(flux_density)
+	#print(j_21(flux_density))
+	#print('-------------------------------------')
+	ab = 21.17
+	z = 6.9
+	print('Stuff at 2Mpc')
+	flux_density = f_q(ab, z, 2*u.Mpc)
 	print(flux_density)
 	print(j_21(flux_density))
 	print('-------------------------------------')
-	ab = 21.17
-	z = 6.9
-	flux_density = f_q(ab, z, 2.64*u.Mpc)
+	print('Stuff at 5Mpc')
+	flux_density = f_q(ab, z, 5*u.Mpc)
 	print(flux_density)
 	print(j_21(flux_density))
+
+	
 
