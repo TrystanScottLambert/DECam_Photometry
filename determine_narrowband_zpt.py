@@ -9,6 +9,7 @@ import pylab as plt
 import numpy as np
 from scipy import odr
 from sex_catalog import SExtractorCat
+from scipy.stats import gaussian_kde
 
 import plotting
 from k_constant import calculate_k_constant_mag
@@ -106,14 +107,23 @@ if __name__ == '__main__':
 
     fig = plotting.start_plot(x_label = r'z$_{\rm PS1}$ - y$_{\rm PS1}$', y_label = r'z$_{\rm PS1}$ - NB964')
     plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
-                  yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.3, capsize=0, zorder=0)
+                  yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.1, capsize=0, zorder=0)
+
+
+    #nbins = 100
+    #kernal = gaussian_kde((delta_pan[final_cut], delta_decam[final_cut]))
+    #x_i, y_i = np.mgrid[
+    #    delta_pan[final_cut].min():delta_pan[final_cut].max():nbins*1j, delta_decam[final_cut].min():delta_decam[final_cut].max():nbins*1j]
+    #z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
+    #plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto', cmap='gray_r')
 
     # To check that the limits are in the right place
     #plt.plot(x_fit, bottom_limit(x_fit), color='b')
     #plt.plot(x_fit, upper_limit(x_fit), color='b')
     plt.plot(x_fit, fit,'r', lw=2)
-    plt.fill_between(x_fit, fit_up, fit_dw, alpha=.5, color='r')
-    plt.xlim(-0.3, 0.7)
+    plt.fill_between(x_fit, fit_up, fit_dw, alpha=.2, color='r')
+    plt.xlim(delta_pan[final_cut].min(), delta_pan[final_cut].max())
+    plt.ylim(delta_decam[final_cut].min(), delta_decam[final_cut].max())
     plotting.end_plot('plots/N964_zpt_calculation.png')
 
     N964_DIR = '../correct_stacks/N964/'
