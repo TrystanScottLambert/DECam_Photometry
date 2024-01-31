@@ -8,6 +8,8 @@ from astropy.units.quantity import Quantity
 import astropy.units as u
 from astropy.cosmology import FlatLambdaCDM
 import pylab as plt
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
 
 from plotting import start_plot, end_plot
 
@@ -99,21 +101,32 @@ no_surveys = [
     kikuta_2017_1113_lbg,
 ]
 
+yes_redshifts = [obs.qso_redshift for obs in surveys]
+no_redshifts = [obs.qso_redshift for obs in no_surveys]
+all_redshifts = yes_redshifts + no_redshifts
+
+norm = Normalize(vmin=min(all_redshifts), vmax=max(all_redshifts))
+cmap = plt.cm.get_cmap('inferno_r')
+sm = ScalarMappable(norm=norm, cmap=cmap)
+
+
 start_plot('Search Area [cMpc]', 'Overdensity factor')
 for survey in surveys:
+    color = sm.to_rgba(survey.qso_redshift)
     if survey.survey_type == 'LBG':
         SHAPE = 's'
     else:
         SHAPE = 'd'
-    plt.scatter(survey.comoving_area, survey.overdensity_factor, s=20, c='k', zorder=99, marker=SHAPE)
+    plt.scatter(survey.comoving_area, survey.overdensity_factor, s=20, c=color, zorder=99, marker=SHAPE)
 
 
 for survey in no_surveys:
+    color = sm.to_rgba(survey.qso_redshift)
     if survey.survey_type == 'LBG':
         SHAPE = 's'
     else:
         SHAPE = 'd'
-    plt.scatter(survey.comoving_area, survey.overdensity_factor, s=30, facecolor='None', edgecolors='k', zorder=99, marker=SHAPE)
+    plt.scatter(survey.comoving_area, survey.overdensity_factor, s=30, facecolor='None', edgecolors=color, zorder=99, marker=SHAPE)
 
 plt.axhline(1, ls=':', color='k', lw=1, alpha=0.4)
 plt.errorbar(lambert_2023.comoving_area, lambert_2023.overdensity_factor, ms=10, c='m', marker='*', yerr=3, capsize=2, ecolor='k')
@@ -121,4 +134,5 @@ plt.errorbar(lambert_2023.comoving_area, lambert_2023.overdensity_factor, ms=10,
 plt.axvspan(10**(2.5), 10**(3.5), color='r', alpha=0.2, label='Protocluster area')
 plt.legend(frameon=False)
 plt.xscale('log')
+cbar = plt.colorbar(sm, label='QSO Redshift')
 end_plot('plots/chiara_lambert.png')

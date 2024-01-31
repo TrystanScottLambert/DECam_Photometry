@@ -43,7 +43,7 @@ if __name__ == '__main__':
         ax_main.set_ylim(0, 3)
         ax_main.set_xlim(6.5, 7.05)
         ax_main.axhline(0.75, ls='--', color='k', alpha=0.5, lw=1.5)
-        prettify_axis(ax_main, 'Redshift', 'Z - NB964')
+        prettify_axis(ax_main, 'Redshift', 'z - NB964')
 
     ax_filter = ax_main.twinx()
     ax_filter.plot(filter_plot_redshift, filter_plot_y, ls=':', color='k', alpha=0.3)

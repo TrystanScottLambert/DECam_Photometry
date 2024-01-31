@@ -346,8 +346,8 @@ if __name__ == '__main__':
     #cdfs_selection.plot_first_color_color()s
     #cdfs_selection.plot_color_color()
 
-    #perform_selection(our_selection)
-    perform_selection(cdfs_selection)
+    perform_selection(our_selection)
+    #perform_selection(cdfs_selection)
 
     #true_cdfs_inputs = cdfs_inputs
     #true_cdfs_inputs.output_name = 'candidates_true_cdfs'

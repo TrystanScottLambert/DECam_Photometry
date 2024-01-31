@@ -105,17 +105,17 @@ if __name__ == '__main__':
     fit_up = straight_line(popt_up, x_fit)
     fit_dw= straight_line(popt_dw, x_fit)
 
-    fig = plotting.start_plot(x_label = r'z$_{\rm PS1}$ - y$_{\rm PS1}$', y_label = r'z$_{\rm PS1}$ - NB964')
-    plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
-                  yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.1, capsize=0, zorder=0)
+    fig = plotting.start_plot(x_label = r'z$_{\rm PS1}$ - y$_{\rm PS1}$', y_label = r'z$_{\rm PS1}$ - NB964$_{\rm inst}$')
+    #plt.errorbar(delta_pan[final_cut], delta_decam[final_cut], xerr=delta_pan_err[final_cut],
+    #              yerr = delta_decam_err[final_cut], fmt = 'ko', alpha=0.1, capsize=0, zorder=0)
 
 
-    #nbins = 100
-    #kernal = gaussian_kde((delta_pan[final_cut], delta_decam[final_cut]))
-    #x_i, y_i = np.mgrid[
-    #    delta_pan[final_cut].min():delta_pan[final_cut].max():nbins*1j, delta_decam[final_cut].min():delta_decam[final_cut].max():nbins*1j]
-    #z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
-    #plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto', cmap='gray_r')
+    nbins = 100
+    kernal = gaussian_kde((delta_pan[final_cut], delta_decam[final_cut]))
+    x_i, y_i = np.mgrid[
+        delta_pan[final_cut].min():delta_pan[final_cut].max():nbins*1j, delta_decam[final_cut].min():delta_decam[final_cut].max():nbins*1j]
+    z_i = kernal(np.vstack([x_i.flatten(), y_i.flatten()]))
+    plt.pcolormesh(x_i, y_i, z_i.reshape(x_i.shape), shading='auto', cmap='gray_r')
 
     # To check that the limits are in the right place
     #plt.plot(x_fit, bottom_limit(x_fit), color='b')

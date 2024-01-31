@@ -94,7 +94,7 @@ if __name__ == '__main__':
         if ev ==1:
             alpha_value = 1.
         plt.plot(plot_i_color_m82, plot_z_color_m82, lw=1, label=f'M82, E(B-V) = {ev}', color='b', alpha=alpha_value)
-        plt.plot(plot_i_color_qso2, plot_z_color_qso2, lw=1, label = f'QSO, E(B-V) = {ev}', color='g', alpha = alpha_value)
+        plt.plot(plot_i_color_qso2, plot_z_color_qso2, lw=1, label = f'QSO2, E(B-V) = {ev}', color='g', alpha = alpha_value)
 
         #plt.scatter(point_i_color, point_z_color, marker='s', color='r')
         #for i_color, z_color, redshift in zip(point_i_color, point_z_color, point_redshift_range):

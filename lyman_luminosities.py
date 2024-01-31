@@ -32,7 +32,6 @@ full_volume = COSMO.comoving_volume(6.97) - COSMO.comoving_volume(6.89)
 AREA_US = 2.87 *(u.deg**2)
 SQUARE_DEG_IN_SR = 41252.96 *(u.deg**2)
 effective_volume = full_volume * (AREA_US/SQUARE_DEG_IN_SR)
-print('effective volume is: ', effective_volume)
 QSO_REDSHIFT = 6.9018
 LYMAN_ALPHA_OBSERVED_WAVELENGTH = 1216 * (QSO_REDSHIFT + 1) # angstrom
 
@@ -128,7 +127,7 @@ if __name__ == '__main__':
     Z_CATALOG = '../correct_stacks/N964/z.cat'
     CANDIDATES_CATALOG = 'candidates_e.txt'
     OUTFILE = 'candidate_luminosities.dat'
-
+    
     #NARROW_CATALOG = '../CDFS_LAGER/n964_cdfs.cat'
     #Z_CATALOG = '../CDFS_LAGER/z_cdfs.cat'
     #CANDIDATES_CATALOG = 'candidates_cdfs_e.txt'
@@ -136,7 +135,7 @@ if __name__ == '__main__':
 
 
     ra_n, dec_n, n_mag, n_err = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(0, 1, 4, 5))
-    z_mag, z_err = np.loadtxt(NARROW_CATALOG, unpack=True, usecols=(4,5))
+    z_mag, z_err = np.loadtxt(Z_CATALOG, unpack=True, usecols=(4,5))
 
     ra_candidates, dec_candidates = np.loadtxt(CANDIDATES_CATALOG, unpack=True)
     candidates = SkyCoord(ra = ra_candidates * u.deg, dec = dec_candidates * u.deg)
@@ -167,7 +166,7 @@ if __name__ == '__main__':
     log_10_lya = np.log10(lya_lum.value)
 
 
-
+    
     slope, intercept, r_value, p_value, std_err = stats.linregress(log_10_lya,n_mag)
     def convert_log10_lya_nmag(log_10_lya):
         return log_10_lya*slope + intercept
@@ -205,17 +204,38 @@ if __name__ == '__main__':
         """Scaled version of the Hu et al shecter function. For fitting and determining our overdensity."""
         return offset * shecter(L, *popt)
     
-    popt_us, pcov_us = curve_fit(fitted_shecter, 10**x_avg[y.value != 0], y.value[y.value != 0],p0=10, maxfev=5000)
+    popt_us, pcov_us = curve_fit(fitted_shecter, 10**x_avg[y.value != 0][2:], y.value[y.value != 0][2:],p0=10, maxfev=5000)
     popt_us_lower = popt_us - np.sqrt(pcov_us)
     popt_us_upper = popt_us + np.sqrt(pcov_us)
 
+    #wold
+    popt_wold = [10**(-3.65), 10**(42.95)]
+    popt_wold_lower = [10**(-3.95), 10**(42.85)]
+    popt_wold_upper = [10**(-3.4), 10**(43.07)]
+
+    def fitted_shecter_wold(L: float, offset: float):
+        """Scaled version of the Wold + 2022 Luminosity function."""
+        return offset * shecter(L, *popt_wold)
+    
+    popt_us_wold, pcov_us_wold = curve_fit(fitted_shecter_wold, 10**x_avg[y.value != 0][2:], y.value[y.value != 0][2:],p0=10, maxfev=5000)
+    popt_us_lower_wold = popt_us - np.sqrt(pcov_us_wold)
+    popt_us_upper_wold = popt_us + np.sqrt(pcov_us_wold)
+
+
+
     start_plot('log' + r'L$_{L_{\alpha}}$' + '[erg s' + r'$^{-1}]$', r'$\log \Phi $[$\Delta \log $ L$_{L_{\alpha}}$ Mpc$^{-3}$]')
-    plt.errorbar(x_avg, np.log10(y.value), yerr=y_err_log, color='k', fmt='o', label='Lambert+2023 (this work)', ms=4)
+    
     plt.plot(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us)), color='k', label='Scaled LF', alpha=0.5)
+    plt.errorbar(x_avg, np.log10(y.value), yerr=y_err_log, color='k', fmt='o', label='This work', ms=4)
     plt.fill_between(x_avg, np.log10(shecter(10**x_avg, *popt_lower)), np.log10(shecter(10**x_avg, *popt_upper)), color='r', alpha=0.2)
     plt.fill_between(x_avg, np.log10(fitted_shecter(10**x_avg, *popt_us_lower)), np.log10(fitted_shecter(10**x_avg, *popt_us_upper)), color='k', alpha=0.2)
-    plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt)), lw=2, color='r', label='LF (Hu et. al., 2019)')
-    plt.xlim(42.8, 43.4)
+    plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt)), lw=1, color='r', ls='--', label='Hu+2019')
+    
+    #wold combined LF
+    plt.fill_between(x_avg, np.log10(shecter(10**x_avg, *popt_wold_lower)), np.log10(shecter(10**x_avg, *popt_wold_upper)), color='g', alpha=0.2)
+    plt.plot(x_avg, np.log10(shecter(10**x_avg, *popt_wold)), lw=2, color='g', ls=':', label='Wold+2022')
+
+    plt.xlim(42.6, 43.4)
     plt.ylim(-6.1, -2.6)
     plt.legend(frameon=False)
     end_plot('plots/luminosity_function.png')
