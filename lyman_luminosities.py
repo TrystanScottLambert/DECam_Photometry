@@ -186,7 +186,7 @@ if __name__ == '__main__':
     y, x = np.histogram(log_10_lya, bins = bins)
     y_err = np.sqrt(y)
     x_avg = np.array([(x[i] + x[i+1])/2 for i in range(len(x) - 1)])
-    factor = (effective_volume * complete(convert_log10_lya_nmag(y)) * binwidth) 
+    factor = (effective_volume * complete(convert_log10_lya_nmag(y)) * binwidth)
     y = y/factor
     y_err = y_err/factor
     y_err_log = (1./np.log(10)) * (y_err.value/y.value)
@@ -199,6 +199,11 @@ if __name__ == '__main__':
     popt = [10**(-4.19), 10**(43.08)]
     popt_lower = [10**(-4.5), 10**(42.97)]
     popt_upper = [10**(-3.93), 10**(43.22)]
+
+    # Selection completeness corrected values (not the popt and plower though)
+    #popt = [10**(-3.6), 10**(42.94)]
+    #popt_lower = [10**(-4.5), 10**(42.97)]
+    #popt_upper = [10**(-3.93), 10**(43.22)]
 
     def fitted_shecter(L: float, offset):
         """Scaled version of the Hu et al shecter function. For fitting and determining our overdensity."""
