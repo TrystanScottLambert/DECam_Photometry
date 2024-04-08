@@ -84,11 +84,12 @@ def get_z_band_mags(candidate_name: str, z_catalog_name: str) -> list[str]:
     catalog = SkyCoord(ra = cat.catalog['ALPHAPEAK_J2000']*u.deg, dec = cat.catalog['DELTAPEAK_J2000']*u.deg)
     idx, _, _  = candidates.match_to_catalog_sky(catalog)
     mags = np.array(cat.catalog['MAG_APER'][idx]) + zero_points.z_band.mag_correct(1)
-    mag_err = np.array(cat.catalog['MAGERR_APER'])
+    mag_err = np.array(cat.catalog['MAGERR_APER'][idx])
     mags, mag_err = np.around(mags, 2), np.around(mag_err, 2)
     mag_str = [f"{m:.2f}"for m in mags]
     mag_err_str = [f"{err:.2f}" for err in mag_err]
-    mag_strings = [f'{m} $\pm$ {err}' for m, err in zip(mag_str, mag_err_str)]
+
+    mag_strings = [f'{m} $\pm$ {err}' for m, err in zip(mags, mag_err)]
     return mag_strings
 
 def make_file(infile: str, outfile: str, lum_file:str=None, z_band_file: str = None) -> None:

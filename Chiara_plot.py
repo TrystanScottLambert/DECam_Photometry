@@ -46,7 +46,7 @@ husband_2013_0338 = Observation('SDSS_J0338+0021', 5.027, 49*(u.arcmin**2), 6, '
 zheng_2006 = Observation('SDSS_J0836+0054', 5.8, 5*(u.arcmin**2), 6, 'LBG')
 utsumi_2010 = Observation('CFHQS_J2329-0301', 6.43, 0.219*(u.deg**2), 7, 'LBG')
 champagne_2023_3051 = Observation('VIK_J030516.92-315056.0', 6.6, 7.9*(u.arcmin**2), 9.8, 'LBG')
-lambert_2023 = Observation('VIK_2348-3054', 6.9, 2.87*(u.deg**2), 14, 'LBG')
+lambert_2023 = Observation('VIK_2348-3054', 6.9, 2.87*(u.deg**2), 11, 'LBG')
 kim_2009_1030 = Observation('SDSS J1030+0524', 6.28, 11.3 * (u.arcmin**2), 1.75, 'LBG')
 kim_2009_1630 = Observation('SDSS J1630+4012', 6.05, 11.3 * (u.arcmin**2), 1.375, 'LBG')
 
@@ -110,7 +110,7 @@ cmap = plt.cm.get_cmap('inferno_r')
 sm = ScalarMappable(norm=norm, cmap=cmap)
 
 
-start_plot('Search Area [cMpc]', 'Overdensity factor')
+start_plot(r'Search Area [cMpc$^{2}$]', 'Overdensity factor')
 for survey in surveys:
     color = sm.to_rgba(survey.qso_redshift)
     if survey.survey_type == 'LBG':
@@ -129,7 +129,7 @@ for survey in no_surveys:
     plt.scatter(survey.comoving_area, survey.overdensity_factor, s=30, facecolor='None', edgecolors=color, zorder=99, marker=SHAPE)
 
 plt.axhline(1, ls=':', color='k', lw=1, alpha=0.4)
-plt.errorbar(lambert_2023.comoving_area, lambert_2023.overdensity_factor, ms=10, c='m', marker='*', yerr=3, capsize=2, ecolor='k')
+plt.errorbar(lambert_2023.comoving_area, lambert_2023.overdensity_factor, ms=10, c='m', marker='*', yerr=2, capsize=2, ecolor='k')
 #plt.errorbar(lambert_2023.comoving_area, 10, ms=10, c='m', marker='*', yerr=7, capsize=2, ecolor='k')
 plt.axvspan(10**(2.5), 10**(3.5), color='r', alpha=0.2, label='Protocluster area')
 plt.legend(frameon=False)
