@@ -44,7 +44,7 @@ class SedSpectrum:
         return spectrum
 
 class LaeSpectrum:
-    """Class representation of a lyman alphe emitter spectrum."""
+    """Class representation of a lyman alpha emitter spectrum."""
     LLYA_REST = 1215.67 * u.angstrom
     FWHM_LYA  = 200.    * (u.km/u.s)
     SIG_LYA   = (LLYA_REST * (FWHM_LYA/c.c.to(u.km/u.s))) * gaussian_fwhm_to_sigma # Ang.

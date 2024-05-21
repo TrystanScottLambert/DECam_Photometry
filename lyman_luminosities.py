@@ -184,12 +184,18 @@ if __name__ == '__main__':
     bins = np.arange(42.0, 43.8, binwidth)
     plt.hist(log_10_lya, bins = bins)
     y, x = np.histogram(log_10_lya, bins = bins)
+    print('Number of sources: ', y[6:])
+    print('Luminosity Range: ', x[6:])
+
+
     y_err = np.sqrt(y)
     x_avg = np.array([(x[i] + x[i+1])/2 for i in range(len(x) - 1)])
     factor = (effective_volume * complete(convert_log10_lya_nmag(y)) * binwidth)
     y = y/factor
     y_err = y_err/factor
     y_err_log = (1./np.log(10)) * (y_err.value/y.value)
+    print('Space density (Log): ',np.log10(y.value[6:]))
+    print('Space density err: ', y_err_log[6:])
     plt.show()
 
     def shecter(L, phi, L_star):

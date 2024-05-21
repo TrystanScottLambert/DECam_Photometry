@@ -15,6 +15,10 @@ from inject_false_sources import MIN_MAG, MAX_MAG
 from plotting import start_plot, end_plot
 
 from zero_points import zero_points
+from identify_candidates import calculate_snr, read_all
+from depth_values import OUR_DEPTH
+from decam import write_positions_as_region_file
+
 
 def get_matches(target_catalog: SkyCoord, main_catalog: SkyCoord):
     """
@@ -45,6 +49,10 @@ if __name__ == '__main__':
     ORIGINAL_SEXCAT = '../correct_stacks/N964/n964.cat'
     MOCK_SOURCES_FILE = 'mock_lae_sources.txt'
     FITS_FILE = '../correct_stacks/N964/n964.injected.fits'
+    I_MOCK_CATALOG = '../correct_stacks/N964/i_false.cat'
+    I_CATALOG = '../correct_stacks/N964/i.cat'
+    Z_MOCK_CATALOG = '../correct_stacks/N964/z_false.cat'
+    Z_CATALOG = '../correct_stacks/N964/z.cat'
 
     hdu = fits.open(FITS_FILE)
     wcs = WCS(hdu[0].header)
@@ -65,6 +73,53 @@ if __name__ == '__main__':
 
     # Remove any sources that are actually from the original catalog
     possible_recovered_idx = remove_original_sources(recovered_cat[idx_recovered], original_cat)
+    idx_found = idx_recovered[possible_recovered_idx]
+
+    #Reading in the broadband data.
+    mag_z, err_z, snr_z = read_all(Z_MOCK_CATALOG)
+    mag_i, err_i, snr_i = read_all(I_MOCK_CATALOG)
+    mag_n964, err_n964, snr_n964 = read_all(MOCK_SOURCES_2_SEXCAT)
+
+    mag_z += zero_points.z_band.mag_correct(1)
+    mag_i += zero_points.i_band.mag_correct(1)
+    mag_n964 += zero_points.n964_band.mag_correct(1)
+
+    #Preparing the values (including setting limiting magnitudes)
+    mag_z, err_z, snr_z = mag_z[idx_found], err_z[idx_found], snr_z[idx_found]
+    mag_i, err_i, snr_i = mag_i[idx_found], err_i[idx_found], snr_i[idx_found]
+    mag_n964, err_n964, snr_n964 = mag_n964[idx_found], err_n964[idx_found], snr_n964[idx_found]
+
+
+    mag_z = mag_n964 + 2.576
+    mag_i[np.where(snr_i < 1)] = OUR_DEPTH.i_band.sigma_1
+    mag_z[np.where(snr_z < 1)] = OUR_DEPTH.z_band.sigma_3
+    
+
+
+    #Narrowband Color selection
+    color = mag_z - mag_n964
+    significance = 2.5 * np.hypot(err_z, err_n964)
+    first_cut = np.where(color > 0.78)[0]
+    final_cut = []
+    for idx in first_cut:
+        if np.abs(color[idx]) > significance[idx]:
+            final_cut.append(idx)
+    narrow_band_cut = np.array(final_cut)
+
+
+    #Continuum color selection
+    color = mag_i - mag_z
+    continuum_cut = np.where(color > 1.)[0]
+
+    #i-band cut
+    i_band_cut = np.where(snr_i < 2)[0]
+
+    #Selection
+    selection = np.intersect1d(i_band_cut,np.intersect1d(continuum_cut, narrow_band_cut))
+
+
+
+    #Plotting
 
 
     def func(x, a, b, z, f):
@@ -77,7 +132,7 @@ if __name__ == '__main__':
     x_avg = [(bins[i] + bins[i+1])/2 for i in range(len(bins)-1)]
 
     y_mock, _ = np.histogram(mag, bins=bins)
-    y_recovered, _ = np.histogram(mag[idx_mock], bins=bins)
+    y_recovered, _ = np.histogram(mag[idx_mock][possible_recovered_idx], bins=bins)
 
     y_completeness = y_recovered/y_mock
     popt, pcov = curve_fit(func, x_avg, y_completeness, maxfev=8000, p0=[-0.5,0.5,24,1])

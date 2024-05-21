@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from regions import PixCoord, CirclePixelRegion
 import astropy.units as u
+from astropy.coordinates import SkyCoord
 from astropy.cosmology import FlatLambdaCDM
 from astropy.io import fits
 from astropy.wcs import WCS
@@ -79,4 +80,12 @@ if __name__ == '__main__':
     ax.minorticks_on()
     ax.tick_params(which='both', width=1.2,direction='in')
     ax.tick_params(which='major', length=3, direction='in')
+
+    # Adding labels to the plot
+    label, ra_label, dec_label = np.loadtxt('target_list.dat', usecols=(0, 1, 2), unpack=True, dtype=str)
+    label_skycoord = SkyCoord(ra_label, dec_label, unit=('hourangle', 'deg'))
+    coords_label_plot = [decam_wcs.world_to_pixel_values(skycoord.ra.value, skycoord.dec.value) for skycoord in label_skycoord]
+    for i, coord in enumerate(coords_label_plot):
+        ax.text(coord[0], coord[1], label[i], fontsize=12, ha='center', va='bottom')
+
     plotting.end_plot('plots/on_sky_distribution.png')

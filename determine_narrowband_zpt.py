@@ -81,6 +81,7 @@ if __name__ == '__main__':
     fit_cut = index_in_limits(delta_pan[final_cut], delta_decam[final_cut])
     ra, dec = ra[final_cut][fit_cut], dec[final_cut][fit_cut]
     straight_line_model = odr.Model(straight_line)
+    print(len(fit_cut))
     data = odr.RealData(delta_pan[final_cut][fit_cut], delta_decam[final_cut][fit_cut],
                         sx=delta_pan[final_cut][fit_cut], sy=delta_decam[final_cut][fit_cut])
 
