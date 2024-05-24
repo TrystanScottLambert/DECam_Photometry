@@ -57,20 +57,17 @@ class LaeSpectrum:
         """Initializaing the spectrum based on the redshift"""
         self.lum_dist = cosmo.luminosity_distance(redshift).to(u.cm)
         self._log_flux = LaeSpectrum.LOG_LUM_LYA - np.log10(
-            4 * np.pi * self.lum_dist.value**2) - 48
-        self._flux = 10**self._log_flux * (u.erg/u.s/self.lum_dist.unit**2)
-
-
+            4 * np.pi * self.lum_dist.value**2) #- 48
+        self._flux = 10**self._log_flux * (u.erg/u.s/u.cm**2)
         self._ew_lya_obs = LaeSpectrum.EW_LYA * (1 + redshift)
 
         wavelength = LaeSpectrum.wavelength_rest * (1 + redshift)
+        flux = (LaeSpectrum.flux_rest.value * self._flux.value) + (self._flux.value/self._ew_lya_obs.value)
         #flux = (LaeSpectrum.flux_rest * self._flux/1) + (self._flux/self._ew_lya_obs)
         #flux = su.convert_flux(wavelength, flux, out_flux_unit=su.PHOTLAM)
-        flux = (LaeSpectrum.flux_rest.value * self._flux.value) + (self._flux.value/self._ew_lya_obs.value)
-
 
         self.spectrum = SourceSpectrum(
-            Empirical1D, points = wavelength, lookup_table = flux, keep_neg=True)
+            Empirical1D, points = wavelength, lookup_table = flux * (su.FLAM), keep_neg=True)
         if include_absorption:
             extinction_curve = etau_madau(wavelength, redshift)
             self.spectrum = self.spectrum * extinction_curve

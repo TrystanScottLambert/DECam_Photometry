@@ -33,8 +33,9 @@ class Filter:
 
     def observe_magnitude(self, spectrum: SourceSpectrum) -> Observation:
         """Creates an observation through the filter and determines the AB mag."""
+        mirror_area = np.pi*((400)**2) * (u.cm**2)
         obs = Observation(spectrum, self.band, force='taper')
-        return obs.effstim(u.ABmag)
+        return obs.effstim(u.ABmag, area = mirror_area)
 
 
 def calculate_color(filter_1: Filter, filter_2: Filter, source: SourceSpectrum) -> float:
@@ -102,7 +103,7 @@ if __name__ == '__main__':
 
     qso_i_color, qso_z_color = work_out_colors_for_redshift([6.91])
     plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', zorder=99, color='k')
-    LaeSpectrum.EW_LYA = 10*u.angstrom
+    LaeSpectrum.EW_LYA = 1*u.angstrom
     qso_i_color, qso_z_color = work_out_colors_for_redshift([6.91])
     plt.scatter(qso_i_color[0], qso_z_color[0], s=50, marker='*', zorder=99, color='m')
     lower_i, lower_z = work_out_colors_for_redshift(plot_redshift_range)
